@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import './deenme-theme.css';
 import { Rail, fireConfetti } from './ui.jsx';
 import { PRAYERS, SUNNAH, DashboardPage } from './dashboard.jsx';
-import { JournalPage, BankDoaPage, StatistikPage } from './pages.jsx';
+import { JournalPage, BankDoaPage, StatistikPage, AmalanPage } from './pages.jsx';
 
 const LS_KEY = 'deenme-state-v4';
 const loadState = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; } };
@@ -115,6 +115,7 @@ export default function App() {
             useFreeze={useFreeze} pulse={pulse} go={setView} />}
         {view === 'journal' && <JournalPage go={setView} />}
         {view === 'doa' && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
+        {view === 'amalan' && <AmalanPage />}
         {view === 'stats' && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} />}
       </div>
     </div>

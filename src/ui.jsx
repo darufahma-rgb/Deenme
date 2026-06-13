@@ -5,6 +5,7 @@ export const Icon = {
   journal: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 1 5 19.5z"/><path d="M9 3v18"/><path d="M12.5 8.5h3.5M12.5 12h3.5"/></svg>,
   doa: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 14.5A8 8 0 1 1 10.2 4.3a6.3 6.3 0 0 0 9.8 10.2z"/><path d="M16.5 4.2l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6L14.2 6.5l1.6-.7z"/></svg>,
   stats: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>,
+  amalan: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/><path d="M19.5 5.5l1.5-1.5M15 2l.5 2M20 7.5l2-.5"/></svg>,
   logout: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>,
   flame: <svg width="110" height="110" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.6 4 5 6.2 5 10.2a5 5 0 0 1-10 0c0-2 .8-3.7 2.1-5.1.2 1.5 1 2.2 1.9 2.4C10.1 7.4 11 4.6 12 2z"/></svg>,
   check: <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>,
@@ -46,7 +47,7 @@ export function PrayerRing({ letter, pct = 0, style = 'solid', tone = 'gold', si
             strokeDasharray={style === 'dashed' ? '1.5 7' : null} />}
         {prog}
         <text x="40" y="41" textAnchor="middle" dominantBaseline="central" fontFamily="var(--f-head)"
-          fontWeight="500" fontSize="21" fill={done ? stroke : 'var(--text-3)'}
+          fontWeight="600" fontSize="21" fill={done ? stroke : 'var(--text-3)'}
           style={{ transition: 'fill .3s' }}>{letter}</text>
       </svg>
     </div>
@@ -63,13 +64,20 @@ export function ScoreRing({ pct = 0, size = 88 }) {
           strokeDasharray={C} strokeDashoffset={C * (1 - pct)} transform="rotate(-90 40 40)"
           style={{ transition: 'stroke-dashoffset .7s cubic-bezier(.2,.8,.25,1)' }} />
         <text x="40" y="40" textAnchor="middle" dominantBaseline="central" fontFamily="var(--f-head)"
-          fontWeight="500" fontSize="18" fill="var(--text)">{Math.round(pct * 100)}%</text>
+          fontWeight="600" fontSize="18" fill="var(--text)">{Math.round(pct * 100)}%</text>
       </svg>
     </div>
   );
 }
 
-const RAIL_ITEMS = [['dashboard', 'dash', 'Dashboard'], ['journal', 'journal', 'Jurnal'], ['doa', 'doa', 'Bank Doa'], ['stats', 'stats', 'Statistik']];
+const RAIL_ITEMS = [
+  ['dashboard', 'dash',   'Dashboard'],
+  ['journal',   'journal','Jurnal'],
+  ['doa',       'doa',    'Bank Doa'],
+  ['amalan',    'amalan', 'Amalan'],
+  ['stats',     'stats',  'Statistik'],
+];
+
 export function Rail({ page, go, onLogout }) {
   return (
     <div className="rail">

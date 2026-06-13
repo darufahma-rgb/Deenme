@@ -1,0 +1,25 @@
+I need to expand the duas and daily amal data in the existing Deenme app. Please update src/pages.jsx with the following changes:
+1. Expand the DOA array with more duas for each category. Keep the existing format { cat, ar, tr, src }. Add at least 3-4 duas per category:
+
+Per Waktu Solat: Dzikir after each of the 5 prayers (Subuh morning adhkar, Dzuhur, Ashar, Maghrib evening adhkar, Isya before sleep)
+Ujian: Doa before studying, doa for memory/understanding, doa on exam day
+Galau: Doa Nabi Ayyub, doa when feeling overwhelmed, doa for patience (sabr)
+Syukur: Doa when receiving good news, doa alhamdulillah, doa for gratitude after eating
+Safar: Doa leaving home, doa entering new city, doa for safe return
+Sakit: Doa visiting the sick, doa ruqyah ma'tsur, doa for speedy recovery
+Rezeki: Doa pagi untuk rezeki, doa after fajr for barakah in rizq, doa when paying debts
+
+All Arabic text must be fully voweled (with harakat/tashkeel). All sources must be accurate — Quran with surah:ayat, Hadith with narrator and number (e.g. HR. Bukhari no. XXXX).
+2. Add a new AMALAN_HARIAN constant — a list of recommended daily amal with this structure:
+js{ id, name, nameAr, description, time, category, rakaat? }
+Include: Shalat Dhuha, Tahajud, Witir, Puasa Sunnah Senin-Kamis, Membaca Al-Kahfi (Jumat), Shalawat 100x, Istighfar 100x, Dzikir pagi (Hisnul Muslim), Dzikir petang (Hisnul Muslim), Sedekah harian.
+3. Add a new AmalanPage component accessible from the sidebar. It should:
+
+Show the AMALAN_HARIAN list as cards
+Each card: Arabic name, Indonesian name, description, recommended time (e.g. "Setelah Subuh"), and a daily checkbox toggle (done/not done)
+Use the same dark gold design system as the rest of the app (existing CSS classes: .card, .chip, .eyebrow, .btn.gold, etc.)
+Store checked state in React useState
+
+4. Update src/ui.jsx — add a new nav icon for "Amalan" in the Rail component (use a crescent/star SVG icon) and add ['amalan', 'amalan', 'Amalan'] to the RAIL_ITEMS array.
+5. Update src/App.jsx — import AmalanPage from pages.jsx and add the route: {view === 'amalan' && <AmalanPage />}
+Do not change any existing functionality. Use the same code style as the existing files (functional components, hooks, no TypeScript).
