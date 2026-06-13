@@ -1,0 +1,436 @@
+DEENME — DASHBOARD REDESIGN: Prayer Time Cards 3-Column Grid
+Redesign the prayer tracker from a vertical list into a 3-column card grid. Tapping a card opens a bottom sheet with full amalan for that prayer time.
+
+STEP 1 — Update prayer card grid layout in src/dashboard.jsx:
+Replace the existing plist vertical layout with a 3-column grid. Add Tahajud and Witir as cards too.
+jsxexport const PRAYER_CARDS = [
+  { k: 'tahajud',  id: 'Tahajud',  ar: 'التَّهَجُّد', emoji: '🌙', sched: '03:00', color: '#4a3080' },
+  { k: 'subuh',    id: 'Subuh',    ar: 'الفجر',       emoji: '🌅', sched: '--:--', color: '#386641' },
+  { k: 'dzuhur',   id: 'Dzuhur',   ar: 'الظهر',       emoji: '🕛', sched: '--:--', color: '#386641' },
+  { k: 'ashar',    id: 'Ashar',    ar: 'العصر',       emoji: '🌤️', sched: '--:--', color: '#386641' },
+  { k: 'maghrib',  id: 'Maghrib',  ar: 'المغرب',      emoji: '🌇', sched: '--:--', color: '#386641' },
+  { k: 'isya',     id: 'Isya',     ar: 'العشاء',      emoji: '🌙', sched: '--:--', color: '#386641' },
+];
+
+function PrayerCard({ p, status, time, isNext, onStatus, onSetTime, onClick, schedules }) {
+  const done = !!status;
+  const sched = schedules?.[p.k] || p.sched;
+  return (
+    <div
+      className={'prayer-card' + (done ? ' done' : '') + (status === 'qadha' ? ' qadha' : '') + (isNext ? ' next' : '')}
+      onClick={() => onClick(p)}
+      style={{ cursor: 'pointer' }}
+    >
+      {/* Top: Arabic + emoji */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+        <span style={{ fontFamily: 'var(--f-ar)', fontSize: 14, color: done ? 'var(--gold)' : 'var(--text-3)', direction: 'rtl' }}>{p.ar}</span>
+        <span style={{ fontSize: 18 }}>{p.emoji}</span>
+      </div>
+
+      {/* Prayer name */}
+      <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 17, color: 'var(--text)', marginBottom: 4, letterSpacing: '-.01em' }}>{p.id}</div>
+
+      {/* Schedule time */}
+      <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12, color: done ? 'var(--gold)' : 'var(--text-3)', marginBottom: 10 }}>
+        {sched}
+        {time && done && <span style={{ color: 'var(--text-2)', marginLeft: 4 }}>· {time}</span>}
+      </div>
+
+      {/* Status buttons */}
+      <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
+        {[['ok', '✓', 'Tepat'], ['late', '!', 'Telat'], ['qadha', '○', 'Qadha']].map(([s, icon, lbl]) => (
+          <button
+            key={s}
+            className={'prayer-status-btn ' + s + (status === s ? ' on' : '')}
+            onClick={(e) => { e.stopPropagation(); onStatus(p.k, status === s ? null : s); if (s !== 'qadha' && status !== s) { onSetTime(p.k); } }}
+            title={lbl}
+          >
+            {icon}
+          </button>
+        ))}
+      </div>
+
+      {/* Next badge */}
+      {isNext && <div className="next-tag" style={{ marginTop: 8, display: 'inline-block', fontSize: 10, padding: '2px 8px', borderRadius: 999, border: '1px solid' }}>Berikutnya</div>}
+
+      {/* Done ring overlay */}
+      {done && (
+        <div style={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: '50%', background: status === 'qadha' ? 'var(--danger)' : 'var(--ok)', boxShadow: `0 0 6px ${status === 'qadha' ? 'var(--danger)' : 'var(--ok)'}` }} />
+      )}
+    </div>
+  );
+}
+
+export function DashboardPage({ prayers, times, sunnah, setStatus, setTime, toggleSunnah, score, streak, freeze, useFreeze, pulse, go, totalPoints, misiDone, schedules }) {
+  const [activeCard, setActiveCard] = useState(null); // prayer card yang di-tap
+
+  const nextK = PRAYER_CARDS.find(p => !prayers[p.k] && p.k !== 'tahajud' && p.k !== 'witir')?.k;
+  const doneCount = ['subuh','dzuhur','ashar','maghrib','isya'].filter(k => prayers[k]).length;
+
+  const handleCardClick = (p) => setActiveCard(p);
+  const closeSheet = () => setActiveCard(null);
+
+  return (
+    <div className="main fade-in">
+      <div className="content scrl">
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: 20 }}>
+          <div>
+            <div className="ar" style={{ fontSize: 14, marginBottom: 4 }}>
+              {new Date().toLocaleDateString('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>
+            <h1 className="h1">
+              {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </h1>
+            <div className="muted tiny" style={{ marginTop: 4 }}>
+              {new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit' })} WIB
+            </div>
+          </div>
+          {nextK && (
+            <div className="card" style={{ padding: '10px 14px', flexShrink: 0 }}>
+              <div className="eyebrow" style={{ fontSize: 9, marginBottom: 3 }}>SOLAT BERIKUTNYA</div>
+              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14 }}>
+                {PRAYER_CARDS.find(p => p.k === nextK)?.id} · {schedules?.[nextK] || '--:--'}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Timbangan Amal */}
+        <div className="card amal-bar-wrap" style={{ padding: '14px 18px', marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span className="eyebrow">⚖ TIMBANGAN AMAL HARI INI</span>
+            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--gold)' }}>{totalPoints || 0} / 200 poin</span>
+          </div>
+          <div style={{ background: 'var(--border)', borderRadius: 999, height: 5 }}>
+            <div className="amal-bar-fill" style={{ width: Math.min(((totalPoints||0)/200)*100, 100) + '%', height: '100%', borderRadius: 999, transition: 'width .6s ease' }} />
+          </div>
+        </div>
+
+        {/* Prayer cards grid */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <span className="eyebrow">WAKTU SHOLAT</span>
+          <span className="muted tiny">{doneCount} / 5 wajib dicatat</span>
+        </div>
+        <div className="prayer-grid">
+          {PRAYER_CARDS.map(p => (
+            <PrayerCard
+              key={p.k}
+              p={p}
+              status={prayers[p.k]}
+              time={times[p.k]}
+              isNext={p.k === nextK}
+              onStatus={setStatus}
+              onSetTime={(k) => setTime(k, new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }))}
+              onClick={handleCardClick}
+              schedules={schedules}
+            />
+          ))}
+        </div>
+
+        {/* Sunnah chips */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '20px 0 12px' }}>
+          <span className="eyebrow">SOLAT SUNNAH</span>
+          <span className="muted tiny">{SUNNAH.filter(s => sunnah[s]).length} / {SUNNAH.length} selesai</span>
+        </div>
+        <div className="chips scrl">
+          {SUNNAH.map(s => (
+            <button key={s} className={'chip' + (sunnah[s] ? ' on' : '')} onClick={() => toggleSunnah(s)}>
+              <span className="ck">{sunnah[s] && '✓'}</span>{s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Right panel — Solo Leveling */}
+      <div className="col-r scrl">
+        <SoloLevelingPanel totalPoints={totalPoints} streak={streak} freeze={freeze} score={score} prayers={prayers} misiDone={misiDone} />
+        <button className="sl-arise-btn" onClick={() => go('amalan')} style={{ marginTop: 16 }}>⚔ ARISE — BUKA DAILY QUEST</button>
+        <div style={{ marginTop: 16 }}>
+          {/* Misi panel for next prayer */}
+          {nextK && <MisiPanel prayerKey={nextK} misiDone={misiDone} onToggle={toggleMisi} />}
+        </div>
+      </div>
+
+      {/* Bottom sheet — Amalan per waktu */}
+      {activeCard && (
+        <PrayerAmalanSheet card={activeCard} onClose={closeSheet} misiDone={misiDone} onToggleMisi={toggleMisi} />
+      )}
+    </div>
+  );
+}
+
+STEP 2 — Add PrayerAmalanSheet component in src/dashboard.jsx:
+jsximport { AMALAN_PER_WAKTU } from './pages.jsx';
+
+function PrayerAmalanSheet({ card, onClose, misiDone, onToggleMisi }) {
+  const [openSections, setOpenSections] = useState({});
+
+  // Match prayer card to AMALAN_PER_WAKTU
+  const waktuData = AMALAN_PER_WAKTU.find(w => w.id === card.k || w.id === card.k);
+  // Map prayer card key to amalan waktu id
+  const WAKTU_MAP = {
+    tahajud: 'tahajud', subuh: 'subuh', dzuhur: 'dzuhur',
+    ashar: 'ashar', maghrib: 'maghrib', isya: 'isya',
+  };
+  const data = AMALAN_PER_WAKTU.find(w => w.id === WAKTU_MAP[card.k]);
+
+  const toggleSection = (id, sec) => {
+    const k = `${id}-${sec}`;
+    setOpenSections(p => ({ ...p, [k]: !p[k] }));
+  };
+
+  const isOpen = (id, sec) => openSections[`${id}-${sec}`];
+
+  return (
+    <>
+      <div className="bottom-sheet-overlay" onClick={onClose} />
+      <div className="bottom-sheet" style={{ maxHeight: '88dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div className="bottom-sheet-handle" />
+
+        {/* Header */}
+        <div style={{ padding: '0 20px 16px', display: 'flex', alignItems: 'center', gap: 14, borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+          <span style={{ fontSize: 28 }}>{card.emoji}</span>
+          <div>
+            <div style={{ fontFamily: 'var(--f-ar)', fontSize: 20, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.5 }}>{card.ar}</div>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: 'var(--text)' }}>
+              Amalan Setelah {card.id}
+            </div>
+            {data && <div className="muted tiny">{data.waktuDesc}</div>}
+          </div>
+          <button onClick={onClose} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 22, cursor: 'pointer', flexShrink: 0, padding: '0 4px' }}>✕</button>
+        </div>
+
+        {/* Amalan list */}
+        <div style={{ padding: '8px 20px 40px' }}>
+          {!data ? (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-3)' }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>📿</div>
+              <div className="muted">Amalan untuk waktu ini belum tersedia</div>
+            </div>
+          ) : data.amalan.map(amalan => {
+            const done = !!misiDone?.[amalan.id];
+            const [expanded, setExpanded] = useState(false);
+            return (
+              <div key={amalan.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', marginBottom: 10, overflow: 'hidden', opacity: done ? .7 : 1, transition: 'opacity .2s' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px' }}>
+                  <div
+                    style={{ width: 22, height: 22, borderRadius: 7, border: `1.5px solid ${done ? 'var(--gold)' : 'var(--border-2)'}`, background: done ? 'var(--gold)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: '.18s', marginTop: 2 }}
+                    onClick={() => onToggleMisi(amalan.id)}
+                  >
+                    {done && <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--f-ar)', fontSize: 16, color: 'var(--gold)', direction: 'rtl', marginBottom: 3, lineHeight: 1.6 }}>{amalan.nameAr}</div>
+                    <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14, color: done ? 'var(--text-2)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none' }}>{amalan.name}</div>
+                  </div>
+                  <button onClick={() => setExpanded(e => !e)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 18, flexShrink: 0, padding: '0 4px' }}>
+                    {expanded ? '▾' : '›'}
+                  </button>
+                </div>
+
+                {/* Expandable */}
+                {expanded && (
+                  <div style={{ borderTop: '1px solid var(--border)', padding: '4px 16px 10px' }}>
+                    {/* Bacaan */}
+                    <div style={{ borderBottom: '1px solid var(--border)' }}>
+                      <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'bacaan')}>
+                        <span>📿 Bacaan & Lafaz</span><span>{isOpen(amalan.id,'bacaan') ? '▾' : '›'}</span>
+                      </button>
+                      {isOpen(amalan.id,'bacaan') && (
+                        <div style={{ paddingBottom: 12 }}>
+                          {amalan.bacaan.map((b, i) => (
+                            <div key={i} style={{ background: 'var(--elevated)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <span className="chip" style={{ fontSize: 10, padding: '2px 8px', pointerEvents: 'none' }}>{b.jumlah}</span>
+                              </div>
+                              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 20, color: 'var(--gold)', direction: 'rtl', lineHeight: 2, marginBottom: 8 }}>{b.ar}</div>
+                              <div style={{ fontSize: 12, color: 'var(--text-2)', fontStyle: 'italic', marginBottom: 6, lineHeight: 1.6 }}>{b.latin}</div>
+                              <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.7 }}>"{b.arti}"</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {/* Tuntunan */}
+                    <div style={{ borderBottom: '1px solid var(--border)' }}>
+                      <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'tuntunan')}>
+                        <span>📋 Cara Mengamalkan</span><span>{isOpen(amalan.id,'tuntunan') ? '▾' : '›'}</span>
+                      </button>
+                      {isOpen(amalan.id,'tuntunan') && <div style={{ paddingBottom: 12 }}><p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.tuntunan}</p></div>}
+                    </div>
+                    {/* Khasiat */}
+                    <div style={{ borderBottom: '1px solid var(--border)' }}>
+                      <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'khasiat')}>
+                        <span>✨ Khasiat & Faedah</span><span>{isOpen(amalan.id,'khasiat') ? '▾' : '›'}</span>
+                      </button>
+                      {isOpen(amalan.id,'khasiat') && <div style={{ paddingBottom: 12 }}><p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.khasiat}</p></div>}
+                    </div>
+                    {/* Dalil */}
+                    <div style={{ borderBottom: '1px solid var(--border)' }}>
+                      <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'dalil')}>
+                        <span>📖 Dalil Anjuran</span><span>{isOpen(amalan.id,'dalil') ? '▾' : '›'}</span>
+                      </button>
+                      {isOpen(amalan.id,'dalil') && (
+                        <div style={{ paddingBottom: 12 }}>
+                          <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: '0 0 8px' }}>{amalan.dalil}</p>
+                          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: 'var(--gold)', letterSpacing: '.04em' }}>{amalan.sumber}</div>
+                        </div>
+                      )}
+                    </div>
+                    {/* Keutamaan */}
+                    <div>
+                      <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'keutamaan')}>
+                        <span>⭐ Keutamaan</span><span>{isOpen(amalan.id,'keutamaan') ? '▾' : '›'}</span>
+                      </button>
+                      {isOpen(amalan.id,'keutamaan') && <div style={{ paddingBottom: 12 }}><p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.keutamaan}</p></div>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+}
+
+STEP 3 — Add prayer grid CSS to src/deenme-theme.css:
+css/* ── prayer card grid ── */
+.prayer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.prayer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 14px 12px;
+  position: relative;
+  transition: border-color .2s, box-shadow .2s, transform .15s;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.prayer-card:hover {
+  border-color: var(--gold-line);
+  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+  transform: translateY(-1px);
+}
+
+.prayer-card:active { transform: scale(.98); }
+
+.prayer-card.done {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--ok) 8%, var(--surface)), var(--surface) 60%);
+  border-color: color-mix(in srgb, var(--ok) 30%, transparent);
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--ok) 10%, transparent);
+}
+
+.prayer-card.qadha {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--danger) 8%, var(--surface)), var(--surface) 60%);
+  border-color: color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+.prayer-card.next {
+  border-color: var(--gold-line);
+  box-shadow: 0 0 0 1px var(--gold-soft);
+}
+
+/* Prayer status mini buttons */
+.prayer-status-btn {
+  flex: 1;
+  padding: 5px 0;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: transparent;
+  color: var(--text-3);
+  font-size: 11px;
+  font-family: var(--f-head);
+  font-weight: 600;
+  cursor: pointer;
+  transition: .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.prayer-status-btn:hover { color: var(--text); border-color: var(--gold-line); }
+
+.prayer-status-btn.ok.on {
+  background: color-mix(in srgb, var(--ok) 15%, transparent);
+  border-color: color-mix(in srgb, var(--ok) 40%, transparent);
+  color: var(--ok);
+}
+
+.prayer-status-btn.late.on {
+  background: color-mix(in srgb, var(--warn) 15%, transparent);
+  border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+  color: var(--warn);
+}
+
+.prayer-status-btn.qadha.on {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  color: var(--danger);
+}
+
+/* Mobile — 2 columns on small screen */
+@media (max-width: 767px) {
+  .prayer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .prayer-card {
+    padding: 12px 12px 10px;
+  }
+
+  .prayer-status-btn {
+    font-size: 10px;
+    padding: 4px 0;
+  }
+}
+
+STEP 4 — Remove old post-prayer popup trigger from src/App.jsx:
+js// DELETE or comment out this block entirely:
+// const setStatus = (k, val) => {
+//   ...
+//   if (val === 'ok' || val === 'late') setMisiPopup(prayerKey);  ← DELETE THIS LINE
+// };
+
+// setMisiPopup state is no longer needed — remove it
+// const [misiPopup, setMisiPopup] = useState(null); ← DELETE
+Also add toggleMisi function to pass to DashboardPage:
+jsconst toggleMisi = (id) => setMisiDone(prev => ({ ...prev, [id]: !prev[id] }));
+Pass new props to DashboardPage:
+jsx<DashboardPage
+  prayers={prayers}
+  times={times}
+  sunnah={sunnah}
+  setStatus={setStatus}
+  setTime={setTime}
+  toggleSunnah={toggleSunnah}
+  score={score}
+  streak={streak}
+  freeze={freeze}
+  useFreeze={useFreeze}
+  pulse={pulse}
+  go={setView}
+  totalPoints={totalPoints}
+  misiDone={misiDone}
+  toggleMisi={toggleMisi}
+  schedules={schedules}
+/>
+
+IMPORTANT:
+
+useState inside map is not allowed in React — move expanded state for each amalan item into a separate AmalanItem sub-component inside PrayerAmalanSheet
+AMALAN_PER_WAKTU must be imported from pages.jsx into dashboard.jsx
+Tahajud card uses hardcoded 03:00 as sched — no API for it
+Old pcard, plist, prow classes can be kept for CSS backward compat but not used in new layout
+Keep existing sunnah chip strip below the prayer grid
+Do not break misiDone, totalPoints, streak, or any other existing state
+Remove old popup trigger only — keep all other setStatus logic intact

@@ -201,6 +201,11 @@ body {
 .misi-item-checkbox { border: 1.5px solid var(--border-2); background: transparent; }
 .misi-item-checkbox.checked { background: #6a994e; border-color: #6a994e; }
 
+/* Mission panel — tanpa card box */
+.misi-panel-list .misi-item { padding: 10px 4px; border-bottom: 1px solid var(--border); }
+.misi-panel-list .misi-item:last-child { border-bottom: none; }
+.misi-panel-list .misi-item-checkbox { margin-top: 1px; flex-shrink: 0; }
+
 .amalan-card { background: var(--surface); border: 1px solid var(--border); }
 .amalan-section { border-bottom: 1px solid var(--border); }
 .amalan-section-toggle { color: var(--text-2); }

@@ -365,24 +365,22 @@ function MisiPanel({ prayerKey, misiDone, onToggle }) {
   const doneCount = data.misi.filter((m) => misiDone[m.id]).length;
   const pct = data.misi.length ? doneCount / data.misi.length : 0;
   return (
-    <div className="card misi-panel-card" style={{ padding: 0 }}>
-      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span className="eyebrow">{data.label}</span>
-          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{doneCount}/{data.misi.length}</span>
-        </div>
-        <div style={{ height: 3, background: 'var(--elevated)', borderRadius: 9999, overflow: 'hidden' }}>
-          <div style={{
-            height: '100%', borderRadius: 9999,
-            width: (pct * 100) + '%',
-            background: pct >= 1 ? 'linear-gradient(90deg, var(--gold), var(--mint))' : 'var(--gold)',
-            transition: 'width 500ms ease',
-          }} />
-        </div>
+    <div style={{ marginTop: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span className="eyebrow">{data.label}</span>
+        <span className="muted tiny">{doneCount}/{data.misi.length}</span>
+      </div>
+      <div style={{ height: 3, background: 'var(--elevated)', borderRadius: 9999, overflow: 'hidden', marginBottom: 4 }}>
+        <div style={{
+          height: '100%', borderRadius: 9999,
+          width: (pct * 100) + '%',
+          background: pct >= 1 ? 'linear-gradient(90deg, var(--gold), var(--gold-2))' : 'var(--gold)',
+          transition: 'width 500ms ease',
+        }} />
       </div>
       <div
         className="misi-panel-list"
-        style={{ padding: '6px 0 4px', overflowY: 'auto', maxHeight: '60dvh', WebkitOverflowScrolling: 'touch' }}
+        style={{ overflowY: 'auto', maxHeight: '60dvh', WebkitOverflowScrolling: 'touch' }}
       >
         {data.misi.map((m) => (
           <MisiItem key={m.id} misi={m} done={!!misiDone[m.id]} onToggle={() => onToggle(m.id, data.misi)} />
