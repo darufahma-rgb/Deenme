@@ -49,13 +49,46 @@ function LoginPage({ onEnter }) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [locked, setLocked] = useState(false);
+  const [lockTimer, setLockTimer] = useState(0);
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current && inputRef.current.focus(); }, []);
+
   const submit = () => {
-    if (code.length < 6 || loading) return;
-    setLoading(true); setErr(false);
-    setTimeout(() => { onEnter(); }, 950);
+    if (code.length < 6 || loading || locked) return;
+    setLoading(true);
+    setErr(false);
+
+    const correctCode = import.meta.env.VITE_ACCESS_CODE;
+
+    setTimeout(() => {
+      if (code === correctCode) {
+        onEnter();
+      } else {
+        setErr(true);
+        setCode('');
+        setLoading(false);
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        if (newAttempts >= 5) {
+          setLocked(true);
+          let t = 30;
+          setLockTimer(t);
+          const interval = setInterval(() => {
+            t--;
+            setLockTimer(t);
+            if (t <= 0) {
+              clearInterval(interval);
+              setLocked(false);
+              setAttempts(0);
+            }
+          }, 1000);
+        }
+      }
+    }, 600);
   };
+
   return (
     <div className="login">
       <div className="authcard fade-in">
@@ -77,8 +110,18 @@ function LoginPage({ onEnter }) {
             style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'text' }} aria-label="Kode member" />
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 6 }}>Masukkan kode member · 6 digit</div>
-        <button className="btn gold" style={{ width: '100%', padding: '12px 18px', opacity: code.length === 6 ? 1 : .5 }}
-          onClick={submit} disabled={code.length < 6}>
+        {err && (
+          <div style={{ color: 'var(--danger)', fontSize: 12, fontFamily: 'var(--f-head)', marginTop: 6, textAlign: 'center' }}>
+            Kode salah. Coba lagi.
+          </div>
+        )}
+        {locked && (
+          <div style={{ color: 'var(--warn)', fontSize: 12, fontFamily: 'var(--f-head)', textAlign: 'center' }}>
+            Terlalu banyak percobaan. Tunggu {lockTimer} detik.
+          </div>
+        )}
+        <button className="btn gold" style={{ width: '100%', padding: '12px 18px', marginTop: 6, opacity: (code.length === 6 && !locked) ? 1 : .5 }}
+          onClick={submit} disabled={code.length < 6 || locked}>
           {loading ? <span className="spin" /> : 'Masuk'}
         </button>
         <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 16, letterSpacing: '.04em' }}>Deenme · Dar Dev</div>
