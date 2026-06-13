@@ -1,0 +1,129 @@
+DEENME — REDESIGN: Solo Leveling Panel (col-r)
+Redesign the rank/XP panel in the right column. Replace current layout with a cleaner, more premium design.
+In src/dashboard.jsx, replace the SoloLevelingPanel component JSX with:
+jsxexport function SoloLevelingPanel({ totalPoints, streak, freeze, score, prayers, misiDone }) {
+  const rank = getRank(totalPoints);
+  const nextRank = getNextRank(totalPoints);
+  const xpPct = nextRank
+    ? Math.round(((totalPoints - rank.minPts) / (nextRank.minPts - rank.minPts)) * 100)
+    : 100;
+  const xpToNext = nextRank ? nextRank.minPts - totalPoints : 0;
+  const doneCount = Object.values(misiDone || {}).filter(Boolean).length;
+  const prayerCount = ['subuh','dzuhur','ashar','maghrib','isya'].filter(k => prayers?.[k]).length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+      {/* ── RANK CARD ── */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '18px 18px 16px', position: 'relative', overflow: 'hidden' }}>
+
+        {/* Top accent line */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, var(--gold), var(--gold-2), transparent)' }} />
+
+        {/* Rank letter — large background watermark */}
+        <div style={{ position: 'absolute', right: -8, top: -12, fontFamily: 'var(--f-head)', fontWeight: 900, fontSize: 96, color: 'var(--gold)', opacity: .05, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>
+          {rank.rank}
+        </div>
+
+        {/* Top row: rank badge + info */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, position: 'relative' }}>
+          {/* Rank badge */}
+          <div style={{
+            width: 52, height: 52, borderRadius: 14,
+            background: 'var(--elevated)',
+            border: `1.5px solid ${rank.color}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: 'var(--f-head)', fontWeight: 900, fontSize: 22,
+            color: rank.color,
+            flexShrink: 0,
+            boxShadow: `0 0 16px -4px ${rank.color}40`,
+          }}>
+            {rank.rank}
+          </div>
+
+          {/* Name + rank label */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: 'var(--text)', letterSpacing: '-.02em', lineHeight: 1.1, marginBottom: 4 }}>
+              {rank.label}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: rank.color, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                Rank {rank.rank}
+              </span>
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--text-3)' }} />
+              <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>
+                {totalPoints} XP
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* XP progress */}
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: 'var(--text-2)' }}>
+              {nextRank ? `${xpToNext} XP lagi → Rank ${nextRank.rank}` : 'MAX RANK'}
+            </span>
+            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: rank.color }}>
+              {xpPct}%
+            </span>
+          </div>
+          <div style={{ height: 6, background: 'var(--border)', borderRadius: 999, overflow: 'hidden' }}>
+            <div style={{
+              width: xpPct + '%', height: '100%',
+              background: `linear-gradient(90deg, ${rank.color}88, ${rank.color})`,
+              borderRadius: 999,
+              transition: 'width .8s cubic-bezier(.2,.8,.25,1)',
+              boxShadow: `0 0 8px ${rank.color}60`,
+            }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── STATS ROW ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        {[
+          { val: streak, label: 'Streak', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> },
+          { val: `${prayerCount}/5`, label: 'Sholat', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="2" y1="18" x2="4" y2="18"/><line x1="20" y1="18" x2="22" y2="18"/><line x1="19.78" y1="10.22" x2="18.36" y2="11.64"/></svg> },
+          { val: doneCount, label: 'Quest', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> },
+        ].map(({ val, label, icon }) => (
+          <div key={label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px 10px', textAlign: 'center' }}>
+            <div style={{ color: 'var(--gold)', display: 'flex', justifyContent: 'center', marginBottom: 6 }}>{icon}</div>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 20, color: 'var(--text)', lineHeight: 1, letterSpacing: '-.02em' }}>{val}</div>
+            <div style={{ fontFamily: 'var(--f-head)', fontSize: 10, color: 'var(--text-3)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── FREEZE SHIELD ── */}
+      {freeze > 0 && (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#60a5fa', flexShrink: 0 }}><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12, color: 'var(--text)' }}>{freeze}× Streak Shield</div>
+            <div className="muted tiny">Pelindung streak saat absen</div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ARISE BUTTON ── */}
+      <button
+        className="sl-arise-btn"
+        onClick={() => go('amalan')}
+        style={{ marginTop: 2 }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l14 0"/><path d="M13 6l6 6-6 6"/></svg>
+        Buka Daily Quest
+      </button>
+
+    </div>
+  );
+}
+IMPORTANT:
+
+go prop must be passed into SoloLevelingPanel from DashboardPage — add go to the props destructuring
+Top accent line uses linear-gradient — make sure border-radius on parent is set so it clips properly with overflow: hidden
+Rank badge glow uses rank.color from RANK_SYSTEM — already defined
+Freeze section only renders if freeze > 0
+Arise button uses existing .sl-arise-btn class
+Do not change any other component
