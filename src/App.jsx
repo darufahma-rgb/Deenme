@@ -7,6 +7,43 @@ import { LandingPage } from './LandingPage.jsx';
 import { supabase } from './supabase.js';
 import { AdminPage } from './AdminPage.jsx';
 
+// ── Solo Leveling: page transition ───────────────────────────────────────────
+function PageTransition({ viewKey, children }) {
+  const [displayKey, setDisplayKey] = useState(viewKey);
+  const [cls, setCls] = useState('');
+  const [flash, setFlash] = useState(false);
+  const [line, setLine] = useState(false);
+  const nextKey = useRef(viewKey);
+
+  useEffect(() => {
+    if (viewKey === displayKey) return;
+    nextKey.current = viewKey;
+    setCls('sl-pg-exit');
+    setFlash(true);
+    setLine(true);
+    const t1 = setTimeout(() => {
+      setDisplayKey(nextKey.current);
+      setCls('sl-pg-enter');
+    }, 185);
+    const t2 = setTimeout(() => {
+      setCls('');
+      setFlash(false);
+      setLine(false);
+    }, 185 + 340);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [viewKey]);
+
+  return (
+    <>
+      {flash && <div className="sl-pg-flash" />}
+      {line  && <div className="sl-pg-line"  />}
+      <div className={'sl-pg-wrap ' + cls}>
+        {children(displayKey)}
+      </div>
+    </>
+  );
+}
+
 // ── Solo Leveling: floating particles ───────────────────────────────────────
 function SLParticles() {
   useEffect(() => {
@@ -395,23 +432,26 @@ export default function App() {
       <div className="app">
         <Rail page={view} go={setView} onLogout={onLogout} />
 
-        {view === 'dashboard' &&
-          <DashboardPage
-            prayers={prayers} times={times} sunnah={sunnah}
-            setStatus={setStatus} setTime={setTime} toggleSunnah={toggleSunnah}
-            score={score} ring="solid" streak={streak} freeze={freeze}
-            useFreeze={useFreeze} pulse={pulse} go={setView}
-            misiDone={misiDone} onMisiToggle={onMisiToggle}
-            dailyPoints={dailyPoints} totalPoints={totalPoints}
-            misiPopup={misiPopup} setMisiPopup={setMisiPopup}
-            badgeToast={badgeToast} clearBadgeToast={() => setBadgeToast(null)}
-            userName={userName}
-          />}
-
-        {view === 'journal' && <JournalPage go={setView} />}
-        {view === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
-        {view === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
-        {view === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
+        <PageTransition viewKey={view}>
+          {(v) => (<>
+            {v === 'dashboard' &&
+              <DashboardPage
+                prayers={prayers} times={times} sunnah={sunnah}
+                setStatus={setStatus} setTime={setTime} toggleSunnah={toggleSunnah}
+                score={score} ring="solid" streak={streak} freeze={freeze}
+                useFreeze={useFreeze} pulse={pulse} go={setView}
+                misiDone={misiDone} onMisiToggle={onMisiToggle}
+                dailyPoints={dailyPoints} totalPoints={totalPoints}
+                misiPopup={misiPopup} setMisiPopup={setMisiPopup}
+                badgeToast={badgeToast} clearBadgeToast={() => setBadgeToast(null)}
+                userName={userName}
+              />}
+            {v === 'journal' && <JournalPage go={setView} />}
+            {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
+            {v === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
+            {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
+          </>)}
+        </PageTransition>
       </div>
       <BottomNav page={view} go={setView} />
     </div>
