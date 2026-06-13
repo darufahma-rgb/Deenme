@@ -1660,10 +1660,10 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
 
 export function AmalanDetailPage({ amalan, waktu, onBack }) {
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', display: 'flex', flexDirection: 'column', zIndex: 20, overflowY: 'hidden' }}>
 
-      {/* Sticky header */}
-      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 14, position: 'sticky', top: 0, zIndex: 10 }}>
+      {/* Sticky header — fixed height */}
+      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
         <button
           onClick={onBack}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, padding: '6px 10px 6px 0', flexShrink: 0 }}
@@ -1678,8 +1678,9 @@ export function AmalanDetailPage({ amalan, waktu, onBack }) {
         {waktu && <span className="chip" style={{ fontSize: 10, pointerEvents: 'none', flexShrink: 0 }}>{waktu.waktu}</span>}
       </div>
 
-      {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 24px 80px', maxWidth: 700, width: '100%', margin: '0 auto' }}>
+      {/* SCROLLABLE content — takes remaining height */}
+      <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '28px 24px 100px' }}>
+        <div style={{ maxWidth: 680, margin: '0 auto' }}>
 
         {/* BACAAN & LAFAZ */}
         <div style={{ marginBottom: 32 }}>
@@ -1757,6 +1758,7 @@ export function AmalanDetailPage({ amalan, waktu, onBack }) {
           ← Kembali
         </button>
 
+        </div>
       </div>
     </div>
   );
