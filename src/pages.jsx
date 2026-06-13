@@ -1517,42 +1517,93 @@ export function PrayerAmalanPage({ card, misiDone, toggleMisi, onBack }) {
         </div>
       )}
 
-      {/* Amalan list */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 80px' }}>
+      {/* Amalan grid — Notion style */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 80px' }}>
         {!waktuData ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-3)' }}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)', marginBottom: 16 }}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             <div className="muted">Amalan untuk waktu ini segera hadir</div>
           </div>
-        ) : waktuData.amalan.map((amalan, idx) => {
-          const done = !!misiDone?.[amalan.id];
-          return (
-            <div
-              key={amalan.id}
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', cursor: 'pointer', transition: 'border-color .15s', opacity: done ? .65 : 1 }}
-              onClick={() => setSelectedAmalan(amalan)}
-            >
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--elevated)', border: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--text-3)' }}>
-                {idx + 1}
-              </div>
-              <div
-                style={{ width: 22, height: 22, borderRadius: 7, border: `1.5px solid ${done ? 'var(--gold)' : 'var(--border-2)'}`, background: done ? 'var(--gold)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: '.18s' }}
-                onClick={(e) => { e.stopPropagation(); toggleMisi(amalan.id); }}
-              >
-                {done && <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
-              </div>
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, color: done ? 'var(--text-3)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none', flex: 1, minWidth: 0 }}>
-                  {amalan.name}
-                </span>
-                <span style={{ fontFamily: 'var(--f-ar)', fontSize: 15, color: 'var(--gold)', direction: 'rtl', flexShrink: 0, lineHeight: 1.5 }}>
-                  {amalan.nameAr}
-                </span>
-              </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)', flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
-            </div>
-          );
-        })}
+        ) : (
+          <div className="prayer-amalan-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, maxWidth: 960, margin: '0 auto' }}>
+            {waktuData.amalan.map((amalan, idx) => {
+              const done = !!misiDone?.[amalan.id];
+              return (
+                <div
+                  key={amalan.id}
+                  style={{
+                    background: done ? 'var(--elevated)' : 'var(--surface)',
+                    border: `1px solid ${done ? 'var(--gold-line)' : 'var(--border)'}`,
+                    borderRadius: 'var(--radius)',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    opacity: done ? .7 : 1,
+                    transition: 'border-color .15s, transform .1s, opacity .2s',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                  onClick={() => setSelectedAmalan(amalan)}
+                >
+                  {/* Card top accent line */}
+                  <div style={{ height: 3, background: done ? 'var(--gold)' : 'var(--border)', transition: 'background .2s' }} />
+
+                  {/* Card body */}
+                  <div style={{ padding: '16px 18px', flex: 1 }}>
+
+                    {/* Number + Arabic row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 6, background: done ? 'var(--gold)' : 'var(--elevated)', border: `1px solid ${done ? 'var(--gold)' : 'var(--border-2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: done ? 'white' : 'var(--text-3)', flexShrink: 0, transition: '.18s' }}>
+                        {done ? (
+                          <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>
+                        ) : idx + 1}
+                      </div>
+                      <div style={{ fontFamily: 'var(--f-ar)', fontSize: 16, color: done ? 'var(--gold)' : 'var(--text-3)', direction: 'rtl', lineHeight: 1.5, textAlign: 'right', opacity: done ? 1 : .7 }}>
+                        {amalan.nameAr}
+                      </div>
+                    </div>
+
+                    {/* Name */}
+                    <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 15, color: done ? 'var(--text-2)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none', marginBottom: 10, lineHeight: 1.3 }}>
+                      {amalan.name}
+                    </div>
+
+                    {/* Preview: first bacaan latin (truncated) */}
+                    {amalan.bacaan?.[0]?.latin && (
+                      <div style={{ fontSize: 12, color: 'var(--text-3)', fontStyle: 'italic', lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', marginBottom: 12 }}>
+                        {amalan.bacaan[0].latin}
+                      </div>
+                    )}
+
+                    {/* Tags row */}
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {amalan.bacaan?.[0]?.jumlah && (
+                        <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 10, color: 'var(--gold)', background: 'var(--gold-soft)', border: '1px solid var(--gold-line)', borderRadius: 999, padding: '2px 8px' }}>
+                          {amalan.bacaan[0].jumlah}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Card footer */}
+                  <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <button
+                      style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: done ? 'var(--ok)' : 'var(--text-3)', transition: 'color .15s', padding: 0 }}
+                      onClick={(e) => { e.stopPropagation(); toggleMisi(amalan.id); }}
+                    >
+                      <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${done ? 'var(--ok)' : 'var(--border-2)'}`, background: done ? 'var(--ok)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '.18s' }}>
+                        {done && <svg width="9" height="9" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+                      </div>
+                      {done ? 'Selesai' : 'Tandai selesai'}
+                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-3)', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11 }}>
+                      Lihat detail
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

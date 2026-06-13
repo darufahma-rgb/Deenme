@@ -2651,3 +2651,9 @@ label, .label, .caption {
     grid-column: span 2 !important;
   }
 }
+
+@media (max-width: 767px) {
+  .prayer-amalan-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
