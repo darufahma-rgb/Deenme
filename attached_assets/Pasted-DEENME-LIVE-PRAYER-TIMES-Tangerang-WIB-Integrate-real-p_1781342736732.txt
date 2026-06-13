@@ -1,0 +1,91 @@
+DEENME — LIVE PRAYER TIMES (Tangerang, WIB)
+Integrate real prayer times from the Aladhan API. Replace all hardcoded '--:--' sched times with live data.
+API endpoint:
+https://api.aladhan.com/v1/timingsByCity?city=Tangerang&country=Indonesia&method=11
+Method 11 = Kementerian Agama Indonesia (KEMENAG) — most accurate for Indonesian users.
+What to fetch:
+
+From the response data.timings, extract:
+
+Fajr → Subuh
+Dhuhr → Dzuhur
+Asr → Ashar
+Maghrib → Maghrib
+Isha → Isya
+
+All times are already in WIB (UTC+7) when using Indonesian city.
+Implementation in src/dashboard.jsx:
+Add a usePrayerTimes custom hook:
+jsfunction usePrayerTimes() {
+  const [schedules, setSchedules] = React.useState({});
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const today = new Date();
+    const date = `${today.getDate()}-${today.getMonth()+1}-${today.getFullYear()}`;
+    const url = `https://api.aladhan.com/v1/timingsByCity/${date}?city=Tangerang&country=Indonesia&method=11`;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        const t = data.data.timings;
+        setSchedules({
+          subuh:   t.Fajr,
+          dzuhur:  t.Dhuhr,
+          ashar:   t.Asr,
+          maghrib: t.Maghrib,
+          isya:    t.Isha,
+        });
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  return { schedules, loading };
+}
+Update PRAYERS in src/dashboard.jsx:
+jsexport const PRAYERS = [
+  { k: 'subuh',   id: 'Subuh',   ar: 'الفجر',  },
+  { k: 'dzuhur',  id: 'Dzuhur',  ar: 'الظهر',  },
+  { k: 'ashar',   id: 'Ashar',   ar: 'العصر',  },
+  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب', },
+  { k: 'isya',    id: 'Isya',    ar: 'العشاء', },
+];
+Remove sched from the static data — it now comes from the hook.
+Update DashboardPage:
+Call the hook inside DashboardPage:
+jsconst { schedules, loading } = usePrayerTimes();
+Pass sched: schedules[p.k] || '--:--' when rendering each PrayerRowItem.
+When loading is true, show '...' instead of '--:--' so user knows it's fetching.
+Live clock — add to dashboard header:
+Add a live digital clock showing current WIB time. Update every second using setInterval in a useEffect. Display format: HH:MM:SS WIB using toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' }).
+Show it next to the Arabic date in the header, small and muted (var(--text-2)), font var(--f-head).
+Next prayer indicator:
+After schedules load, auto-detect which prayer is next based on current WIB time. Highlight that prayer card with the existing .next-tag badge showing time remaining: "dalam 1j 23m".
+Calculate time remaining:
+jsfunction getTimeRemaining(schedStr) {
+  const [h, m] = schedStr.split(':').map(Number);
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+  const target = new Date(now);
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  const diff = target - now;
+  const hours = Math.floor(diff / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  return hours > 0 ? `dalam ${hours}j ${mins}m` : `dalam ${mins}m`;
+}
+Update the time remaining display every minute using setInterval.
+Cache:
+
+Store fetched schedules in localStorage with today's date as key — so it doesn't re-fetch on every page refresh:
+jsconst cacheKey = `deenme-sched-${date}`;
+const cached = localStorage.getItem(cacheKey);
+if (cached) {
+  setSchedules(JSON.parse(cached));
+  setLoading(false);
+  return;
+}
+// ... fetch then localStorage.setItem(cacheKey, JSON.stringify(schedules))
+Error handling:
+
+If fetch fails, show '--:--' gracefully with a small retry button in the header: "⟳ Muat ulang jadwal".

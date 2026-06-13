@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Icon, PrayerRing, ScoreRing, fireConfetti } from './ui.jsx';
 
 export const PRAYERS = [
-  { k: 'subuh',   id: 'Subuh',   ar: 'الفجر',   sched: '--:--' },
-  { k: 'dzuhur',  id: 'Dzuhur',  ar: 'الظهر',   sched: '--:--' },
-  { k: 'ashar',   id: 'Ashar',   ar: 'العصر',   sched: '--:--' },
-  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب',  sched: '--:--' },
-  { k: 'isya',    id: 'Isya',    ar: 'العشاء',  sched: '--:--' },
+  { k: 'subuh',   id: 'Subuh',   ar: 'الفجر'  },
+  { k: 'dzuhur',  id: 'Dzuhur',  ar: 'الظهر'  },
+  { k: 'ashar',   id: 'Ashar',   ar: 'العصر'  },
+  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب' },
+  { k: 'isya',    id: 'Isya',    ar: 'العشاء' },
 ];
 export const SUNNAH = ['Rawatib Subuh', 'Dhuha', 'Rawatib Dzuhur', 'Rawatib Maghrib', 'Tahajud', 'Witir'];
 const STATUS = [['ok', 'Tepat'], ['late', 'Telat'], ['qadha', 'Qadha']];
@@ -501,8 +501,72 @@ function DetailPanel({ pKey }) {
   );
 }
 
+// ── Prayer Times Hook ────────────────────────────────────────────────────────
+function usePrayerTimes() {
+  const [schedules, setSchedules] = useState({});
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(false);
+
+  const load = () => {
+    setError(false);
+    setLoading(true);
+    const today = new Date();
+    const dd    = String(today.getDate()).padStart(2, '0');
+    const mm    = String(today.getMonth() + 1).padStart(2, '0');
+    const date  = `${dd}-${mm}-${today.getFullYear()}`;
+    const cacheKey = `deenme-sched-${date}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try { setSchedules(JSON.parse(cached)); setLoading(false); return; } catch {}
+    }
+    const url = `https://api.aladhan.com/v1/timingsByCity/${date}?city=Tangerang&country=Indonesia&method=11`;
+    fetch(url)
+      .then((r) => r.json())
+      .then((data) => {
+        const t = data.data.timings;
+        const s = { subuh: t.Fajr, dzuhur: t.Dhuhr, ashar: t.Asr, maghrib: t.Maghrib, isya: t.Isha };
+        setSchedules(s);
+        setLoading(false);
+        localStorage.setItem(cacheKey, JSON.stringify(s));
+      })
+      .catch(() => { setError(true); setLoading(false); });
+  };
+
+  useEffect(() => { load(); }, []);
+  return { schedules, loading, error, retry: load };
+}
+
+function _wibNow() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+}
+
+function getTimeRemaining(schedStr) {
+  if (!schedStr || schedStr === '--:--') return null;
+  const [h, m] = schedStr.split(':').map(Number);
+  const now    = _wibNow();
+  const target = new Date(now);
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  const diff  = target - now;
+  const hours = Math.floor(diff / 3600000);
+  const mins  = Math.floor((diff % 3600000) / 60000);
+  return hours > 0 ? `dalam ${hours}j ${mins}m` : `dalam ${mins}m`;
+}
+
+function getNextPrayerKey(schedules) {
+  const now    = _wibNow();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  for (const p of PRAYERS) {
+    const s = schedules[p.k];
+    if (!s || s === '--:--') continue;
+    const [h, m] = s.split(':').map(Number);
+    if (h * 60 + m > nowMin) return p.k;
+  }
+  return PRAYERS[0].k;
+}
+
 // ── Prayer Card Row ──────────────────────────────────────────────────────────
-function PrayerRowItem({ p, status, time, isNext, ring, onStatus, onTime, open, onToggle }) {
+function PrayerRowItem({ p, status, time, sched, isNext, timeRemaining, ring, onStatus, onTime, open, onToggle }) {
   const done = !!status;
   return (
     <div className={
@@ -526,10 +590,14 @@ function PrayerRowItem({ p, status, time, isNext, ring, onStatus, onTime, open, 
           <div className="pname">
             {p.id}
             <span className="pa">{p.ar}</span>
-            {isNext && <span className="next-tag">Berikutnya</span>}
+            {isNext && (
+              <span className="next-tag">
+                {timeRemaining || 'Berikutnya'}
+              </span>
+            )}
           </div>
           <div className="psub">
-            Jadwal {p.sched}{done ? ` · dicatat ${time || p.sched}` : ''}
+            Jadwal {sched}{done ? ` · dicatat ${time || sched}` : ''}
             {!open && <span className="psub-hint"> · klik ▸ untuk dzikir &amp; amalan</span>}
           </div>
         </div>
@@ -561,14 +629,48 @@ export function DashboardPage({
 }) {
   const [openKey, setOpenKey] = useState(null);
   const toggleOpen = (k) => setOpenKey((prev) => prev === k ? null : k);
-  const nextK = PRAYERS.find((p) => !prayers[p.k])?.k;
   const doneCount = PRAYERS.filter((p) => prayers[p.k]).length;
   const sunCount = SUNNAH.filter((s) => sunnah[s]).length;
   const level = getLevel(totalPoints);
 
+  // Live prayer times from Aladhan API
+  const { schedules, loading: schedLoading, error: schedError, retry } = usePrayerTimes();
+
+  // Next prayer key based on real WIB clock
+  const nextK = Object.keys(schedules).length > 0
+    ? getNextPrayerKey(schedules)
+    : PRAYERS.find((p) => !prayers[p.k])?.k;
+
+  // Live clock — updates every second
+  const [clock, setClock] = useState(() =>
+    _wibNow().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  );
+  useEffect(() => {
+    const tid = setInterval(() => {
+      setClock(_wibNow().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    }, 1000);
+    return () => clearInterval(tid);
+  }, []);
+
+  // Time-remaining label — updates every minute
+  const [remaining, setRemaining] = useState({});
+  useEffect(() => {
+    const update = () => {
+      const r = {};
+      PRAYERS.forEach((p) => { r[p.k] = getTimeRemaining(schedules[p.k]); });
+      setRemaining(r);
+    };
+    update();
+    const tid = setInterval(update, 60000);
+    return () => clearInterval(tid);
+  }, [schedules]);
+
   // Panel shows: last prayed prayer, or next if none prayed
   const lastPrayed = [...PRAYERS].reverse().find((p) => prayers[p.k] === 'ok' || prayers[p.k] === 'late');
   const panelKey = lastPrayed?.k || nextK;
+
+  const nextPrayer = PRAYERS.find((p) => p.k === nextK);
+  const nextSched  = nextPrayer ? (schedules[nextK] || (schedLoading ? '...' : '--:--')) : '--:--';
 
   return (
     <div className="main fade-in">
@@ -583,17 +685,29 @@ export function DashboardPage({
               {_arDate()}
             </div>
             <h1 className="h1">{_idDate()}</h1>
-            <div style={{ marginTop: 5, fontSize: 13, color: 'var(--text-3)' }}>Assalamu'alaikum — semoga harimu penuh berkah.</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 5 }}>
+              <span style={{ fontFamily: 'var(--f-head)', fontSize: 13, color: 'var(--text-2)', letterSpacing: '.04em' }}>
+                {clock} <span style={{ color: 'var(--text-3)', fontSize: 11 }}>WIB</span>
+              </span>
+              {schedError && (
+                <button onClick={retry} style={{ background: 'none', border: 'none', color: 'var(--gold)', cursor: 'pointer', fontSize: 12, padding: '2px 6px', borderRadius: 6, borderLeft: '1px solid var(--border)' }}>
+                  ⟳ Muat ulang jadwal
+                </button>
+              )}
+            </div>
           </div>
-          {nextK && (
+          {nextPrayer && (
             <div className="card" style={{ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
               <span style={{ color: 'var(--gold)' }}>{Icon.spark}</span>
               <div>
                 <div className="eyebrow" style={{ fontSize: 10 }}>Solat berikutnya</div>
                 <div style={{ fontFamily: 'var(--f-head)', fontWeight: 500, fontSize: 14, color: 'var(--text)', marginTop: 1 }}>
-                  {PRAYERS.find((p) => p.k === nextK).id}
-                  <span style={{ color: 'var(--text-3)', fontWeight: 400 }}> · {PRAYERS.find((p) => p.k === nextK).sched}</span>
+                  {nextPrayer.id}
+                  <span style={{ color: 'var(--text-3)', fontWeight: 400 }}> · {nextSched}</span>
                 </div>
+                {remaining[nextK] && (
+                  <div style={{ fontSize: 11, color: 'var(--mint)', marginTop: 2 }}>{remaining[nextK]}</div>
+                )}
               </div>
             </div>
           )}
@@ -610,7 +724,10 @@ export function DashboardPage({
         <div className="plist">
           {PRAYERS.map((p) => (
             <PrayerRowItem key={p.k} p={p} status={prayers[p.k]} time={times[p.k] || ''}
-              isNext={p.k === nextK} ring={ring} onStatus={setStatus} onTime={setTime}
+              sched={schedules[p.k] || (schedLoading ? '...' : '--:--')}
+              isNext={p.k === nextK}
+              timeRemaining={remaining[p.k]}
+              ring={ring} onStatus={setStatus} onTime={setTime}
               open={openKey === p.k} onToggle={() => toggleOpen(p.k)} />
           ))}
         </div>

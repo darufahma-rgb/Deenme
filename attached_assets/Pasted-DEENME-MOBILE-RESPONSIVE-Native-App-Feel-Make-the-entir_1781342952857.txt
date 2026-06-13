@@ -1,0 +1,276 @@
+DEENME — MOBILE RESPONSIVE (Native App Feel)
+Make the entire Deenme app fully responsive with a native mobile app layout. The desktop layout stays unchanged. Mobile layout should feel like a native iOS/Android app — bottom navigation, full-screen pages, touch-friendly.
+
+BREAKPOINTS:
+css/* Mobile: < 768px */
+/* Tablet: 768px - 1024px */
+/* Desktop: > 1024px */
+
+MOBILE LAYOUT SYSTEM
+Add to src/deenme-theme.css:
+css/* ── mobile layout ── */
+@media (max-width: 767px) {
+
+  /* Full screen app shell */
+  body { overflow: hidden; }
+  .deenme-root { height: 100dvh; } /* dvh for mobile browsers */
+
+  /* Hide desktop sidebar rail */
+  .rail { display: none; }
+
+  /* Hide desktop right/left panels */
+  .col-r, .col-l { display: none; }
+
+  /* Main content takes full width */
+  .app { flex-direction: column; }
+  .main { flex-direction: column; height: calc(100dvh - 64px); }
+  .content { padding: 16px; padding-bottom: 80px; }
+
+  /* Cards full width */
+  .doagrid { grid-template-columns: 1fr; }
+
+  /* Prayer list touch-friendly */
+  .prow { flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
+  .seg { width: 100%; justify-content: space-between; }
+  .segbtn { flex: 1; justify-content: center; }
+  .tinput { width: 100%; }
+
+  /* Chips scrollable */
+  .chips { padding-bottom: 8px; }
+
+  /* FAB position */
+  .fab { right: 20px; bottom: 80px; }
+}
+
+BOTTOM NAVIGATION BAR
+Add a BottomNav component in src/ui.jsx:
+jsxexport function BottomNav({ page, go }) {
+  const items = [
+    { view: 'dashboard', icon: 'dash', label: 'Beranda' },
+    { view: 'journal',   icon: 'journal', label: 'Jurnal' },
+    { view: 'doa',       icon: 'doa', label: 'Doa' },
+    { view: 'stats',     icon: 'stats', label: 'Statistik' },
+  ];
+  return (
+    <nav className="bottom-nav">
+      {items.map(({ view, icon, label }) => (
+        <button
+          key={view}
+          className={'bnav-btn' + (page === view ? ' on' : '')}
+          onClick={() => go(view)}
+        >
+          {Icon[icon]}
+          <span>{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+Add CSS for bottom nav:
+css.bottom-nav {
+  display: none; /* hidden on desktop */
+}
+
+@media (max-width: 767px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 64px;
+    background: color-mix(in srgb, var(--surface) 95%, black);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 40;
+    padding-bottom: env(safe-area-inset-bottom); /* iPhone notch */
+  }
+
+  .bnav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: 0;
+    color: var(--text-2);
+    font-family: var(--f-head);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color .15s;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bnav-btn.on {
+    color: var(--gold);
+  }
+
+  .bnav-btn.on svg {
+    filter: drop-shadow(0 0 6px var(--gold));
+  }
+
+  .bnav-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+MOBILE DASHBOARD — REDESIGN
+On mobile, dashboard becomes a scrollable single-column feed. Add these mobile-specific CSS:
+css@media (max-width: 767px) {
+
+  /* Header compact */
+  .dashboard-header {
+    padding: 12px 16px 8px;
+  }
+
+  /* Streak + Score — horizontal card strip */
+  .mobile-stats-strip {
+    display: flex;
+    gap: 10px;
+    padding: 0 16px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+
+  .mobile-stat-card {
+    flex: 0 0 auto;
+    min-width: 120px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    text-align: center;
+  }
+
+  /* Prayer cards — compact on mobile */
+  .pcard { border-radius: 12px; }
+
+  /* Timbangan Amal bar full width */
+  .amal-bar-wrap { margin: 0 16px 16px; }
+}
+In DashboardPage, add a mobile stats strip above prayer list showing: streak count, today's score, and freeze count as horizontal scrollable cards.
+
+MOBILE PRAYER DETAIL — BOTTOM SHEET
+On mobile, when user taps a prayer card, instead of expanding inline, open a bottom sheet:
+css.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px);
+  z-index: 45;
+  opacity: 0;
+  animation: fadeIn .2s ease forwards;
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  max-height: 85dvh;
+  background: var(--elevated);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 46;
+  padding: 0 20px 40px;
+  transform: translateY(100%);
+  animation: slideUp .35s cubic-bezier(.2,.8,.25,1) forwards;
+}
+
+.bottom-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border-2);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+
+@keyframes slideUp {
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+MOBILE BANK DOA — FULL CARD
+On mobile, doa cards are full width (1 column). Tapping a card opens a bottom sheet showing full Arabic text in large size + translation + source. Add a "Salin Doa" button to copy Arabic text to clipboard.
+
+MOBILE JURNAL — FULL SCREEN EDITOR
+On mobile, journal editor takes full screen height minus bottom nav. Keyboard-aware: add padding-bottom equal to keyboard height using visualViewport API:
+jsReact.useEffect(() => {
+  const handler = () => {
+    const keyboardHeight = window.innerHeight - window.visualViewport.height;
+    document.querySelector('.earea').style.paddingBottom = keyboardHeight + 'px';
+  };
+  window.visualViewport?.addEventListener('resize', handler);
+  return () => window.visualViewport?.removeEventListener('resize', handler);
+}, []);
+
+MOBILE STATISTIK — STACKED LAYOUT
+Stack all cards vertically. Charts remain but scaled to full width. Heatmap cells slightly larger (touch-friendly, min 32px).
+
+PWA — Add to Home Screen Support
+Add public/manifest.json:
+json{
+  "name": "Deenme",
+  "short_name": "Deenme",
+  "description": "Personal Ibadah Tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#c9a84c",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
+Add to index.html <head>:
+html<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#c9a84c" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Deenme" />
+
+TOUCH INTERACTIONS
+Add to all interactive elements on mobile:
+css@media (max-width: 767px) {
+  .pcard, .chip, .btn, .tab, .doacard {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  /* Active press state */
+  .pcard:active { transform: scale(.98); }
+  .chip:active { transform: scale(.96); }
+  .btn:active { transform: scale(.97); }
+  .doacard:active { transform: scale(.99); }
+}
+
+UPDATE src/App.jsx
+Import and render BottomNav on mobile:
+jsximport { Rail, BottomNav, fireConfetti } from './ui.jsx';
+
+// In the main app return (after login):
+return (
+  <div className="deenme-root">
+    <div className="candle" />
+    <div className="app">
+      <Rail page={view} go={setView} onLogout={() => setView('login')} />
+      {/* ... existing page routing ... */}
+    </div>
+    <BottomNav page={view} go={setView} />
+  </div>
+);
+BottomNav is hidden on desktop via CSS, shown only on mobile — no JS detection needed.
+
+IMPORTANT:
+
+Use 100dvh not 100vh everywhere — fixes mobile browser address bar issue
+All touch targets minimum 44x44px
+No horizontal scroll on any page
+Test on 375px width (iPhone SE) as minimum
+Desktop layout must remain completely unchanged
