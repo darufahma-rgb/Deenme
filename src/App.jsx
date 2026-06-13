@@ -3,6 +3,7 @@ import './deenme-theme.css';
 import { Rail, BottomNav, fireConfetti } from './ui.jsx';
 import { PRAYERS, SUNNAH, DashboardPage, MISI_PER_SHOLAT, BADGES, computeDailyPoints, getLevel } from './dashboard.jsx';
 import { JournalPage, BankDoaPage, StatistikPage, AmalanPage } from './pages.jsx';
+import { LandingPage } from './LandingPage.jsx';
 import { supabase } from './supabase.js';
 import { AdminPage } from './AdminPage.jsx';
 
@@ -133,7 +134,10 @@ function LoginPage({ onEnter }) {
 export default function App() {
   const [codeId,   setCodeId]   = useState(() => localStorage.getItem('deenme-code-id') || null);
   const [userName, setUserName] = useState(() => localStorage.getItem('deenme-user-name') || 'Akhi');
-  const [view,     setView]     = useState(codeId ? 'dashboard' : 'login');
+  const [view,     setView]     = useState(() => {
+    const saved = localStorage.getItem('deenme-code-id');
+    return saved ? 'dashboard' : 'landing';
+  });
 
   // App data state — loaded from Supabase after login
   const [prayers,        setPrayers]       = useState({});
@@ -228,7 +232,7 @@ export default function App() {
     setPrayers({}); setTimes({}); setSunnah({}); setBookmarks({});
     setUserDoa([]); setStreak(0); setFreeze(2); setMisiDone({});
     setTotalPoints(0); setDailyPoints(0); setUnlockedBadges([]);
-    setView('login');
+    setView('landing');
   };
 
   // ── Handlers ─────────────────────────────────────────────────────────────
@@ -287,6 +291,14 @@ export default function App() {
   };
 
   // ── Render ───────────────────────────────────────────────────────────────
+  if (view === 'landing') {
+    return (
+      <div className="deenme-root" style={{ overflow: 'auto', height: '100dvh' }}>
+        <LandingPage onEnter={() => setView('login')} />
+      </div>
+    );
+  }
+
   if (view === 'login') {
     return (
       <div className="deenme-root">
