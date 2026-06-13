@@ -23,11 +23,31 @@
   --border:   #161616;
   --border-2: #202020;
 
-  --radius:    14px;
-  --radius-sm: 10px;
-  --pad:    24px;
-  --gap:    10px;
+  /* Webflow-inspired geometry — engineered, not pill */
+  --radius:    8px;
+  --radius-sm: 4px;
+  --radius-full: 9999px;
+  --pad:    32px;
+  --gap:    8px;
   --rowpad: 16px;
+
+  /* Webflow spacing scale */
+  --sp-xxs: 2px;
+  --sp-xs:  4px;
+  --sp-sm:  8px;
+  --sp-md:  12px;
+  --sp-lg:  16px;
+  --sp-xl:  20px;
+  --sp-2xl: 24px;
+  --sp-3xl: 32px;
+
+  /* Webflow layered shadow system (dark-adapted) */
+  --shadow-xs:   0 1px 2px rgba(0,0,0,.4);
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:   0 4px 6px -1px rgba(0,0,0,.5), 0 2px 4px -1px rgba(0,0,0,.4);
+  --shadow-lg:   0 10px 15px -3px rgba(0,0,0,.55), 0 4px 6px -2px rgba(0,0,0,.35);
+  --shadow-card: 0 1px 3px rgba(0,0,0,.6), 0 1px 2px rgba(0,0,0,.5), 0 0 0 .5px rgba(255,255,255,.03) inset;
+  --shadow-elevated: 0 8px 24px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.4), 0 0 0 .5px rgba(255,255,255,.04) inset;
 
   --f-head: 'Bricolage Grotesque', system-ui, sans-serif;
   --f-body: 'Bricolage Grotesque', system-ui, sans-serif;
@@ -182,6 +202,199 @@ body {
 .muted { color: var(--text-2); }
 .dsrc { color: var(--text-3); }
 .summary-num { color: var(--text); }
+
+/* ═══════════════════════════════════════════════════
+   WEBFLOW DESIGN LANGUAGE — adapted for dark theme
+   Font kept: Bricolage Grotesque | Colors: black+blue
+   ═══════════════════════════════════════════════════ */
+
+/* ── Typography scale ── */
+
+/* Display headers — confident, negative tracking */
+.h1 {
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+}
+.h2 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--f-head);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Eyebrow label — uppercase, tracked out, weight 500 */
+.eyebrow {
+  font-family: var(--f-head);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* Body copy — weight 400, slight negative tracking */
+body, .body-md {
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Labels / small strong — weight 500 */
+.navbtn, .tab, .chip, .btn, .segbtn,
+label, .label, .caption {
+  font-weight: 500;
+}
+
+/* ── Cards — 8px radius, Webflow layered shadow ── */
+.card {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
+}
+.pcard {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
+}
+.doacard {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.amalan-card {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
+}
+.authcard {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* ── Buttons — 4px radius, Webflow's engineered look ── */
+.btn {
+  border-radius: var(--radius-sm);
+  padding: var(--sp-md) var(--sp-xl);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.6;
+}
+.btn.gold {
+  border-radius: var(--radius-sm);
+  padding: var(--sp-md) var(--sp-xl);
+  box-shadow: var(--shadow-sm), 0 4px 20px rgba(0,180,216,.2);
+  letter-spacing: -0.01em;
+}
+.btn.gold:hover {
+  box-shadow: var(--shadow-md), 0 6px 24px rgba(0,180,216,.3);
+  transform: translateY(-1px);
+}
+.btn.ghost {
+  border-radius: var(--radius-sm);
+  padding: var(--sp-md) var(--sp-xl);
+}
+
+/* ── Chips & tabs — tight 4px radius ── */
+.chip {
+  border-radius: var(--radius-sm);
+  padding: var(--sp-xs) var(--sp-sm);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.tab {
+  border-radius: var(--radius-sm);
+  padding: var(--sp-sm) var(--sp-lg);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ── Icon buttons — circular (Webflow rounded.full) ── */
+.iconbtn {
+  border-radius: var(--radius-full);
+  padding: var(--sp-sm);
+}
+
+/* ── Inputs — 4px radius, structured padding ── */
+.tinput {
+  border-radius: var(--radius-sm);
+  padding: var(--sp-md) var(--sp-lg);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.pincell {
+  border-radius: var(--radius-sm);
+}
+
+/* ── Segment buttons ── */
+.segbtn {
+  border-radius: var(--radius-sm);
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ── Nav — weight 500, tight ── */
+.navbtn {
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.bnav-btn {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+/* ── Bottom sheet — 8px top radius ── */
+.bottom-sheet {
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: var(--shadow-elevated);
+}
+
+/* ── Summary numbers — display weight ── */
+.summary-num {
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.bignum {
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+/* ── Streak card — engineering surface ── */
+.streak {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+/* ── FAB — full circle, Webflow icon circular ── */
+.fab {
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md), 0 6px 20px rgba(0,180,216,.3);
+}
+
+/* ── SL Panel — apply Webflow card treatment ── */
+.sl-hunter-card {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.sl-stat {
+  border-radius: var(--radius-sm);
+}
+.sl-rank-badge {
+  border-radius: var(--radius-sm);
+}
+.sl-arise-btn {
+  border-radius: var(--radius-sm);
+}
+/* ─────────────────────────────────────────────────── */
 
 /* ── Solo Leveling overrides (clean minimal) ── */
 
