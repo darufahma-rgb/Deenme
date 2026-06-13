@@ -59,46 +59,28 @@ export function JournalPage({ go }) {
     const rawText = edRef.current?.innerText?.trim();
     if (!rawText || rawText.length < 10) return;
 
-    const apiKey = import.meta.env.VITE_OPENROUTER_KEY;
-    if (!apiKey) {
-      setNoKeyToast(true);
-      setTimeout(() => setNoKeyToast(false), 3500);
-      return;
-    }
-
     setAiLoading(true);
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch('/api/journal/enhance', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://deenme.app',
-          'X-Title': 'Deenme Journal',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-flash-1.5',
-          messages: [
-            {
-              role: 'system',
-              content: `Kamu adalah asisten jurnal pribadi Muslim yang bertugas merapikan dan memperindah catatan harian.\n\nTugasmu:\n1. Perbaiki diksi dan tata bahasa Indonesia (santai tapi tetap elegan)\n2. Strukturkan dengan markdown: gunakan ## untuk heading utama, ### untuk sub-heading jika perlu\n3. Pisahkan paragraf dengan baik\n4. Pertahankan makna, suasana, dan kesan personal dari tulisan asli — jangan ubah fakta atau perasaan\n5. Jika ada ungkapan Arab/doa, pertahankan dengan benar\n6. Jangan tambahkan konten yang tidak ada di tulisan asli\n7. Mulai langsung dengan konten, tanpa pengantar atau penjelasan apapun\n8. Output hanya markdown, tidak ada komentar tambahan`,
-            },
-            { role: 'user', content: rawText },
-          ],
-          max_tokens: 2000,
-          temperature: 0.7,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: rawText }),
       });
 
+      if (response.status === 503) {
+        setNoKeyToast(true);
+        setTimeout(() => setNoKeyToast(false), 3500);
+        return;
+      }
+
       const data = await response.json();
-      const result = data.choices?.[0]?.message?.content;
-      if (result) {
-        setMarkdownContent(result);
+      if (data.result) {
+        setMarkdownContent(data.result);
         setIsMarkdownMode(true);
         setEmpty(false);
       }
     } catch (err) {
-      console.error('OpenRouter error:', err);
+      console.error('Journal enhance error:', err);
     } finally {
       setAiLoading(false);
     }
