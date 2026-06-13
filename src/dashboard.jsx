@@ -861,153 +861,15 @@ function AmalanSheetItem({ amalan, done, onToggle }) {
   );
 }
 
-// ── Prayer Detail Page — full screen, replaces bottom sheet ──────────────────
-const WAKTU_MAP = { tahajud: 'tahajud', subuh: 'subuh', dzuhur: 'dzuhur', ashar: 'ashar', maghrib: 'maghrib', isya: 'isya', witir: 'witir' };
-
-const PRAYER_SVG = {
-  tahajud: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
-  subuh:   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="2" y1="18" x2="4" y2="18"/><line x1="20" y1="18" x2="22" y2="18"/><line x1="19.78" y1="10.22" x2="18.36" y2="11.64"/></svg>,
-  dzuhur:  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>,
-  ashar:   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M3 12h1M20 12h1M12 3v1M12 20v1M5.64 5.64l.7.7M17.66 17.66l.7.7M17.66 6.34l-.7.7M5.64 18.36l.7-.7"/></svg>,
-  maghrib: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="2" y1="18" x2="22" y2="18"/><path d="M12 2L12 9"/><path d="M4.22 10.22L5.64 11.64"/><path d="M19.78 10.22L18.36 11.64"/></svg>,
-  isya:    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><path d="M14 10l-2 2-2-2"/></svg>,
-  witir:   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
-};
-
-function PrayerDetailPage({ card, onClose, misiDone, onToggleMisi, prayers, onStatus, schedules, schedLoading }) {
-  const data = AMALAN_PER_WAKTU.find(w => w.id === WAKTU_MAP[card.k]);
-  const status = prayers?.[card.k];
-  const sched = card.k === 'tahajud' ? card.sched : (schedules?.[card.k] || (schedLoading ? '...' : card.sched));
-  const doneCount = data?.amalan.filter(a => misiDone?.[a.id]).length || 0;
-  const totalCount = data?.amalan.length || 0;
-
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, []);
-
-  return (
-    <div
-      className="fade-in"
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'var(--bg)',
-        display: 'flex', flexDirection: 'column',
-        overflowY: 'auto',
-      }}
-    >
-      {/* Top bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 14,
-        padding: '14px 20px',
-        borderBottom: '1px solid var(--border)',
-        position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 2,
-      }}>
-        <button
-          onClick={onClose}
-          style={{ background: 'none', border: '1px solid var(--border)', color: 'var(--text-2)', borderRadius: 10, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 5l-7 7 7 7"/>
-          </svg>
-        </button>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 17, color: 'var(--text)', letterSpacing: '-.01em' }}>
-            {card.id}
-          </div>
-          {data && <div className="muted tiny">{data.waktuDesc}</div>}
-        </div>
-        <div style={{ color: 'var(--gold)', flexShrink: 0 }}>{PRAYER_SVG[card.k]}</div>
-      </div>
-
-      {/* Content */}
-      <div style={{ padding: '20px 20px 80px', maxWidth: 600, width: '100%', margin: '0 auto' }}>
-
-        {/* Prayer info card */}
-        <div className="card" style={{ padding: '18px 20px', marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <div>
-              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 22, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.5, marginBottom: 4 }}>{card.ar}</div>
-              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text-3)', letterSpacing: '.04em' }}>{sched}</div>
-            </div>
-            {status && (
-              <div style={{
-                padding: '4px 12px', borderRadius: 999,
-                fontSize: 11, fontFamily: 'var(--f-head)', fontWeight: 700, letterSpacing: '.06em',
-                background: status === 'ok' ? 'rgba(74,222,128,.15)' : status === 'late' ? 'rgba(251,191,36,.15)' : 'rgba(239,68,68,.15)',
-                color: status === 'ok' ? 'var(--ok)' : status === 'late' ? 'var(--warn)' : 'var(--danger)',
-                border: `1px solid ${status === 'ok' ? 'var(--ok)' : status === 'late' ? 'var(--warn)' : 'var(--danger)'}`,
-              }}>
-                {status === 'ok' ? 'Tepat Waktu' : status === 'late' ? 'Telat' : 'Qadha'}
-              </div>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {[['ok', '✓', 'Tepat Waktu'], ['late', '!', 'Telat'], ['qadha', '○', 'Qadha']].map(([s, icon, lbl]) => (
-              <button
-                key={s}
-                className={'prayer-status-btn ' + s + (status === s ? ' on' : '')}
-                onClick={() => onStatus(card.k, status === s ? null : s)}
-                style={{ flex: 1, padding: '8px 4px', fontSize: 12 }}
-              >
-                <span style={{ marginRight: 4 }}>{icon}</span>{lbl}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Amalan progress */}
-        {data && totalCount > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span className="eyebrow">Amalan Setelah {card.id}</span>
-              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{doneCount} / {totalCount} selesai</span>
-            </div>
-            <div style={{ background: 'var(--border)', borderRadius: 999, height: 3 }}>
-              <div style={{ width: `${(doneCount / totalCount) * 100}%`, height: '100%', borderRadius: 999, background: 'var(--gold)', transition: 'width .5s ease' }} />
-            </div>
-          </div>
-        )}
-
-        {/* Amalan list */}
-        {!data ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-3)' }}>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12, opacity: .4 }}>
-              <path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z"/>
-              <path d="M12 8v4M12 16h.01"/>
-            </svg>
-            <div className="muted">Amalan untuk waktu ini belum tersedia</div>
-          </div>
-        ) : data.amalan.map(amalan => (
-          <AmalanSheetItem
-            key={amalan.id}
-            amalan={amalan}
-            done={!!misiDone?.[amalan.id]}
-            onToggle={onToggleMisi}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ── Dashboard Page ───────────────────────────────────────────────────────────
 export function DashboardPage({
   prayers, times, sunnah, setStatus, setTime, toggleSunnah,
   score, ring, streak, freeze, useFreeze, pulse, go,
   misiDone = {}, onMisiToggle, toggleMisi, dailyPoints = 0, totalPoints = 0, badgeToast, clearBadgeToast,
-  userName = 'Akhi',
+  userName = 'Akhi', onPrayerCardClick,
 }) {
-  const [activeCard, setActiveCard] = useState(null);
-  const [openKey,  setOpenKey]  = useState(null);
-  const [sheetKey, setSheetKey] = useState(null);
   const misiToggleFn = toggleMisi || onMisiToggle;
-  const isMobile = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
-  const handlePrayerToggle = (k) => {
-    if (isMobile()) { setSheetKey((prev) => prev === k ? null : k); }
-    else            { setOpenKey((prev)  => prev === k ? null : k); }
-  };
   const doneCount = PRAYERS.filter((p) => prayers[p.k]).length;
   const sunCount = SUNNAH.filter((s) => sunnah[s]).length;
   const level = getLevel(totalPoints);
@@ -1126,7 +988,7 @@ export function DashboardPage({
               isNext={p.k === nextK}
               onStatus={setStatus}
               onSetTime={(k) => setTime(k, _wibNow().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }))}
-              onClick={() => setActiveCard(p)}
+              onClick={() => onPrayerCardClick && onPrayerCardClick(p)}
               schedules={schedules}
               schedLoading={schedLoading}
             />
@@ -1174,19 +1036,6 @@ export function DashboardPage({
 
       </div>
 
-      {/* Prayer Detail Page */}
-      {activeCard && (
-        <PrayerDetailPage
-          card={activeCard}
-          onClose={() => setActiveCard(null)}
-          misiDone={misiDone}
-          onToggleMisi={(id) => misiToggleFn(id)}
-          prayers={prayers}
-          onStatus={setStatus}
-          schedules={schedules}
-          schedLoading={schedLoading}
-        />
-      )}
     </div>
   );
 }

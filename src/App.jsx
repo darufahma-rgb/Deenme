@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './deenme-theme.css';
 import { Rail, BottomNav, fireConfetti } from './ui.jsx';
 import { PRAYERS, SUNNAH, DashboardPage, MISI_PER_SHOLAT, BADGES, computeDailyPoints, getLevel, getRank } from './dashboard.jsx';
-import { JournalPage, BankDoaPage, StatistikPage, AmalanPage } from './pages.jsx';
+import { JournalPage, BankDoaPage, StatistikPage, AmalanPage, PrayerAmalanPage } from './pages.jsx';
 import { LandingPage } from './LandingPage.jsx';
 import { supabase } from './supabase.js';
 import { AdminPage } from './AdminPage.jsx';
@@ -246,6 +246,7 @@ export default function App() {
   const [unlockedBadges, setUnlockedBadges] = useState([]);
   const [badgeToast,     setBadgeToast]    = useState(null);
   const [amalanDone,     setAmalanDone]    = useState({});
+  const [activePrayerCard, setActivePrayerCard] = useState(null);
 
   const prevAll = useRef(false);
 
@@ -394,6 +395,20 @@ export default function App() {
   };
 
   // ── Render ───────────────────────────────────────────────────────────────
+  if (activePrayerCard) {
+    return (
+      <div className="deenme-root">
+        <SLParticles />
+        <PrayerAmalanPage
+          card={activePrayerCard}
+          misiDone={misiDone}
+          toggleMisi={onMisiToggle}
+          onBack={() => setActivePrayerCard(null)}
+        />
+      </div>
+    );
+  }
+
   if (view === 'landing') {
     return (
       <div className="deenme-root" style={{ overflow: 'auto', height: '100dvh' }}>
@@ -442,6 +457,7 @@ export default function App() {
                 dailyPoints={dailyPoints} totalPoints={totalPoints}
                 badgeToast={badgeToast} clearBadgeToast={() => setBadgeToast(null)}
                 userName={userName}
+                onPrayerCardClick={setActivePrayerCard}
               />}
             {v === 'journal' && <JournalPage go={setView} />}
             {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}

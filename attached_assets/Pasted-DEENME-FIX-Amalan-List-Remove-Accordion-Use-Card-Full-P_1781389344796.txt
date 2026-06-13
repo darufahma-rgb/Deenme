@@ -1,0 +1,207 @@
+DEENME — FIX: Amalan List — Remove Accordion, Use Card + Full Page Detail
+The current amalan list still uses accordion expand. Remove it entirely. Each amalan is a clean tappable card. Clicking opens AmalanDetailPage (full page), not a popup.
+
+STEP 1 — Update amalan card in AmalanPage (src/pages.jsx):
+Replace the entire amalan card JSX with this clean card design — NO accordion, NO expandable sections inside the list:
+jsx{currentWaktu?.amalan.map((amalan, idx) => {
+  const done = !!amalanDone?.[amalan.id];
+  return (
+    <div
+      key={amalan.id}
+      className="card"
+      style={{
+        marginBottom: 10,
+        padding: '16px 18px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        cursor: 'pointer',
+        opacity: done ? .6 : 1,
+        transition: 'opacity .2s, border-color .15s, transform .1s',
+      }}
+      onClick={() => setSelectedAmalan({ amalan, waktu: currentWaktu })}
+    >
+      {/* Checkbox */}
+      <div
+        style={{
+          width: 22, height: 22, borderRadius: 7,
+          border: `1.5px solid ${done ? 'var(--gold)' : 'var(--border-2)'}`,
+          background: done ? 'var(--gold)' : 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0, cursor: 'pointer', transition: '.18s',
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setAmalanDone(prev => ({ ...prev, [amalan.id]: !prev[amalan.id] }));
+        }}
+      >
+        {done && (
+          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 7.4 5.7 10 11 4.2"/>
+          </svg>
+        )}
+      </div>
+
+      {/* Content — Latin kiri, Arabic kanan, sejajar */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <span style={{
+          fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14,
+          color: done ? 'var(--text-3)' : 'var(--text)',
+          textDecoration: done ? 'line-through' : 'none',
+          flex: 1, minWidth: 0,
+        }}>
+          {amalan.name}
+        </span>
+        <span style={{
+          fontFamily: 'var(--f-ar)', fontSize: 14,
+          color: 'var(--gold)', direction: 'rtl',
+          flexShrink: 0, lineHeight: 1.5,
+        }}>
+          {amalan.nameAr}
+        </span>
+      </div>
+
+      {/* Arrow */}
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)', flexShrink: 0 }}>
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </div>
+  );
+})}
+
+STEP 2 — Confirm AmalanDetailPage is a full page (not popup):
+Make sure selectedAmalan renders AmalanDetailPage as a full page replacement — not a modal or sheet. The check should be at the TOP of AmalanPage return, before everything else:
+jsxexport function AmalanPage({ amalanDone, setAmalanDone }) {
+  const [activeTab, setActiveTab] = useState('subuh');
+  const [selectedAmalan, setSelectedAmalan] = useState(null);
+
+  // Full page detail — replaces entire AmalanPage
+  if (selectedAmalan) {
+    return (
+      <AmalanDetailPage
+        amalan={selectedAmalan.amalan}
+        waktu={selectedAmalan.waktu}
+        onBack={() => setSelectedAmalan(null)}
+      />
+    );
+  }
+
+  // ... rest of AmalanPage
+}
+
+STEP 3 — Clean up AmalanDetailPage layout (src/pages.jsx):
+Make sure content has proper padding and nothing overflows. Update the wrapper:
+jsxexport function AmalanDetailPage({ amalan, waktu, onBack }) {
+  return (
+    <div className="main fade-in" style={{ overflowY: 'auto' }}>
+      <div className="content scrl" style={{ maxWidth: 680, paddingBottom: 80 }}>
+
+        {/* Back */}
+        <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, padding: '0 0 24px', marginLeft: -4 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Kembali ke {waktu?.waktu}
+        </button>
+
+        {/* Header */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 30, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.8, marginBottom: 10, textAlign: 'right' }}>
+            {amalan.nameAr}
+          </div>
+          <h1 style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 24, color: 'var(--text)', margin: '0 0 8px', letterSpacing: '-.02em' }}>
+            {amalan.name}
+          </h1>
+          {waktu && (
+            <span className="chip" style={{ fontSize: 11, pointerEvents: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              {waktu.waktu} · {waktu.waktuDesc}
+            </span>
+          )}
+        </div>
+
+        {/* Bacaan */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Bacaan & Lafaz
+          </div>
+          {amalan.bacaan?.map((b, i) => (
+            <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20, marginBottom: 12 }}>
+              <span className="chip on" style={{ fontSize: 10, padding: '3px 10px', pointerEvents: 'none', marginBottom: 14, display: 'inline-block' }}>{b.jumlah}</span>
+              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 24, color: 'var(--gold)', direction: 'rtl', lineHeight: 2.2, textAlign: 'right', marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
+                {b.ar}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-2)', fontStyle: 'italic', lineHeight: 1.8, marginBottom: 12 }}>
+                {b.latin}
+              </div>
+              <div style={{ background: 'var(--elevated)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', borderLeft: '3px solid var(--gold-line)' }}>
+                <div className="eyebrow" style={{ fontSize: 9, marginBottom: 6 }}>ARTINYA</div>
+                <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.8 }}>"{b.arti}"</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Cara Mengamalkan */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Cara Mengamalkan
+          </div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.tuntunan}</p>
+          </div>
+        </div>
+
+        {/* Khasiat */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+            Khasiat & Faedah
+          </div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.khasiat}</p>
+          </div>
+        </div>
+
+        {/* Dalil */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Dalil Anjuran
+          </div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: '0 0 14px' }}>{amalan.dalil}</p>
+            <div style={{ background: 'var(--elevated)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--gold)', letterSpacing: '.03em' }}>{amalan.sumber}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Keutamaan */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Keutamaan
+          </div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.keutamaan}</p>
+          </div>
+        </div>
+
+        {/* Back button bottom */}
+        <button className="btn gold" style={{ width: '100%', padding: 14, fontSize: 14 }} onClick={onBack}>
+          ← Kembali ke {waktu?.waktu}
+        </button>
+
+      </div>
+    </div>
+  );
+}
+
+IMPORTANT:
+
+Delete all accordion/expand logic from AmalanPage — openSections, openAmalan, toggleSection, toggleAmalan, isOpen — all gone
+AmalanDetailPage is a full page render replacing AmalanPage — not a modal, not a popup, not a sheet
+All text has proper padding (20px inside cards), nothing mepet ke border
+Arabic text: direction: rtl, right-aligned, font var(--f-ar)
+Do not change any other pages or functionality
