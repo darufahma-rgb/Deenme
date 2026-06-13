@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Icon } from './ui.jsx';
 import { BADGES, getLevel, getGrade, calcDailyPoints, calcMaxPoints, IBADAH_POINTS } from './dashboard.jsx';
+import { supabase } from './supabase.js';
 
 const WAKTU_ICONS = {
   tahajud: (
@@ -147,7 +148,7 @@ const HEATC = { full: '#4ade80', part: '#fbbf24', empty: '#f87171', none: 'trans
 
 const _ID_MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-export function JournalPage({ go }) {
+function JournalContent({ go }) {
   const edRef = useRef(null);
   const [empty, setEmpty] = useState(true);
   const [detected, setDetected] = useState([]);
@@ -323,6 +324,286 @@ export function JournalPage({ go }) {
               ))}
             </div>}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Tafsir Mimpi Page ─────────────────────────────────────────────────────────
+function TafsirMimpiPage({ codeId }) {
+  const [dreamText, setDreamText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [selectedHistory, setSelectedHistory] = useState(null);
+  const [noKeyToast, setNoKeyToast] = useState(false);
+
+  useEffect(() => {
+    if (!codeId) { setLoadingHistory(false); return; }
+    const load = async () => {
+      const { data } = await supabase
+        .from('dream_tafsir')
+        .select('*')
+        .eq('code_id', codeId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      setHistory(data || []);
+      setLoadingHistory(false);
+    };
+    load();
+  }, [codeId]);
+
+  const tafsirkan = async () => {
+    const text = dreamText.trim();
+    if (!text || loading) return;
+    setLoading(true);
+    setResult(null);
+    setSelectedHistory(null);
+
+    try {
+      const response = await fetch('/api/dream/tafsir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      if (response.status === 503) {
+        setNoKeyToast(true);
+        setTimeout(() => setNoKeyToast(false), 3500);
+        setLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      const tafsir = data.result;
+
+      if (tafsir) {
+        setResult(tafsir);
+        if (codeId) {
+          const { data: saved } = await supabase
+            .from('dream_tafsir')
+            .insert({ code_id: codeId, dream_text: text, tafsir_result: tafsir })
+            .select()
+            .single();
+          if (saved) setHistory(prev => [saved, ...prev]);
+        }
+      }
+    } catch (err) {
+      setResult('Terjadi kesalahan. Pastikan koneksi internet aktif dan coba lagi.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteHistory = async (id) => {
+    await supabase.from('dream_tafsir').delete().eq('id', id);
+    setHistory(prev => prev.filter(h => h.id !== id));
+    if (selectedHistory?.id === id) setSelectedHistory(null);
+  };
+
+  const formatDate = (iso) => new Date(iso).toLocaleDateString('id-ID', {
+    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+
+  return (
+    <div style={{ display: 'flex', flex: 1, overflow: 'hidden', width: '100%' }}>
+      {/* No-key toast */}
+      {noKeyToast && (
+        <div style={{
+          position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--danger)', color: '#fff', padding: '10px 18px',
+          borderRadius: 10, fontSize: 13, fontFamily: 'var(--f-head)',
+          zIndex: 999, boxShadow: '0 4px 20px rgba(0,0,0,.4)', whiteSpace: 'nowrap',
+        }}>
+          API key tidak ditemukan. Tambahkan OPENROUTER_KEY di Replit Secrets.
+        </div>
+      )}
+
+      {/* Left: History */}
+      <div className="col-l scrl">
+        <div className="eyebrow" style={{ marginBottom: 12 }}>Riwayat Tafsir</div>
+        {loadingHistory ? (
+          <div className="muted tiny">Memuat...</div>
+        ) : history.length === 0 ? (
+          <div className="muted tiny" style={{ lineHeight: 1.6 }}>Belum ada riwayat.<br/>Ceritakan mimpimu pertama kali!</div>
+        ) : history.map(h => (
+          <div
+            key={h.id}
+            onClick={() => { setSelectedHistory(h); setResult(null); setDreamText(''); }}
+            style={{
+              background: selectedHistory?.id === h.id ? 'var(--gold-soft)' : 'var(--surface)',
+              border: `1px solid ${selectedHistory?.id === h.id ? 'var(--gold-line)' : 'var(--border)'}`,
+              borderRadius: 'var(--radius-sm)', padding: '10px 12px', marginBottom: 8,
+              cursor: 'pointer', transition: '.15s',
+            }}
+          >
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12.5, color: 'var(--text)', marginBottom: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              {h.dream_text}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="muted tiny">{formatDate(h.created_at)}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); deleteHistory(h.id); }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px' }}
+              >×</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Main content */}
+      <div className="content scrl">
+        <div style={{ marginBottom: 20 }}>
+          <h1 className="h1">Tafsir Mimpi</h1>
+          <div className="muted tiny" style={{ marginTop: 4 }}>Berdasarkan kitab Ibnu Sirin &amp; psikologi modern · dijawab AI</div>
+        </div>
+
+        {selectedHistory ? (
+          <div>
+            <button
+              onClick={() => setSelectedHistory(null)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, padding: '0 0 16px', marginLeft: -4 }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Tafsir Baru
+            </button>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 18, marginBottom: 16 }}>
+              <div className="eyebrow" style={{ marginBottom: 8 }}>Cerita Mimpi</div>
+              <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>"{selectedHistory.dream_text}"</p>
+              <div className="muted tiny" style={{ marginTop: 8 }}>{formatDate(selectedHistory.created_at)}</div>
+            </div>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
+              <div className="eyebrow" style={{ marginBottom: 14 }}>Hasil Tafsir</div>
+              <div className="markdown-render">
+                <ReactMarkdown>{selectedHistory.tafsir_result}</ReactMarkdown>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Input area */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', marginBottom: 16, overflow: 'hidden' }}>
+              <div style={{ padding: '14px 16px 8px', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 4 }}>Ceritakan mimpi kamu</div>
+                <div className="muted tiny">Semakin detail ceritamu, semakin akurat tafsirnya</div>
+              </div>
+              <textarea
+                value={dreamText}
+                onChange={e => setDreamText(e.target.value)}
+                placeholder="Contoh: Tadi malam saya bermimpi berada di sebuah masjid yang sangat besar dan indah, lalu tiba-tiba langit menjadi terang benderang..."
+                style={{
+                  width: '100%', minHeight: 160, padding: '16px',
+                  background: 'transparent', border: 'none', outline: 'none',
+                  resize: 'vertical', fontFamily: 'var(--f-body)', fontSize: 14,
+                  color: 'var(--text)', lineHeight: 1.7, boxSizing: 'border-box',
+                }}
+              />
+              <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="muted tiny">{dreamText.length} karakter</span>
+                <button
+                  className="btn gold"
+                  style={{ padding: '10px 22px', fontSize: 13, opacity: dreamText.trim().length < 10 || loading ? .5 : 1, display: 'flex', alignItems: 'center', gap: 8 }}
+                  onClick={tafsirkan}
+                  disabled={dreamText.trim().length < 10 || loading}
+                >
+                  {loading ? (
+                    <><span className="spin" style={{ width: 14, height: 14, borderWidth: 2 }} />Menafsirkan...</>
+                  ) : (
+                    <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Tafsirkan Mimpi</>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Tips */}
+            {!result && !loading && (
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 18, marginBottom: 16 }}>
+                <div className="eyebrow" style={{ marginBottom: 12 }}>Tips Sebelum Tafsir</div>
+                {[
+                  ['🌙', 'Mimpi di sepertiga malam terakhir biasanya lebih bermakna'],
+                  ['📝', 'Catat mimpi segera setelah bangun agar tidak terlupa'],
+                  ['🤲', 'Jika mimpi buruk, baca ta\'awwudz dan jangan ceritakan ke orang lain'],
+                  ['✨', 'Jika mimpi baik, boleh diceritakan kepada orang yang dipercaya'],
+                ].map(([icon, tip]) => (
+                  <div key={tip} style={{ display: 'flex', gap: 10, marginBottom: 10, alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>{icon}</span>
+                    <span style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{tip}</span>
+                  </div>
+                ))}
+                <div className="muted tiny" style={{ marginTop: 8, paddingTop: 10, borderTop: '1px solid var(--border)', fontStyle: 'italic' }}>
+                  Tafsir mengacu pada kitab Mukhtasar Al-Ru'ya karya Ibnu Sirin dan pendekatan psikologi analitik Carl Jung.
+                </div>
+              </div>
+            )}
+
+            {/* Result */}
+            {result && (
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--radius)', padding: 22 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <div className="eyebrow">Hasil Tafsir</div>
+                  <span className="chip" style={{ fontSize: 10, pointerEvents: 'none' }}>Ibnu Sirin · Psikologi</span>
+                </div>
+                <div className="markdown-render">
+                  <ReactMarkdown>{result}</ReactMarkdown>
+                </div>
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                  <div className="muted tiny" style={{ fontStyle: 'italic' }}>
+                    ⚠️ Tafsir ini adalah interpretasi, bukan ramalan. Hanya Allah yang mengetahui makna mimpi sesungguhnya. Wallahu a'lam.
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Journal Page with tabs ────────────────────────────────────────────────────
+export function JournalPage({ go, codeId }) {
+  const [activeTab, setActiveTab] = useState('jurnal');
+
+  return (
+    <div className="main fade-in" style={{ position: 'relative' }}>
+      {/* Tab bar — sticky at top */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, borderBottom: '1px solid var(--border)', background: 'var(--surface)', zIndex: 5, display: 'flex', padding: '0 24px' }}>
+        {[
+          {
+            id: 'jurnal', label: 'Jurnal Harian',
+            icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 1 5 19.5z"/><path d="M9 3v18"/><path d="M12.5 8.5h3.5M12.5 12h3.5"/></svg>,
+          },
+          {
+            id: 'mimpi', label: 'Tafsir Mimpi',
+            icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><circle cx="12" cy="12" r="3"/></svg>,
+          },
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '14px 18px', background: 'none', border: 'none',
+              borderBottom: activeTab === t.id ? '2px solid var(--gold)' : '2px solid transparent',
+              color: activeTab === t.id ? 'var(--gold)' : 'var(--text-3)',
+              fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13,
+              cursor: 'pointer', transition: '.15s', marginBottom: -1,
+            }}
+          >
+            {t.icon}{t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content — padded top to clear tab bar */}
+      <div style={{ paddingTop: 49, width: '100%', display: 'flex', flex: 1, overflow: 'hidden', height: '100%' }}>
+        {activeTab === 'jurnal' ? (
+          <JournalContent go={go} />
+        ) : (
+          <TafsirMimpiPage codeId={codeId} />
+        )}
       </div>
     </div>
   );

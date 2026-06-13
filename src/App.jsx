@@ -459,7 +459,7 @@ export default function App() {
                 userName={userName}
                 onPrayerCardClick={setActivePrayerCard}
               />}
-            {v === 'journal' && <JournalPage go={setView} />}
+            {v === 'journal' && <JournalPage go={setView} codeId={codeId} />}
             {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
             {v === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
             {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
