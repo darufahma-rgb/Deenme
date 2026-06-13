@@ -43,9 +43,9 @@
   --rowpad: 16px;
 
   /* Fonts */
-  --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
-  --f-body: 'Inter', system-ui, sans-serif;
-  --f-ar:   'Tajawal', serif;
+  --f-head: 'Bricolage Grotesque', system-ui, sans-serif;
+  --f-body: 'Bricolage Grotesque', system-ui, sans-serif;
+  --f-ar:   'IBM Plex Sans Arabic', 'Tajawal', serif;
 
   /* animation */
   --ring-dur: .55s;
