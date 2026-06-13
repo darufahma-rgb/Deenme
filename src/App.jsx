@@ -4,18 +4,23 @@ import { Rail, fireConfetti } from './ui.jsx';
 import { PRAYERS, SUNNAH, DashboardPage, MISI_PER_SHOLAT, BADGES, computeDailyPoints, getLevel } from './dashboard.jsx';
 import { JournalPage, BankDoaPage, StatistikPage, AmalanPage } from './pages.jsx';
 
-const LS_KEY = 'deenme-state-v5';
+const LS_KEY = 'deenme-state-v1';
 const TODAY  = new Date().toISOString().slice(0, 10);
 
 const loadState = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; } };
 
 const DEFAULTS = {
-  prayers: { subuh: 'ok', dzuhur: 'late', ashar: 'ok' },
-  times: { subuh: '04:48', dzuhur: '12:05', ashar: '15:22' },
-  sunnah: { 'Rawatib Subuh': true, 'Dhuha': true },
-  bookmarks: { 'رَبِّ زِدْنِي عِلْمًاQS. Thaha: 114': true },
-  userDoa: [], streak: 12, freeze: 2,
-  misiDone: {}, totalPoints: 0, dailyPoints: 0, unlockedBadges: [],
+  prayers: {},
+  times: {},
+  sunnah: {},
+  bookmarks: {},
+  userDoa: [],
+  streak: 0,
+  freeze: 2,
+  misiDone: {},
+  totalPoints: 0,
+  dailyPoints: 0,
+  unlockedBadges: [],
   lastDate: TODAY,
 };
 
@@ -78,7 +83,7 @@ function LoginPage({ onEnter }) {
         </button>
         <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 16, letterSpacing: '.04em' }}>Deenme · Dar Dev</div>
       </div>
-      <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 20, opacity: .7 }}>Tip: ketik 6 digit apa saja untuk masuk demo</div>
+      <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 20, opacity: 0 }}>&nbsp;</div>
     </div>
   );
 }

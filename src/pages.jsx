@@ -16,16 +16,16 @@ function detectDoa(text) {
   const t = (text || '').toLowerCase();
   return Object.keys(KW).filter((d) => KW[d].some((w) => t.includes(w)));
 }
-const MINI_SEQ = ['full','full','part','full','empty','full','full','part','full','full',
-  'full','empty','part','full','full','full','full','part','full','empty',
-  'full','full','full','part','full','full','full','part','full','full'];
+const MINI_SEQ = Array(30).fill('none');
 const HEATC = { full: '#4ade80', part: '#fbbf24', empty: '#f87171', none: 'transparent' };
+
+const _ID_MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
 export function JournalPage({ go }) {
   const edRef = useRef(null);
   const [empty, setEmpty] = useState(true);
   const [detected, setDetected] = useState([]);
-  const [day, setDay] = useState(13);
+  const [day, setDay] = useState(() => new Date().getDate());
   const onInput = () => {
     const txt = edRef.current.innerText;
     setEmpty(txt.trim() === '');
@@ -38,7 +38,7 @@ export function JournalPage({ go }) {
         <span className="eyebrow">30 hari terakhir</span>
         <div className="heat" style={{ gridTemplateColumns: 'repeat(6,1fr)' }}>
           {MINI_SEQ.map((k, i) => (
-            <div key={i} className="hc" title={`${i + 1} Juni`}
+            <div key={i} className="hc" title={`${i + 1} ${_ID_MONTHS[new Date().getMonth()]}`}
               style={{
                 background: HEATC[k],
                 outline: i === 12 ? '2px solid var(--gold)' : 'none',
@@ -401,12 +401,11 @@ export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
 }
 
 // ─── STATISTIK ────────────────────────────────────────────
-const WEEK = [0.82, 0.64, 1, 0.9, 0.42, 1, 0.74];
+const WEEK = [0, 0, 0, 0, 0, 0, 0];
 const WDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-const MONTH_DATA = ['full','full','part','full','empty','full','full','part','full','full',
-  'full','empty','part','full','full','full','full','part','full','empty',
-  'full','full','full','part','full','full','full','part','full','full',
-  'none','none','none','none','none'];
+const _now = new Date();
+const _daysInMonth = new Date(_now.getFullYear(), _now.getMonth() + 1, 0).getDate();
+const MONTH_DATA = Array(_daysInMonth).fill('none');
 
 export function StatistikPage({ streak, freeze, useFreeze, totalPoints = 0, unlockedBadges = [] }) {
   const [mounted, setMounted] = useState(false);
@@ -416,7 +415,7 @@ export function StatistikPage({ streak, freeze, useFreeze, totalPoints = 0, unlo
       <div className="content scrl">
         <h1 className="h1" style={{ marginBottom: 22 }}>Statistik &amp; Streak</h1>
 
-        <div className="streak" style={{ display: 'flex', alignItems: 'center', gap: 30, padding: 24, marginBottom: 16 }}>
+        <div className="streak" style={{ display: 'flex', alignItems: 'center', gap: 30, padding: 24, marginBottom: 16, flexWrap: 'wrap' }}>
           <span className="flame" style={{ color: 'rgba(110,231,183,.18)', right: 20, top: -10 }}>{Icon.flame}</span>
           <div>
             <div style={{ fontFamily: 'var(--f-body)', fontWeight: 500, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--mint)', marginBottom: 2 }}>
@@ -426,6 +425,11 @@ export function StatistikPage({ streak, freeze, useFreeze, totalPoints = 0, unlo
               <span className="bignum" style={{ fontSize: 60 }}>{streak}</span>
               <span style={{ fontFamily: 'var(--f-head)', fontWeight: 400, fontSize: 18, marginBottom: 10, color: 'rgba(247,244,237,.7)' }}>hari</span>
             </div>
+            {streak === 0 && (
+              <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, maxWidth: 200 }}>
+                Mulai catat sholat untuk membangun streak-mu 🔥
+              </div>
+            )}
           </div>
           <div className="divline" style={{ width: 1, height: 56, margin: '0 4px' }} />
           <div>
@@ -433,7 +437,7 @@ export function StatistikPage({ streak, freeze, useFreeze, totalPoints = 0, unlo
               {Icon.spark} Terpanjang
             </div>
             <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 36, color: 'var(--cream)', marginTop: 2, letterSpacing: '-1px' }}>
-              34 <span style={{ fontFamily: 'var(--f-head)', fontWeight: 400, fontSize: 18, color: 'rgba(247,244,237,.6)' }}>hari</span>
+              {streak} <span style={{ fontFamily: 'var(--f-head)', fontWeight: 400, fontSize: 18, color: 'rgba(247,244,237,.6)' }}>hari</span>
             </div>
           </div>
           <div style={{ flex: 1 }} />
@@ -460,12 +464,12 @@ export function StatistikPage({ streak, freeze, useFreeze, totalPoints = 0, unlo
 
         <div className="card" style={{ padding: 20, marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-            <span className="eyebrow">Heatmap · Juni 2026</span>
+            <span className="eyebrow">Heatmap · {_ID_MONTHS[_now.getMonth()]} {_now.getFullYear()}</span>
             <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{MONTH_DATA.filter((m) => m === 'full').length} hari lengkap</span>
           </div>
           <div className="heat">
             {MONTH_DATA.map((k, i) => (
-              <div key={i} className="hc" title={`${i + 1} Juni`}
+              <div key={i} className="hc" title={`${i + 1} ${_ID_MONTHS[_now.getMonth()]}`}
                 style={{
                   background: HEATC[k],
                   borderColor: k === 'none' ? 'var(--border)' : 'transparent',
@@ -556,20 +560,20 @@ export function StatistikPage({ streak, freeze, useFreeze, totalPoints = 0, unlo
         <span className="eyebrow">Ringkasan bulan ini</span>
         <div className="card" style={{ padding: 20 }}>
           <div className="eyebrow">Rata-rata skor</div>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 44, color: 'var(--gold)', marginTop: 4, letterSpacing: '-1.2px' }}>78%</div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>+6% dari bulan lalu</div>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 44, color: 'var(--gold)', marginTop: 4, letterSpacing: '-1.2px' }}>--</div>
+          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>Belum ada data bulan ini</div>
         </div>
         <div className="card" style={{ padding: 20 }}>
           <div className="eyebrow">Paling sering terlewat</div>
-          <div className="h1" style={{ fontSize: 24, marginTop: 8 }}>Subuh</div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>7× terlewat bulan ini</div>
+          <div className="h1" style={{ fontSize: 24, marginTop: 8, color: 'var(--text-3)' }}>--</div>
+          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>Mulai catat sholat harian</div>
         </div>
         <div className="card" style={{ padding: 20 }}>
           <div className="eyebrow">Total dicatat</div>
           <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 34, color: 'var(--text)', marginTop: 4, letterSpacing: '-1px' }}>
-            132 <span style={{ fontSize: 18, fontWeight: 400, color: 'var(--text-2)' }}>solat</span>
+            0 <span style={{ fontSize: 18, fontWeight: 400, color: 'var(--text-2)' }}>solat</span>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>dari 145 terjadwal</div>
+          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>dari {_daysInMonth * 5} terjadwal bulan ini</div>
         </div>
       </div>
     </div>

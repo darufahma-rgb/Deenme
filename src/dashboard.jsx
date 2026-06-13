@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Icon, PrayerRing, ScoreRing, fireConfetti } from './ui.jsx';
 
 export const PRAYERS = [
-  { k: 'subuh',   id: 'Subuh',   ar: 'الفجر',   sched: '04:42' },
-  { k: 'dzuhur',  id: 'Dzuhur',  ar: 'الظهر',   sched: '11:54' },
-  { k: 'ashar',   id: 'Ashar',   ar: 'العصر',   sched: '15:18' },
-  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب',  sched: '17:58' },
-  { k: 'isya',    id: 'Isya',    ar: 'العشاء',  sched: '19:09' },
+  { k: 'subuh',   id: 'Subuh',   ar: 'الفجر',   sched: '--:--' },
+  { k: 'dzuhur',  id: 'Dzuhur',  ar: 'الظهر',   sched: '--:--' },
+  { k: 'ashar',   id: 'Ashar',   ar: 'العصر',   sched: '--:--' },
+  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب',  sched: '--:--' },
+  { k: 'isya',    id: 'Isya',    ar: 'العشاء',  sched: '--:--' },
 ];
 export const SUNNAH = ['Rawatib Subuh', 'Dhuha', 'Rawatib Dzuhur', 'Rawatib Maghrib', 'Tahajud', 'Witir'];
 const STATUS = [['ok', 'Tepat'], ['late', 'Telat'], ['qadha', 'Qadha']];
@@ -190,6 +190,21 @@ const DETAIL = {
     window: 'Isya → Subuh',
   },
 };
+
+// ── Date helpers ─────────────────────────────────────────────────────────────
+const _AR_DAYS   = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const _AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const _ID_DAYS   = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const _ID_MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const _toAr = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+function _arDate() {
+  const d = new Date();
+  return `${_AR_DAYS[d.getDay()]}، ${_toAr(d.getDate())} ${_AR_MONTHS[d.getMonth()]} ${_toAr(d.getFullYear())}`;
+}
+function _idDate() {
+  const d = new Date();
+  return `${_ID_DAYS[d.getDay()]}, ${d.getDate()} ${_ID_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
 
 const TYPE_COLOR = { sholat: 'var(--mint)', dzikir: 'var(--gold)', doa: '#a78bfa' };
 const TYPE_BG    = { sholat: 'rgba(110,231,183,0.12)', dzikir: 'var(--gold-soft)', doa: 'rgba(167,139,250,0.12)' };
@@ -565,9 +580,9 @@ export function DashboardPage({
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: 18 }}>
           <div>
             <div style={{ fontFamily: 'var(--f-ar)', direction: 'rtl', color: 'var(--gold)', fontSize: 14, marginBottom: 4 }}>
-              السبت، ١٣ يونيو ٢٠٢٦
+              {_arDate()}
             </div>
-            <h1 className="h1">Sabtu, 13 Juni 2026</h1>
+            <h1 className="h1">{_idDate()}</h1>
             <div style={{ marginTop: 5, fontSize: 13, color: 'var(--text-3)' }}>Assalamu'alaikum — semoga harimu penuh berkah.</div>
           </div>
           {nextK && (
