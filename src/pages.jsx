@@ -27,12 +27,23 @@ export function JournalPage({ go }) {
   const [empty, setEmpty] = useState(true);
   const [detected, setDetected] = useState([]);
   const [day, setDay] = useState(() => new Date().getDate());
+  const [aiLoading, setAiLoading] = useState(false);
+  const [isMarkdownMode, setIsMarkdownMode] = useState(false);
+  const [markdownContent, setMarkdownContent] = useState('');
+  const [noKeyToast, setNoKeyToast] = useState(false);
+
   const onInput = () => {
     const txt = edRef.current.innerText;
     setEmpty(txt.trim() === '');
     setDetected(detectDoa(txt));
   };
   const cmd = (c) => { document.execCommand(c, false); edRef.current.focus(); };
+
+  // Reset markdown mode when switching days
+  useEffect(() => {
+    setIsMarkdownMode(false);
+  }, [day]);
+
   useEffect(() => {
     const handler = () => {
       if (!window.visualViewport) return;
@@ -43,6 +54,64 @@ export function JournalPage({ go }) {
     window.visualViewport?.addEventListener('resize', handler);
     return () => window.visualViewport?.removeEventListener('resize', handler);
   }, []);
+
+  const rapikanJurnal = async () => {
+    const rawText = edRef.current?.innerText?.trim();
+    if (!rawText || rawText.length < 10) return;
+
+    const apiKey = import.meta.env.VITE_OPENROUTER_KEY;
+    if (!apiKey) {
+      setNoKeyToast(true);
+      setTimeout(() => setNoKeyToast(false), 3500);
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://deenme.app',
+          'X-Title': 'Deenme Journal',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-flash-1.5',
+          messages: [
+            {
+              role: 'system',
+              content: `Kamu adalah asisten jurnal pribadi Muslim yang bertugas merapikan dan memperindah catatan harian.\n\nTugasmu:\n1. Perbaiki diksi dan tata bahasa Indonesia (santai tapi tetap elegan)\n2. Strukturkan dengan markdown: gunakan ## untuk heading utama, ### untuk sub-heading jika perlu\n3. Pisahkan paragraf dengan baik\n4. Pertahankan makna, suasana, dan kesan personal dari tulisan asli — jangan ubah fakta atau perasaan\n5. Jika ada ungkapan Arab/doa, pertahankan dengan benar\n6. Jangan tambahkan konten yang tidak ada di tulisan asli\n7. Mulai langsung dengan konten, tanpa pengantar atau penjelasan apapun\n8. Output hanya markdown, tidak ada komentar tambahan`,
+            },
+            { role: 'user', content: rawText },
+          ],
+          max_tokens: 2000,
+          temperature: 0.7,
+        }),
+      });
+
+      const data = await response.json();
+      const result = data.choices?.[0]?.message?.content;
+      if (result) {
+        setMarkdownContent(result);
+        setIsMarkdownMode(true);
+        setEmpty(false);
+      }
+    } catch (err) {
+      console.error('OpenRouter error:', err);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const backToEdit = () => {
+    setIsMarkdownMode(false);
+    if (edRef.current) {
+      edRef.current.innerText = markdownContent;
+      setEmpty(false);
+    }
+  };
+
   return (
     <div className="main fade-in">
       <div className="col-l scrl">
@@ -68,7 +137,20 @@ export function JournalPage({ go }) {
         </div>
       </div>
 
-      <div className="content scrl" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="content scrl" style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        {/* No-key toast */}
+        {noKeyToast && (
+          <div style={{
+            position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)',
+            background: 'var(--danger)', color: '#fff', padding: '10px 18px',
+            borderRadius: 10, fontSize: 13, fontFamily: 'var(--f-head)',
+            zIndex: 999, boxShadow: '0 4px 20px rgba(0,0,0,.4)',
+            whiteSpace: 'nowrap',
+          }}>
+            API key tidak ditemukan. Tambahkan VITE_OPENROUTER_KEY di Replit Secrets.
+          </div>
+        )}
+
         <div className="daynav" style={{ marginBottom: 20 }}>
           <button className="iconbtn" onClick={() => setDay((d) => Math.max(1, d - 1))}>{Icon.chevL}</button>
           <div>
@@ -81,12 +163,47 @@ export function JournalPage({ go }) {
 
         <div className="editor">
           <div className="etools">
-            <button className="etb" style={{ fontWeight: 700 }} onMouseDown={(e) => { e.preventDefault(); cmd('bold'); }}>B</button>
-            <button className="etb" style={{ fontStyle: 'italic' }} onMouseDown={(e) => { e.preventDefault(); cmd('italic'); }}>I</button>
-            <span style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 'auto' }}>Tersimpan otomatis</span>
+            {!isMarkdownMode ? (
+              <>
+                <button className="etb" style={{ fontWeight: 700 }} onMouseDown={(e) => { e.preventDefault(); cmd('bold'); }}>B</button>
+                <button className="etb" style={{ fontStyle: 'italic' }} onMouseDown={(e) => { e.preventDefault(); cmd('italic'); }}>I</button>
+                <div style={{ flex: 1 }} />
+                <button
+                  className="btn gold sm"
+                  style={{ padding: '6px 14px', fontSize: 12, opacity: aiLoading ? 0.6 : 1 }}
+                  onClick={rapikanJurnal}
+                  disabled={aiLoading || empty}
+                >
+                  {aiLoading ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className="spin" style={{ width: 12, height: 12, borderWidth: 2 }} />
+                      Merapikan...
+                    </span>
+                  ) : '✦ Rapikan'}
+                </button>
+                <span className="muted tiny" style={{ marginLeft: 8 }}>Tersimpan otomatis</span>
+              </>
+            ) : (
+              <>
+                <span style={{ fontFamily: 'var(--f-head)', fontSize: 12, color: 'var(--gold)', fontWeight: 600 }}>
+                  ✦ Dirapikan AI
+                </span>
+                <div style={{ flex: 1 }} />
+                <button className="btn ghost sm" style={{ fontSize: 12 }} onClick={backToEdit}>
+                  Edit lagi
+                </button>
+              </>
+            )}
           </div>
-          <div ref={edRef} className="earea scrl" contentEditable suppressContentEditableWarning
-            data-empty={empty ? '1' : '0'} data-ph="Hari ini bagaimana, akhi?" onInput={onInput} />
+
+          {isMarkdownMode ? (
+            <div className="earea scrl markdown-render" style={{ cursor: 'default' }}>
+              <ReactMarkdown>{markdownContent}</ReactMarkdown>
+            </div>
+          ) : (
+            <div ref={edRef} className="earea scrl" contentEditable suppressContentEditableWarning
+              data-empty={empty ? '1' : '0'} data-ph="Hari ini bagaimana, akhi?" onInput={onInput} />
+          )}
         </div>
 
         <div className="card" style={{ padding: 16, marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>

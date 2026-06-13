@@ -1,0 +1,175 @@
+DEENME — FIX: Mission Item Compact Layout
+The mission items in the mission panel are too large and inconsistent. Make them compact and uniform.
+Update mission item CSS in src/deenme-theme.css:
+css/* ── mission item compact ── */
+.misi-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.misi-item:last-child {
+  border-bottom: none;
+}
+
+.misi-item-checkbox {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-2);
+  background: transparent;
+  cursor: pointer;
+  margin-top: 2px;
+  transition: .18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.misi-item-checkbox.checked {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.misi-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.misi-item-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.misi-item-name {
+  font-family: var(--f-head);
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.misi-item-name.checked {
+  color: var(--text-2);
+  text-decoration: line-through;
+}
+
+.misi-item-ar {
+  font-family: var(--f-ar);
+  font-size: 11px;
+  color: var(--gold);
+  direction: rtl;
+  line-height: 1.4;
+}
+
+.misi-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* Compact chips inside mission */
+.misi-item .chip {
+  padding: 2px 8px;
+  font-size: 10.5px;
+  border-radius: 999px;
+  height: auto;
+  line-height: 1.6;
+}
+
+.misi-item-count {
+  font-size: 11px;
+  color: var(--text-2);
+  font-family: var(--f-head);
+  font-weight: 600;
+}
+
+.misi-item-detail {
+  font-size: 11.5px;
+  color: var(--text-3);
+  line-height: 1.5;
+  margin-top: 2px;
+  padding-left: 2px;
+}
+
+.misi-item-toggle {
+  font-size: 11px;
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: var(--f-head);
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.misi-item-toggle:hover {
+  color: var(--gold);
+}
+
+.misi-item.done {
+  opacity: 0.6;
+}
+Update the mission item JSX structure to match this compact layout:
+jsxfunction MisiItem({ misi, done, onToggle }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={'misi-item' + (done ? ' done' : '')}>
+      <div
+        className={'misi-item-checkbox' + (done ? ' checked' : '')}
+        onClick={() => onToggle(misi.id)}
+      >
+        {done && <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="var(--bg)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+      </div>
+      <div className="misi-item-body">
+        <div className="misi-item-ar">{misi.nameAr}</div>
+        <div className="misi-item-top">
+          <span className={'misi-item-name' + (done ? ' checked' : '')}>{misi.name}</span>
+        </div>
+        <div className="misi-item-meta">
+          <span className={'chip' + (misi.type === 'sholat' ? ' on' : '')} style={{
+            background: misi.type === 'sholat' ? 'color-mix(in srgb, var(--ok) 15%, transparent)' :
+                        misi.type === 'dzikir' ? 'color-mix(in srgb, var(--gold) 15%, transparent)' :
+                        'color-mix(in srgb, #8b8bff 15%, transparent)',
+            color: misi.type === 'sholat' ? 'var(--ok)' :
+                   misi.type === 'dzikir' ? 'var(--gold)' : '#a0a0ff',
+            borderColor: 'transparent',
+            pointerEvents: 'none'
+          }}>
+            {misi.type === 'sholat' ? 'Sholat' : misi.type === 'dzikir' ? 'Dzikir' : 'Doa'}
+          </span>
+          {(misi.count || misi.rakaat) && (
+            <span className="misi-item-count">
+              {misi.rakaat ? `${misi.rakaat} rakaat` : misi.count}
+            </span>
+          )}
+        </div>
+        {misi.desc && (
+          <>
+            <button className="misi-item-toggle" onClick={() => setOpen(o => !o)}>
+              <span>{open ? '▾' : '›'}</span>
+              <span>{open ? 'Sembunyikan' : 'Keterangan'}</span>
+            </button>
+            {open && <div className="misi-item-detail">{misi.desc}</div>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+Do not change any logic, only the visual layout and CSS.
