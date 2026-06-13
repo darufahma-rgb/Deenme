@@ -285,7 +285,7 @@ function MisiPanel({ prayerKey, misiDone, onToggle }) {
   const doneCount = data.misi.filter((m) => misiDone[m.id]).length;
   const pct = data.misi.length ? doneCount / data.misi.length : 0;
   return (
-    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+    <div className="card misi-panel-card" style={{ padding: 0 }}>
       <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <span className="eyebrow">{data.label}</span>
@@ -300,7 +300,10 @@ function MisiPanel({ prayerKey, misiDone, onToggle }) {
           }} />
         </div>
       </div>
-      <div className="misi-panel-list" style={{ padding: '6px 0 4px' }}>
+      <div
+        className="misi-panel-list"
+        style={{ padding: '6px 0 4px', overflowY: 'auto', maxHeight: '60dvh', WebkitOverflowScrolling: 'touch' }}
+      >
         {data.misi.map((m) => (
           <MisiItem key={m.id} misi={m} done={!!misiDone[m.id]} onToggle={() => onToggle(m.id, data.misi)} />
         ))}

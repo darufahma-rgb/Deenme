@@ -826,10 +826,22 @@ body {
 
 /* Mission panel list — scrollable */
 .misi-panel-list {
-  overflow-y: auto;
-  max-height: 600px;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #33333f transparent;
+}
+
+@media (min-width: 768px) {
+  .misi-panel-list {
+    max-height: 600px;
+  }
+}
+
+@media (max-width: 767px) {
+  .misi-panel-list {
+    max-height: 60dvh;
+  }
 }
 
 /* Mission item */
@@ -974,8 +986,15 @@ body {
   .col-l { display: none; }
 
   /* Main layout stacked */
-  .main    { flex-direction: column; height: calc(100dvh - 64px); overflow: hidden; }
-  .content { padding: 16px; padding-bottom: 100px; }
+  .main    { flex-direction: column; height: calc(100dvh - 64px); overflow-x: hidden; overflow-y: auto; }
+  .content { padding: 16px; padding-bottom: 100px; overflow-y: auto !important; overflow-x: hidden; }
+
+  /* Mission card container on mobile */
+  .misi-panel-card {
+    max-height: 60dvh;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
 
   /* Doa grid full width */
   .doagrid { grid-template-columns: 1fr; }
