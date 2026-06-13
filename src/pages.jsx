@@ -4,6 +4,131 @@ import ReactMarkdown from 'react-markdown';
 import { Icon } from './ui.jsx';
 import { BADGES, getLevel, getGrade, calcDailyPoints, calcMaxPoints, IBADAH_POINTS } from './dashboard.jsx';
 
+const WAKTU_ICONS = {
+  tahajud: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  ),
+  witir: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  ),
+  subuh: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 18a5 5 0 0 0-10 0"/>
+      <line x1="12" y1="2" x2="12" y2="9"/>
+      <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/>
+      <line x1="2" y1="18" x2="4" y2="18"/>
+      <line x1="20" y1="18" x2="22" y2="18"/>
+      <line x1="19.78" y1="10.22" x2="18.36" y2="11.64"/>
+    </svg>
+  ),
+  dhuha: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  ),
+  dzuhur: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+    </svg>
+  ),
+  ashar: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+      <path d="M3 12h1M20 12h1M12 3v1M12 20v1M5.64 5.64l.7.7M17.66 17.66l.7.7M17.66 6.34l-.7.7M5.64 18.36l.7-.7"/>
+    </svg>
+  ),
+  maghrib: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 18a5 5 0 0 0-10 0"/>
+      <line x1="2" y1="18" x2="22" y2="18"/>
+      <path d="M12 2L12 9"/>
+      <path d="M4.22 10.22L5.64 11.64"/>
+      <path d="M19.78 10.22L18.36 11.64"/>
+    </svg>
+  ),
+  isya: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      <path d="M14 10l-2 2-2-2"/>
+    </svg>
+  ),
+};
+
+const WAKTU_BIG_ICONS = {
+  tahajud: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  ),
+  witir: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  ),
+  subuh: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 18a5 5 0 0 0-10 0"/>
+      <line x1="12" y1="2" x2="12" y2="9"/>
+      <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/>
+      <line x1="2" y1="18" x2="4" y2="18"/>
+      <line x1="20" y1="18" x2="22" y2="18"/>
+      <line x1="19.78" y1="10.22" x2="18.36" y2="11.64"/>
+    </svg>
+  ),
+  dhuha: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  ),
+  dzuhur: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+    </svg>
+  ),
+  ashar: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+      <path d="M3 12h1M20 12h1M12 3v1M12 20v1M5.64 5.64l.7.7M17.66 17.66l.7.7M17.66 6.34l-.7.7M5.64 18.36l.7-.7"/>
+    </svg>
+  ),
+  maghrib: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 18a5 5 0 0 0-10 0"/>
+      <line x1="2" y1="18" x2="22" y2="18"/>
+      <path d="M12 2L12 9"/>
+      <path d="M4.22 10.22L5.64 11.64"/>
+      <path d="M19.78 10.22L18.36 11.64"/>
+    </svg>
+  ),
+  isya: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  ),
+};
+
 // ─── JURNAL ───────────────────────────────────────────────
 const KW = {
   'Doa Ujian': ['ujian', 'imtihan', 'belajar', 'tahriri', 'exam', 'hafalan', 'muraja'],
@@ -1049,7 +1174,6 @@ export const AMALAN_PER_WAKTU = [
 ];
 
 export function AmalanPage({ amalanDone, setAmalanDone }) {
-  const TABS = AMALAN_PER_WAKTU.map(w => ({ id: w.id, label: w.waktu, emoji: w.emoji }));
   const [activeTab, setActiveTab] = useState('subuh');
   const [openSections, setOpenSections] = useState({});
   const [openAmalan, setOpenAmalan] = useState({});
@@ -1086,15 +1210,15 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
 
         {/* Tabs — scrollable */}
         <div className="tabs scrl" style={{ marginBottom: 20, gap: 6 }}>
-          {TABS.map(t => (
+          {AMALAN_PER_WAKTU.map(w => (
             <button
-              key={t.id}
-              className={'tab' + (activeTab === t.id ? ' on' : '')}
-              onClick={() => setActiveTab(t.id)}
+              key={w.id}
+              className={'tab' + (activeTab === w.id ? ' on' : '')}
+              onClick={() => setActiveTab(w.id)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
             >
-              <span>{t.emoji}</span>
-              <span>{t.label}</span>
+              <span style={{ opacity: activeTab === w.id ? 1 : 0.6 }}>{WAKTU_ICONS[w.id]}</span>
+              <span>{w.waktu}</span>
             </button>
           ))}
         </div>
@@ -1102,7 +1226,9 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
         {/* Waktu header */}
         {currentWaktu && (
           <div className="card" style={{ padding: '14px 18px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span style={{ fontSize: 28 }}>{currentWaktu.emoji}</span>
+            <div style={{ color: 'var(--gold)', flexShrink: 0 }}>
+              {WAKTU_BIG_ICONS[currentWaktu.id]}
+            </div>
             <div>
               <div style={{ fontFamily: 'var(--f-ar)', fontSize: 18, color: 'var(--gold)', direction: 'rtl', marginBottom: 2 }}>{currentWaktu.waktuAr}</div>
               <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{currentWaktu.waktu}</div>

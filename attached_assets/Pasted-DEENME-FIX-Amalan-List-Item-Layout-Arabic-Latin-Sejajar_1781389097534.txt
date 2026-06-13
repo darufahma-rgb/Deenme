@@ -1,0 +1,44 @@
+DEENME — FIX: Amalan List Item Layout — Arabic & Latin Sejajar
+In AmalanPage, each amalan row currently shows Arabic on top and Latin name below. Make them side by side (Arabic right, Latin name left) in one horizontal line.
+In src/pages.jsx, find the amalan list item JSX inside AmalanPage and update the content section:
+jsx{/* Content — sejajar horizontal */}
+<div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+  {/* Latin name — kiri */}
+  <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, color: done ? 'var(--text-3)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none', flex: 1, minWidth: 0 }}>
+    {amalan.name}
+  </div>
+  {/* Arabic — kanan */}
+  <div style={{ fontFamily: 'var(--f-ar)', fontSize: 15, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.4, flexShrink: 0, textAlign: 'right' }}>
+    {amalan.nameAr}
+  </div>
+</div>
+Also remove the muted tiny subtitle "Ketuk untuk lihat bacaan lengkap" — not needed, the arrow already signals it's tappable.
+Full updated amalan row:
+jsx<div
+  key={amalan.id}
+  className="card"
+  style={{ marginBottom: 8, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', opacity: done ? .65 : 1, transition: 'opacity .2s, border-color .15s' }}
+  onClick={() => setSelectedAmalan({ amalan, waktu: currentWaktu })}
+>
+  {/* Checkbox */}
+  <div
+    style={{ width: 22, height: 22, borderRadius: 7, border: `1.5px solid ${done ? 'var(--gold)' : 'var(--border-2)'}`, background: done ? 'var(--gold)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: '.18s' }}
+    onClick={(e) => { e.stopPropagation(); setAmalanDone(prev => ({ ...prev, [amalan.id]: !prev[amalan.id] })); }}
+  >
+    {done && <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+  </div>
+
+  {/* Content sejajar */}
+  <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+    <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, color: done ? 'var(--text-3)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none', flex: 1, minWidth: 0 }}>
+      {amalan.name}
+    </span>
+    <span style={{ fontFamily: 'var(--f-ar)', fontSize: 15, color: 'var(--gold)', direction: 'rtl', flexShrink: 0, lineHeight: 1.5 }}>
+      {amalan.nameAr}
+    </span>
+  </div>
+
+  {/* Arrow */}
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)', flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
+</div>
+Do not change anything else.
