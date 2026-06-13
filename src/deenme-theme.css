@@ -426,7 +426,7 @@ label, .label, .caption {
   background: transparent;
   border: 1px solid var(--gold-line);
   border-radius: var(--radius-sm);
-  color: #386641;
+  color: var(--gold);
   font-family: var(--f-head);
   font-weight: 700;
   font-size: 12px;
@@ -437,15 +437,13 @@ label, .label, .caption {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: border-color .2s, background .2s;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+  animation: ariseGlow 3s ease-in-out infinite;
 }
 .sl-arise-btn:hover {
   background: var(--gold-soft);
-  border-color: #386641;
-}
-@keyframes ariseGlow {
-  0%, 100% { box-shadow: 0 0 8px rgba(56,102,65,.15); }
-  50% { box-shadow: 0 0 16px rgba(56,102,65,.3); }
+  border-color: var(--gold);
+  box-shadow: 0 0 16px var(--gold-soft);
 }
 
 .sl-hunter-card {
@@ -2600,42 +2598,9 @@ label, .label, .caption {
   100% { opacity: 0; transform: translateY(-60px) scale(.9); }
 }
 
-.sl-arise-btn {
-  width: 100%;
-  padding: 15px;
-  background: linear-gradient(135deg, #0a0214, #12042a);
-  border: 1px solid #7a3dff;
-  border-radius: 12px;
-  color: #7a3dff;
-  font-family: var(--f-head);
-  font-weight: 900;
-  font-size: 14px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow .2s;
-  animation: ariseGlow 2.5s ease-in-out infinite;
-}
-
 @keyframes ariseGlow {
-  0%, 100% { box-shadow: 0 0 16px rgba(122,61,255,.3), inset 0 0 20px rgba(60,10,120,.08); }
-  50%       { box-shadow: 0 0 32px rgba(122,61,255,.6), inset 0 0 30px rgba(90,30,180,.15); }
-}
-
-.sl-arise-btn::before {
-  content: '';
-  position: absolute;
-  top: -50%; left: -50%;
-  width: 200%; height: 200%;
-  background: linear-gradient(45deg, transparent 30%, rgba(150,80,255,.06) 50%, transparent 70%);
-  animation: ariseSheen 3s linear infinite;
-}
-
-@keyframes ariseSheen {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(100%); }
+  0%, 100% { box-shadow: 0 0 8px var(--gold-soft); border-color: var(--gold-line); }
+  50% { box-shadow: 0 0 20px var(--gold-soft), 0 0 0 1px var(--gold-line); border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
 }
 
 .sl-stats-strip {
