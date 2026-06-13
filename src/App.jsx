@@ -30,8 +30,8 @@ function LoginPage({ onEnter }) {
     <div className="login">
       <div className="authcard fade-in">
         <div className="authlogo">د</div>
-        <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 34, letterSpacing: '-.02em' }}>Deenme</div>
-        <div className="ar" style={{ fontSize: 24, marginTop: 2 }}>مَرْحَبًا بِعَوْدَتِكَ</div>
+        <div style={{ fontFamily: 'var(--f-head)', fontWeight: 500, fontSize: 32, letterSpacing: '-.01em', color: 'var(--text)', marginTop: 2 }}>Deenme</div>
+        <div className="ar" style={{ fontSize: 22, marginTop: 2 }}>مَرْحَبًا بِعَوْدَتِكَ</div>
         <div className="muted tiny" style={{ marginBottom: 8 }}>Welcome back</div>
         <div style={{ position: 'relative', margin: '6px 0' }}>
           <div className={'pin' + (err ? ' pinerr' : '')}>
@@ -46,14 +46,14 @@ function LoginPage({ onEnter }) {
             onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
             style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'text' }} aria-label="Kode member" />
         </div>
-        <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Masukkan kode member · 6 digit</div>
-        <button className="btn gold" style={{ width: '100%', padding: 13, opacity: code.length === 6 ? 1 : .5 }}
+        <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 6 }}>Masukkan kode member · 6 digit</div>
+        <button className="btn gold" style={{ width: '100%', padding: '12px 18px', opacity: code.length === 6 ? 1 : .5 }}
           onClick={submit} disabled={code.length < 6}>
           {loading ? <span className="spin" /> : 'Masuk'}
         </button>
-        <div className="muted" style={{ fontSize: 11.5, marginTop: 14, letterSpacing: '.04em' }}>Deenme • Dar Dev</div>
+        <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 16, letterSpacing: '.04em' }}>Deenme · Dar Dev</div>
       </div>
-      <div className="muted" style={{ fontSize: 11.5, marginTop: 22, opacity: .6 }}>Tip: ketik 6 digit apa saja untuk masuk demo</div>
+      <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 20, opacity: .7 }}>Tip: ketik 6 digit apa saja untuk masuk demo</div>
     </div>
   );
 }
