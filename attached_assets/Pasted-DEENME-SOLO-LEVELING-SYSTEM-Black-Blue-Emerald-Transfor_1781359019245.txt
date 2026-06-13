@@ -1,0 +1,558 @@
+DEENME — SOLO LEVELING SYSTEM: Black + Blue Emerald
+Transform the app with a Solo Leveling-inspired rank and quest system. Keep all Islamic content intact. Color: pure black + blue emerald #00b4d8. Terminology: Islamic but visual style Solo Leveling.
+
+STEP 1 — Add rank system constants to src/dashboard.jsx:
+jsexport const RANK_SYSTEM = [
+  { rank: 'E',   label: 'Mubtadi',     minPts: 0,    color: '#555555', glow: '#333333', border: '#2a2a2a', bg: '#0a0a0f' },
+  { rank: 'D',   label: 'Mutaallim',   minPts: 100,  color: '#6688cc', glow: '#4466aa', border: '#334488', bg: '#080a14' },
+  { rank: 'C',   label: 'Mutawassit',  minPts: 300,  color: '#00b4d8', glow: '#0088bb', border: '#006688', bg: '#040e14' },
+  { rank: 'B',   label: 'Mutaqaddim',  minPts: 600,  color: '#00cfef', glow: '#00aad0', border: '#0088bb', bg: '#030f16' },
+  { rank: 'A',   label: 'Muttaqin',    minPts: 1000, color: '#00e5ff', glow: '#00c4ee', border: '#00aadd', bg: '#020e18' },
+  { rank: 'S',   label: 'Wali',        minPts: 2000, color: '#40ffff', glow: '#00e5ff', border: '#00cfef', bg: '#010d16' },
+  { rank: 'SS',  label: 'Shiddiq',     minPts: 5000, color: '#80ffff', glow: '#40efff', border: '#00dfff', bg: '#010c15' },
+  { rank: 'SSS', label: 'Ulul Albab',  minPts: 10000,color: '#ffffff', glow: '#80ffff', border: '#40ffff', bg: '#000d18' },
+];
+
+export function getRank(totalPoints) {
+  const sorted = [...RANK_SYSTEM].reverse();
+  return sorted.find(r => totalPoints >= r.minPts) || RANK_SYSTEM[0];
+}
+
+export function getNextRank(totalPoints) {
+  return RANK_SYSTEM.find(r => r.minPts > totalPoints) || null;
+}
+
+STEP 2 — Add Solo Leveling CSS to src/deenme-theme.css:
+css/* ══════════════════════════════════
+   SOLO LEVELING SYSTEM
+══════════════════════════════════ */
+
+/* Rank badge */
+.sl-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  font-family: var(--f-head);
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -.02em;
+  flex-shrink: 0;
+  position: relative;
+  transition: box-shadow .3s;
+  animation: rankPulse 3s ease-in-out infinite;
+}
+
+@keyframes rankPulse {
+  0%, 100% { box-shadow: 0 0 12px var(--rank-glow), 0 0 0 1px var(--rank-border); }
+  50% { box-shadow: 0 0 32px var(--rank-glow), 0 0 0 1.5px var(--rank-color), 0 0 60px color-mix(in srgb, var(--rank-glow) 40%, transparent); }
+}
+
+/* Rank S/SS/SSS faster pulse */
+.sl-rank-s { animation-duration: 2s; }
+.sl-rank-ss { animation-duration: 1.4s; }
+.sl-rank-sss { animation-duration: 1s; }
+
+/* Hunter card */
+.sl-hunter-card {
+  background: linear-gradient(135deg, #060610, #08080f);
+  border: 1px solid #0d0d1e;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sl-hunter-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,180,216,.04), transparent 60%);
+  pointer-events: none;
+}
+
+.sl-hunter-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,180,216,.4), transparent);
+}
+
+/* XP bar */
+.sl-xp-track {
+  background: #060610;
+  border: 1px solid #0d0d20;
+  border-radius: 999px;
+  height: 6px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.sl-xp-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0066aa, #00b4d8, #00cfef);
+  box-shadow: 0 0 8px #00b4d8;
+  transition: width .8s cubic-bezier(.2,.8,.25,1);
+  position: relative;
+  overflow: hidden;
+}
+
+.sl-xp-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+  animation: xpSheen 2s linear infinite;
+}
+
+@keyframes xpSheen {
+  from { left: -100%; }
+  to { left: 200%; }
+}
+
+/* Quest items */
+.sl-quest {
+  background: #060610;
+  border: 1px solid #0d0d1e;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 7px;
+  transition: border-color .2s, background .2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.sl-quest::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: #0d0d1e;
+  transition: background .2s, box-shadow .2s;
+}
+
+.sl-quest:hover { border-color: rgba(0,180,216,.25); }
+
+.sl-quest.sl-done {
+  opacity: .5;
+  background: #050508;
+}
+
+.sl-quest.sl-done::before {
+  background: #00b4d8;
+  box-shadow: 0 0 8px #00b4d8;
+}
+
+.sl-quest-cb {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid #1a1a2e;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: .18s;
+}
+
+.sl-quest-cb.sl-checked {
+  background: #00b4d8;
+  border-color: #00b4d8;
+  box-shadow: 0 0 8px rgba(0,180,216,.5);
+}
+
+.sl-quest-name {
+  flex: 1;
+  font-family: var(--f-head);
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.sl-quest.sl-done .sl-quest-name {
+  text-decoration: line-through;
+  color: var(--text-3);
+}
+
+.sl-quest-pts {
+  font-family: var(--f-head);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: .04em;
+  color: var(--text-3);
+  transition: color .2s;
+}
+
+.sl-quest.sl-done .sl-quest-pts { color: #00b4d8; }
+
+/* Particles */
+.sl-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.sl-particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: slFloat var(--dur) ease-in-out infinite;
+  animation-delay: var(--delay);
+  opacity: 0;
+}
+
+@keyframes slFloat {
+  0% { opacity: 0; transform: translateY(0) scale(0); }
+  20% { opacity: .6; transform: translateY(-30px) scale(1); }
+  80% { opacity: .2; transform: translateY(-100px) scale(.5); }
+  100% { opacity: 0; transform: translateY(-140px) scale(0); }
+}
+
+/* Level up animation */
+.sl-levelup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: linear-gradient(135deg, #030a10, #050f18);
+  border: 2px solid #00b4d8;
+  border-radius: 20px;
+  padding: 32px 48px;
+  text-align: center;
+  z-index: 100;
+  box-shadow: 0 0 60px rgba(0,180,216,.4), 0 0 120px rgba(0,180,216,.2);
+  animation: levelUpShow .6s cubic-bezier(.2,1.4,.4,1) forwards;
+}
+
+@keyframes levelUpShow {
+  to { transform: translate(-50%, -50%) scale(1); }
+}
+
+.sl-levelup-title {
+  font-family: var(--f-head);
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: .2em;
+  color: #00b4d8;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.sl-levelup-rank {
+  font-family: var(--f-head);
+  font-weight: 900;
+  font-size: 56px;
+  letter-spacing: -.02em;
+  line-height: 1;
+  margin-bottom: 4px;
+  animation: rankGlowPulse 1s ease-in-out infinite;
+}
+
+@keyframes rankGlowPulse {
+  0%, 100% { text-shadow: 0 0 20px currentColor, 0 0 40px currentColor; }
+  50% { text-shadow: 0 0 40px currentColor, 0 0 80px currentColor, 0 0 120px currentColor; }
+}
+
+.sl-levelup-label {
+  font-family: var(--f-head);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+/* XP popup */
+.sl-xp-popup {
+  position: fixed;
+  font-family: var(--f-head);
+  font-weight: 900;
+  font-size: 16px;
+  color: #00b4d8;
+  pointer-events: none;
+  z-index: 99;
+  animation: xpFloat .9s ease forwards;
+  text-shadow: 0 0 12px #00b4d8;
+}
+
+@keyframes xpFloat {
+  0% { opacity: 0; transform: translateY(0) scale(.6); }
+  30% { opacity: 1; transform: translateY(-20px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-60px) scale(.9); }
+}
+
+/* Arise button */
+.sl-arise-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #020a12, #030e18);
+  border: 1px solid #00b4d8;
+  border-radius: 12px;
+  color: #00b4d8;
+  font-family: var(--f-head);
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow .2s;
+  animation: ariseGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes ariseGlow {
+  0%, 100% { box-shadow: 0 0 16px rgba(0,180,216,.3), inset 0 0 20px rgba(0,100,160,.08); }
+  50% { box-shadow: 0 0 32px rgba(0,180,216,.6), inset 0 0 30px rgba(0,140,200,.15); }
+}
+
+.sl-arise-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent 30%, rgba(0,200,255,.06) 50%, transparent 70%);
+  animation: ariseSheen 3s linear infinite;
+}
+
+@keyframes ariseSheen {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+/* Stats strip */
+.sl-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sl-stat {
+  background: #060610;
+  border: 1px solid #0d0d1e;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+.sl-stat-val {
+  font-family: var(--f-head);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: -.02em;
+  color: #00b4d8;
+  line-height: 1;
+}
+
+.sl-stat-lbl {
+  font-family: var(--f-head);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-top: 4px;
+}
+
+STEP 3 — Add SoloLevelingPanel component to src/dashboard.jsx:
+jsximport { getRank, getNextRank, RANK_SYSTEM } from './dashboard.jsx';
+
+export function SoloLevelingPanel({ totalPoints, streak, freeze, score, prayers, misiDone }) {
+  const rank = getRank(totalPoints);
+  const nextRank = getNextRank(totalPoints);
+  const xpToNext = nextRank ? nextRank.minPts - totalPoints : 0;
+  const xpPct = nextRank
+    ? ((totalPoints - rank.minPts) / (nextRank.minPts - rank.minPts)) * 100
+    : 100;
+
+  const doneCount = Object.values(misiDone || {}).filter(Boolean).length;
+  const prayerCount = Object.values(prayers || {}).filter(Boolean).length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+
+      {/* Hunter card */}
+      <div className="sl-hunter-card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+          <div
+            className={`sl-rank-badge sl-rank-${rank.rank.toLowerCase()}`}
+            style={{
+              background: rank.bg,
+              color: rank.color,
+              '--rank-glow': rank.glow,
+              '--rank-border': rank.border,
+              '--rank-color': rank.color,
+            }}
+          >
+            {rank.rank}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 16, color: rank.color, letterSpacing: '-.01em' }}>
+              {rank.label}
+            </div>
+            <div style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)', marginTop: 2, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+              Rank {rank.rank} Hunter · {totalPoints} XP
+            </div>
+          </div>
+        </div>
+
+        {/* XP bar */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, fontWeight: 700, color: rank.color }}>
+              {nextRank ? `${xpToNext} XP → Rank ${nextRank.rank}` : 'MAX RANK'}
+            </span>
+            <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>
+              {Math.round(xpPct)}%
+            </span>
+          </div>
+          <div className="sl-xp-track">
+            <div className="sl-xp-fill" style={{ width: xpPct + '%' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats strip */}
+      <div className="sl-stats-strip">
+        <div className="sl-stat">
+          <div className="sl-stat-val">{streak}</div>
+          <div className="sl-stat-lbl">Streak</div>
+        </div>
+        <div className="sl-stat">
+          <div className="sl-stat-val">{prayerCount}/5</div>
+          <div className="sl-stat-lbl">Solat</div>
+        </div>
+        <div className="sl-stat">
+          <div className="sl-stat-val">{doneCount}</div>
+          <div className="sl-stat-lbl">Quest</div>
+        </div>
+      </div>
+
+      {/* Freeze */}
+      <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
+        <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>
+          {freeze}× Streak Shield tersisa
+        </span>
+      </div>
+    </div>
+  );
+}
+
+STEP 4 — Add particle system to src/App.jsx:
+jsxfunction SLParticles() {
+  useEffect(() => {
+    const container = document.createElement('div');
+    container.className = 'sl-particles';
+    document.body.appendChild(container);
+    const colors = ['#00b4d8', '#0088bb', '#00cfef', '#004488'];
+    const particles = [];
+    for (let i = 0; i < 35; i++) {
+      const p = document.createElement('div');
+      p.className = 'sl-particle';
+      const size = 1.5 + Math.random() * 3;
+      p.style.cssText = `
+        width:${size}px;height:${size}px;
+        background:${colors[Math.floor(Math.random() * colors.length)]};
+        left:${Math.random() * 100}%;
+        top:${Math.random() * 100}%;
+        --dur:${3 + Math.random() * 4}s;
+        --delay:${Math.random() * 4}s;
+      `;
+      container.appendChild(p);
+      particles.push(p);
+    }
+    return () => container.remove();
+  }, []);
+  return null;
+}
+
+// Add <SLParticles /> inside App return, right after <div className="deenme-root">
+
+STEP 5 — Add XP popup & level up system to src/App.jsx:
+jsxfunction showXPPopup(pts, x, y) {
+  const el = document.createElement('div');
+  el.className = 'sl-xp-popup';
+  el.textContent = `+${pts} XP`;
+  el.style.left = (x - 20) + 'px';
+  el.style.top = (y - 10) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+function showLevelUp(rank) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;backdrop-filter:blur(4px);';
+  const card = document.createElement('div');
+  card.className = 'sl-levelup';
+  card.innerHTML = `
+    <div class="sl-levelup-title">— Rank Up —</div>
+    <div class="sl-levelup-rank" style="color:${rank.color}">${rank.rank}</div>
+    <div class="sl-levelup-label">${rank.label}</div>
+    <button class="btn gold" style="min-width:140px;" onclick="this.closest('[data-levelup]').remove()">Lanjutkan</button>
+  `;
+  card.dataset.levelup = '1';
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+}
+
+// Call showXPPopup(pts, e.clientX, e.clientY) when misi/quest completed
+// Call showLevelUp(newRank) when totalPoints crosses a rank threshold
+
+STEP 6 — Replace col-r content in DashboardPage with SoloLevelingPanel:
+jsx// In DashboardPage, replace col-r content with:
+<div className="col-r scrl">
+  <SoloLevelingPanel
+    totalPoints={totalPoints}
+    streak={streak}
+    freeze={freeze}
+    score={score}
+    prayers={prayers}
+    misiDone={misiDone}
+  />
+
+  {/* Arise button */}
+  <button
+    className="sl-arise-btn"
+    onClick={() => go('amalan')}
+    style={{ marginTop: 16 }}
+  >
+    ⚔ ARISE — Buka Daily Quest
+  </button>
+
+  {/* Mission panel still below */}
+  {/* ...existing misi panel... */}
+</div>
+
+STEP 7 — Update GRADE_SYSTEM in Statistik to use rank colors:
+jsexport const GRADE_SYSTEM = [
+  { grade: 'A+', label: 'Istimewa',    min: 95, color: '#00cfef' },
+  { grade: 'A',  label: 'Sangat Baik', min: 85, color: '#00b4d8' },
+  { grade: 'B+', label: 'Baik Sekali', min: 75, color: '#0099cc' },
+  { grade: 'B',  label: 'Baik',        min: 65, color: '#0077aa' },
+  { grade: 'C+', label: 'Cukup Baik',  min: 55, color: '#005588' },
+  { grade: 'C',  label: 'Cukup',       min: 45, color: '#f0a500' },
+  { grade: 'D',  label: 'Perlu Usaha', min: 30, color: '#cc6600' },
+  { grade: 'F',  label: 'Belum Mulai', min: 0,  color: '#e05555' },
+];
+
+IMPORTANT:
+
+All particle effects use CSS only — no canvas, no Three.js
+Rank glow animation uses CSS custom properties per rank
+XP popup and level-up modal are vanilla DOM — no React state needed
+Level-up triggers when totalPoints crosses any RANK_SYSTEM[n].minPts threshold
+Do NOT change any Islamic content, prayer tracking, or misi logic
+Landing page .lp-* classes untouched
+Color throughout: #00b4d8 blue emerald on pure black #080808

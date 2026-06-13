@@ -83,6 +83,27 @@ export function getLevel(pts) {
   return              { name: 'Mubtadi',     ar: 'مُبْتَدِئ',    next: 100,  low: 0,    pct: pts / 100 };
 }
 
+// ── Solo Leveling Rank System ────────────────────────────────────────────────
+export const RANK_SYSTEM = [
+  { rank: 'E',   label: 'Mubtadi',    minPts: 0,     color: '#555555', glow: '#333333', border: '#2a2a2a', bg: '#0a0a0f' },
+  { rank: 'D',   label: 'Mutaallim', minPts: 100,   color: '#6688cc', glow: '#4466aa', border: '#334488', bg: '#080a14' },
+  { rank: 'C',   label: 'Mutawassit',minPts: 300,   color: '#00b4d8', glow: '#0088bb', border: '#006688', bg: '#040e14' },
+  { rank: 'B',   label: 'Mutaqaddim',minPts: 600,   color: '#00cfef', glow: '#00aad0', border: '#0088bb', bg: '#030f16' },
+  { rank: 'A',   label: 'Muttaqin',  minPts: 1000,  color: '#00e5ff', glow: '#00c4ee', border: '#00aadd', bg: '#020e18' },
+  { rank: 'S',   label: 'Wali',      minPts: 2000,  color: '#40ffff', glow: '#00e5ff', border: '#00cfef', bg: '#010d16' },
+  { rank: 'SS',  label: 'Shiddiq',   minPts: 5000,  color: '#80ffff', glow: '#40efff', border: '#00dfff', bg: '#010c15' },
+  { rank: 'SSS', label: 'Ulul Albab',minPts: 10000, color: '#ffffff', glow: '#80ffff', border: '#40ffff', bg: '#000d18' },
+];
+
+export function getRank(totalPoints) {
+  const sorted = [...RANK_SYSTEM].reverse();
+  return sorted.find(r => totalPoints >= r.minPts) || RANK_SYSTEM[0];
+}
+
+export function getNextRank(totalPoints) {
+  return RANK_SYSTEM.find(r => r.minPts > totalPoints) || null;
+}
+
 export function computeDailyPoints(misiDone) {
   let pts = 0;
   let allDayDone = true;
@@ -100,6 +121,83 @@ export function computeDailyPoints(misiDone) {
   }
   if (allDayDone) pts += 50;
   return pts;
+}
+
+// ── Solo Leveling Panel Component ───────────────────────────────────────────
+export function SoloLevelingPanel({ totalPoints, streak, freeze, score, prayers, misiDone }) {
+  const rank     = getRank(totalPoints);
+  const nextRank = getNextRank(totalPoints);
+  const xpToNext = nextRank ? nextRank.minPts - totalPoints : 0;
+  const xpPct    = nextRank
+    ? ((totalPoints - rank.minPts) / (nextRank.minPts - rank.minPts)) * 100
+    : 100;
+
+  const doneCount   = Object.values(misiDone  || {}).filter(Boolean).length;
+  const prayerCount = Object.values(prayers   || {}).filter(Boolean).length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      <div className="sl-hunter-card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+          <div
+            className={`sl-rank-badge sl-rank-${rank.rank.toLowerCase()}`}
+            style={{
+              background: rank.bg,
+              color: rank.color,
+              '--rank-glow':   rank.glow,
+              '--rank-border': rank.border,
+              '--rank-color':  rank.color,
+            }}
+          >
+            {rank.rank}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 16, color: rank.color, letterSpacing: '-.01em' }}>
+              {rank.label}
+            </div>
+            <div style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)', marginTop: 2, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+              Rank {rank.rank} Hunter · {totalPoints} XP
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, fontWeight: 700, color: rank.color }}>
+              {nextRank ? `${xpToNext} XP → Rank ${nextRank.rank}` : 'MAX RANK'}
+            </span>
+            <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>
+              {Math.round(xpPct)}%
+            </span>
+          </div>
+          <div className="sl-xp-track">
+            <div className="sl-xp-fill" style={{ width: xpPct + '%' }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="sl-stats-strip">
+        <div className="sl-stat">
+          <div className="sl-stat-val">{streak}</div>
+          <div className="sl-stat-lbl">Streak</div>
+        </div>
+        <div className="sl-stat">
+          <div className="sl-stat-val">{prayerCount}/5</div>
+          <div className="sl-stat-lbl">Solat</div>
+        </div>
+        <div className="sl-stat">
+          <div className="sl-stat-val">{doneCount}</div>
+          <div className="sl-stat-lbl">Quest</div>
+        </div>
+      </div>
+
+      <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
+        <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>
+          {freeze}× Streak Shield tersisa
+        </span>
+      </div>
+    </div>
+  );
 }
 
 // ── Prayer-specific content ──────────────────────────────────────────────────
@@ -774,62 +872,24 @@ export function DashboardPage({
         </div>
       </div>
 
-      {/* Right column */}
+      {/* Right column — Solo Leveling */}
       <div className="col-r scrl">
-        {/* Streak */}
-        <div className="streak">
-          <span className="flame" style={{ color: 'rgba(168,216,196,.3)' }}>{Icon.flame}</span>
-          <div style={{ fontFamily: 'var(--f-body)', fontWeight: 500, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--mint)', marginBottom: 2 }}>
-            Beruntun
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, margin: '4px 0 2px' }}>
-            <span className={'bignum' + (pulse ? ' pulse' : '')}>{streak}</span>
-            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 400, fontSize: 18, marginBottom: 8, color: 'rgba(255,255,255,.8)' }}>hari</span>
-          </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 16 }}>Terpanjang · {streak >= 34 ? streak : 34} hari</div>
-          <button className="btn sm" onClick={useFreeze}
-            style={{ borderColor: 'rgba(168,216,196,.35)', color: 'var(--mint)', background: 'rgba(168,216,196,.1)', fontSize: 12 }}>
-            {Icon.snow} {freeze} freeze tersisa
-          </button>
-        </div>
+        <SoloLevelingPanel
+          totalPoints={totalPoints}
+          streak={streak}
+          freeze={freeze}
+          score={score}
+          prayers={prayers}
+          misiDone={misiDone}
+        />
 
-        {/* Score ring */}
-        <div className="card" style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <ScoreRing pct={score} size={88} />
-          <div>
-            <div className="eyebrow">Skor hari ini</div>
-            <div className="h2" style={{ marginTop: 4 }}>Ibadah</div>
-            <div style={{ marginTop: 5, fontSize: 12, color: 'var(--text-3)' }}>{doneCount}/5 wajib · {sunCount}/6 sunnah</div>
-          </div>
-        </div>
-
-        {/* Level card */}
-        <div className="card" style={{ padding: '14px 16px' }}>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>Level Amal</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 17, color: 'var(--gold)', lineHeight: 1.5 }}>{level.ar}</div>
-              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, color: 'var(--text)', marginTop: 1 }}>{level.name}</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 22, color: 'var(--gold)', letterSpacing: '-0.5px' }}>{totalPoints}</div>
-              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>poin total</div>
-            </div>
-          </div>
-          <div style={{ marginTop: 10, height: 3, background: 'var(--elevated)', borderRadius: 9999, overflow: 'hidden' }}>
-            <div style={{
-              height: '100%', borderRadius: 9999,
-              width: (level.pct * 100) + '%',
-              background: 'linear-gradient(90deg, var(--gold), var(--gold-2))',
-              transition: 'width 700ms ease',
-            }} />
-          </div>
-          {level.next && (
-            <div style={{ marginTop: 5, fontSize: 11, color: 'var(--text-3)', textAlign: 'right' }}>
-              {level.next - totalPoints} poin lagi ke level berikutnya
-            </div>
-          )}
-        </div>
+        <button
+          className="sl-arise-btn"
+          onClick={() => go('amalan')}
+          style={{ marginBottom: 16 }}
+        >
+          ⚔ ARISE — Buka Daily Quest
+        </button>
 
         {/* Mission Panel */}
         {panelKey && (
@@ -877,14 +937,14 @@ export const IBADAH_POINTS = {
 };
 
 export const GRADE_SYSTEM = [
-  { grade: 'A+', label: 'Istimewa',    min: 95, color: '#1a9e6a', desc: 'MasyaAllah, hari yang sempurna!' },
-  { grade: 'A',  label: 'Sangat Baik', min: 85, color: '#22b578', desc: 'Hari yang luar biasa, terus pertahankan!' },
-  { grade: 'B+', label: 'Baik Sekali', min: 75, color: '#4CAF50', desc: 'Ibadah hari ini sangat bagus.' },
-  { grade: 'B',  label: 'Baik',        min: 65, color: '#8BC34A', desc: 'Ibadah hari ini sudah baik.' },
-  { grade: 'C+', label: 'Cukup Baik',  min: 55, color: '#FFC107', desc: 'Masih bisa ditingkatkan lagi.' },
-  { grade: 'C',  label: 'Cukup',       min: 45, color: '#FF9800', desc: 'Jangan menyerah, besok lebih baik.' },
-  { grade: 'D',  label: 'Perlu Usaha', min: 30, color: '#FF5722', desc: 'Yuk semangat, Allah Maha Menerima Taubat.' },
-  { grade: 'F',  label: 'Belum Mulai', min: 0,  color: '#ef5350', desc: 'Hari ini belum mulai, masih ada waktu!' },
+  { grade: 'A+', label: 'Istimewa',    min: 95, color: '#00cfef', desc: 'MasyaAllah, hari yang sempurna!' },
+  { grade: 'A',  label: 'Sangat Baik', min: 85, color: '#00b4d8', desc: 'Hari yang luar biasa, terus pertahankan!' },
+  { grade: 'B+', label: 'Baik Sekali', min: 75, color: '#0099cc', desc: 'Ibadah hari ini sangat bagus.' },
+  { grade: 'B',  label: 'Baik',        min: 65, color: '#0077aa', desc: 'Ibadah hari ini sudah baik.' },
+  { grade: 'C+', label: 'Cukup Baik',  min: 55, color: '#005588', desc: 'Masih bisa ditingkatkan lagi.' },
+  { grade: 'C',  label: 'Cukup',       min: 45, color: '#f0a500', desc: 'Jangan menyerah, besok lebih baik.' },
+  { grade: 'D',  label: 'Perlu Usaha', min: 30, color: '#cc6600', desc: 'Yuk semangat, Allah Maha Menerima Taubat.' },
+  { grade: 'F',  label: 'Belum Mulai', min: 0,  color: '#e05555', desc: 'Hari ini belum mulai, masih ada waktu!' },
 ];
 
 export function getGrade(pct) {

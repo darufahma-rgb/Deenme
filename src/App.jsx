@@ -1,11 +1,65 @@
 import { useState, useEffect, useRef } from 'react';
 import './deenme-theme.css';
 import { Rail, BottomNav, fireConfetti } from './ui.jsx';
-import { PRAYERS, SUNNAH, DashboardPage, MISI_PER_SHOLAT, BADGES, computeDailyPoints, getLevel } from './dashboard.jsx';
+import { PRAYERS, SUNNAH, DashboardPage, MISI_PER_SHOLAT, BADGES, computeDailyPoints, getLevel, getRank } from './dashboard.jsx';
 import { JournalPage, BankDoaPage, StatistikPage, AmalanPage } from './pages.jsx';
 import { LandingPage } from './LandingPage.jsx';
 import { supabase } from './supabase.js';
 import { AdminPage } from './AdminPage.jsx';
+
+// ── Solo Leveling: floating particles ───────────────────────────────────────
+function SLParticles() {
+  useEffect(() => {
+    const container = document.createElement('div');
+    container.className = 'sl-particles';
+    document.body.appendChild(container);
+    const colors = ['#00b4d8', '#0088bb', '#00cfef', '#004488'];
+    for (let i = 0; i < 35; i++) {
+      const p = document.createElement('div');
+      p.className = 'sl-particle';
+      const size = 1.5 + Math.random() * 3;
+      p.style.cssText = `
+        width:${size}px;height:${size}px;
+        background:${colors[Math.floor(Math.random() * colors.length)]};
+        left:${Math.random() * 100}%;
+        top:${Math.random() * 100}%;
+        --dur:${3 + Math.random() * 4}s;
+        --delay:${Math.random() * 4}s;
+      `;
+      container.appendChild(p);
+    }
+    return () => container.remove();
+  }, []);
+  return null;
+}
+
+// ── Solo Leveling: XP popup & level-up modal ─────────────────────────────────
+function showXPPopup(pts, x, y) {
+  const el = document.createElement('div');
+  el.className = 'sl-xp-popup';
+  el.textContent = `+${pts} XP`;
+  el.style.left = (x - 20) + 'px';
+  el.style.top  = (y - 10) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+function showLevelUp(rank) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;backdrop-filter:blur(4px);';
+  const card = document.createElement('div');
+  card.className = 'sl-levelup';
+  card.innerHTML = `
+    <div class="sl-levelup-title">— Rank Up —</div>
+    <div class="sl-levelup-rank" style="color:${rank.color}">${rank.rank}</div>
+    <div class="sl-levelup-label">${rank.label}</div>
+    <button class="btn gold" style="min-width:140px;" onclick="this.closest('[data-levelup]').remove()">Lanjutkan</button>
+  `;
+  card.dataset.levelup = '1';
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+}
 
 // ── Helper: check badge conditions ──────────────────────────────────────────
 function checkBadges(misiDone, totalPoints, current) {
@@ -268,19 +322,31 @@ export default function App() {
     setMisiDone((prev) => {
       const next = { ...prev, [id]: !prev[id] };
 
-      const dp = computeDailyPoints(next);
+      const dp    = computeDailyPoints(next);
+      const oldDp = computeDailyPoints(prev);
       setDailyPoints(dp);
 
-      const oldDp = computeDailyPoints(prev);
       const delta = dp - oldDp;
       setTotalPoints((tp) => {
         const newTp = Math.max(0, tp + delta);
+
+        // XP popup — muncul di tengah layar saat quest selesai
+        if (delta > 0) {
+          showXPPopup(delta, window.innerWidth / 2, window.innerHeight / 3);
+        }
+
+        // Level up detection — cek apakah rank naik
+        const oldRank = getRank(tp);
+        const newRank = getRank(newTp);
+        if (newRank.rank !== oldRank.rank && delta > 0) {
+          setTimeout(() => showLevelUp(newRank), 400);
+        }
 
         const newBadges = checkBadges(next, newTp, unlockedBadges);
         if (newBadges.length > 0) {
           setUnlockedBadges((ub) => {
             const merged = [...ub, ...newBadges];
-            const badge = BADGES.find((b) => b.id === newBadges[0]);
+            const badge  = BADGES.find((b) => b.id === newBadges[0]);
             if (badge) setBadgeToast(badge);
             return merged;
           });
@@ -296,6 +362,7 @@ export default function App() {
   if (view === 'landing') {
     return (
       <div className="deenme-root" style={{ overflow: 'auto', height: '100dvh' }}>
+        <SLParticles />
         <LandingPage onEnter={() => setView('login')} />
       </div>
     );
@@ -304,6 +371,7 @@ export default function App() {
   if (view === 'login') {
     return (
       <div className="deenme-root">
+        <SLParticles />
         <div className="candle" />
         <LoginPage onEnter={onEnter} />
       </div>
@@ -313,6 +381,7 @@ export default function App() {
   if (view === 'admin') {
     return (
       <div className="deenme-root">
+        <SLParticles />
         <div className="candle" />
         <AdminPage onLogout={onLogout} />
       </div>
@@ -321,6 +390,7 @@ export default function App() {
 
   return (
     <div className="deenme-root">
+      <SLParticles />
       <div className="candle" />
       <div className="app">
         <Rail page={view} go={setView} onLogout={onLogout} />
