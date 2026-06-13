@@ -13,7 +13,7 @@ function SLParticles() {
     const container = document.createElement('div');
     container.className = 'sl-particles';
     document.body.appendChild(container);
-    const colors = ['#00b4d8', '#0088bb', '#00cfef', '#004488'];
+    const colors = ['#4f772d', '#90a955', '#ecf39e', '#31572c'];
     for (let i = 0; i < 35; i++) {
       const p = document.createElement('div');
       p.className = 'sl-particle';
