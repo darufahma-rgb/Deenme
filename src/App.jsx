@@ -44,8 +44,9 @@ function PageTransition({ viewKey, children }) {
   );
 }
 
-// ── Solo Leveling: floating particles ───────────────────────────────────────
-function SLParticles() {
+// ── Solo Leveling: floating particles — off for light mode ───────────────────
+function SLParticles() { return null; }
+function _SLParticles_disabled() {
   useEffect(() => {
     const container = document.createElement('div');
     container.className = 'sl-particles';
