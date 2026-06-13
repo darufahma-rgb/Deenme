@@ -91,7 +91,7 @@ export function Rail({ page, go, onLogout }) {
 export function fireConfetti() {
   const layer = document.createElement('div');
   layer.className = 'confetti';
-  const colors = ['#aa2d00', '#c44120', '#fcab79', '#d9a441', '#a8d8c4', '#181d26'];
+  const colors = ['#d4753a', '#e8894e', '#fbbf24', '#6ee7b7', '#f7f4ed', '#4ade80'];
   for (let i = 0; i < 80; i++) {
     const p = document.createElement('i');
     p.className = 'cft';

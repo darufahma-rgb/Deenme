@@ -18,7 +18,7 @@ function detectDoa(text) {
 const MINI_SEQ = ['full','full','part','full','empty','full','full','part','full','full',
   'full','empty','part','full','full','full','full','part','full','empty',
   'full','full','full','part','full','full','full','part','full','full'];
-const HEATC = { full: '#006400', part: '#d9a441', empty: '#b91c1c', none: 'transparent' };
+const HEATC = { full: '#4ade80', part: '#fbbf24', empty: '#f87171', none: 'transparent' };
 
 export function JournalPage({ go }) {
   const edRef = useRef(null);
@@ -47,7 +47,7 @@ export function JournalPage({ go }) {
           ))}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-          {[['full', '#006400', 'Lengkap'], ['part', '#d9a441', 'Sebagian'], ['empty', '#b91c1c', 'Kosong']].map(([k, c, l]) => (
+          {[['full', '#4ade80', 'Lengkap'], ['part', '#fbbf24', 'Sebagian'], ['empty', '#f87171', 'Kosong']].map(([k, c, l]) => (
             <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 12, height: 12, borderRadius: 3, background: c, flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{l}</span>
@@ -259,7 +259,7 @@ export function StatistikPage({ streak, freeze, useFreeze }) {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 16, marginTop: 14, flexWrap: 'wrap' }}>
-            {[['#006400', 'Lengkap'], ['#d9a441', 'Sebagian'], ['#b91c1c', 'Kosong'], ['transparent', 'Belum']].map(([c, l], i) => (
+            {[['#4ade80', 'Lengkap'], ['#fbbf24', 'Sebagian'], ['#f87171', 'Kosong'], ['transparent', 'Belum']].map(([c, l], i) => (
               <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <span style={{ width: 12, height: 12, borderRadius: 3, background: c, border: i === 3 ? '1px solid var(--border)' : 0, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{l}</span>
