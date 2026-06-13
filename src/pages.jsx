@@ -1,6 +1,7 @@
 // pages.jsx — Jurnal, Bank Doa, Statistik, Amalan Harian
 import { useState, useRef, useEffect } from 'react';
 import { Icon } from './ui.jsx';
+import { BADGES, getLevel } from './dashboard.jsx';
 
 // ─── JURNAL ───────────────────────────────────────────────
 const KW = {
@@ -407,7 +408,7 @@ const MONTH_DATA = ['full','full','part','full','empty','full','full','part','fu
   'full','full','full','part','full','full','full','part','full','full',
   'none','none','none','none','none'];
 
-export function StatistikPage({ streak, freeze, useFreeze }) {
+export function StatistikPage({ streak, freeze, useFreeze, totalPoints = 0, unlockedBadges = [] }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
   return (
@@ -457,7 +458,7 @@ export function StatistikPage({ streak, freeze, useFreeze }) {
           </div>
         </div>
 
-        <div className="card" style={{ padding: 20 }}>
+        <div className="card" style={{ padding: 20, marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
             <span className="eyebrow">Heatmap · Juni 2026</span>
             <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{MONTH_DATA.filter((m) => m === 'full').length} hari lengkap</span>
@@ -482,6 +483,72 @@ export function StatistikPage({ streak, freeze, useFreeze }) {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* ── Badge Collection ── */}
+        <div className="card" style={{ padding: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
+            <span className="eyebrow">Koleksi Badge</span>
+            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
+              {unlockedBadges.length} / {BADGES.length} terbuka
+            </span>
+          </div>
+
+          {/* Level summary */}
+          <div style={{
+            background: 'var(--elevated)', borderRadius: 10, padding: '12px 14px', marginBottom: 16,
+            display: 'flex', alignItems: 'center', gap: 12,
+            border: '1px solid var(--border)',
+          }}>
+            <div style={{ fontFamily: 'var(--f-ar)', fontSize: 20, color: 'var(--gold)', lineHeight: 1 }}>
+              {getLevel(totalPoints).ar}
+            </div>
+            <div>
+              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>
+                {getLevel(totalPoints).name}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{totalPoints} poin total</div>
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 22, color: 'var(--gold)', letterSpacing: '-0.5px' }}>
+                {Math.round(getLevel(totalPoints).pct * 100)}%
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>ke level berikutnya</div>
+            </div>
+          </div>
+
+          {/* Badge grid */}
+          <div className="badge-grid">
+            {BADGES.map((b) => {
+              const unlocked = unlockedBadges.includes(b.id);
+              return (
+                <div key={b.id} className={'badge-card' + (unlocked ? ' unlocked' : ' locked')}
+                  title={b.desc}>
+                  <div className="badge-icon">{b.icon}</div>
+                  <div style={{ fontFamily: 'var(--f-ar)', fontSize: 11, color: unlocked ? 'var(--gold)' : 'var(--text-3)', direction: 'rtl', marginBottom: 2 }}>
+                    {b.nameAr}
+                  </div>
+                  <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: unlocked ? 'var(--text)' : 'var(--text-3)', lineHeight: 1.3, textAlign: 'center' }}>
+                    {b.name}
+                  </div>
+                  {!unlocked && (
+                    <div style={{ position: 'absolute', top: 6, right: 6, fontSize: 11, opacity: .5 }}>🔒</div>
+                  )}
+                  {unlocked && (
+                    <div style={{
+                      position: 'absolute', top: 6, right: 6,
+                      width: 8, height: 8, borderRadius: '50%',
+                      background: 'var(--mint)', boxShadow: '0 0 6px var(--mint)',
+                    }} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p style={{ margin: '14px 0 0', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
+            Selesaikan misi harian untuk membuka badge. Centang misi setelah sholat di halaman Beranda.
+          </p>
         </div>
       </div>
 

@@ -1,0 +1,162 @@
+DEENME — MISSION & REWARD SYSTEM
+Add a complete mission and reward system to the existing Deenme app. Do not break any existing functionality. Follow the existing dark gold design system (CSS variables, existing classes).
+
+1. DATA — Add this to src/dashboard.jsx
+Add a MISI_PER_SHOLAT constant with this structure:
+jsexport const MISI_PER_SHOLAT = {
+  subuh: {
+    label: 'Misi Setelah Subuh',
+    misi: [
+      { id: 'subuh-rawatib-qabl', name: 'Rawatib Qabliyah Subuh', nameAr: 'سُنَّةُ الفَجْرِ', type: 'sholat', rakaat: '2', desc: '2 rakaat sebelum Subuh — sunnah muakkadah yang tidak pernah ditinggalkan Nabi.' },
+      { id: 'subuh-ayat-kursi', name: 'Ayat Kursi', nameAr: 'آيَةُ الكُرْسِيِّ', type: 'dzikir', count: '1x', desc: 'Dibaca setelah salam sholat Subuh. Penjaga hingga sore hari.' },
+      { id: 'subuh-3qul', name: 'Al-Ikhlas, Al-Falaq, An-Nas', nameAr: 'المُعَوِّذَتَانِ', type: 'dzikir', count: '3x', desc: 'Dibaca 3x masing-masing. Cukup sebagai penjaga dari segala sesuatu.' },
+      { id: 'subuh-sayyidul-istighfar', name: 'Sayyidul Istighfar', nameAr: 'سَيِّدُ الاسْتِغْفَار', type: 'dzikir', count: '1x', desc: 'Dibaca di pagi hari — barangsiapa membacanya dan meninggal sebelum sore, ia ahli surga.' },
+      { id: 'subuh-tasbih', name: 'Tasbih Pagi (33-33-34)', nameAr: 'تَسْبِيحُ الصَّبَاح', type: 'dzikir', count: '100x total', desc: 'Subhanallah 33x, Alhamdulillah 33x, Allahu Akbar 34x.' },
+      { id: 'subuh-doa-ilmu', name: 'Doa Ilmu & Rezeki', nameAr: 'دُعَاءُ العِلْمِ', type: 'doa', desc: 'Allahumma inni asaluka ilman nafia... Dibaca sebelum beranjak dari tempat duduk.' },
+    ]
+  },
+  dzuhur: {
+    label: 'Misi Setelah Dzuhur',
+    misi: [
+      { id: 'dzuhur-rawatib-qabl', name: 'Rawatib Qabliyah Dzuhur', nameAr: 'سُنَّةُ الظُّهْرِ القَبْلِيَّة', type: 'sholat', rakaat: '4', desc: '4 rakaat sebelum Dzuhur (2+2). Nabi rutin mengerjakannya.' },
+      { id: 'dzuhur-rawatib-bad', name: 'Rawatib Ba\'diyah Dzuhur', nameAr: 'سُنَّةُ الظُّهْرِ البَعْدِيَّة', type: 'sholat', rakaat: '2', desc: '2 rakaat setelah Dzuhur. Bagian dari 12 rakaat rawatib muakkadah.' },
+      { id: 'dzuhur-ayat-kursi', name: 'Ayat Kursi', nameAr: 'آيَةُ الكُرْسِيِّ', type: 'dzikir', count: '1x', desc: 'Dibaca setelah setiap sholat wajib.' },
+      { id: 'dzuhur-shalawat', name: 'Shalawat 100x', nameAr: 'الصَّلَاةُ عَلَى النَّبِيّ', type: 'dzikir', count: '100x', desc: 'Allahumma shalli ala Muhammad. Satu shalawat dibalas 10 rahmat Allah.' },
+    ]
+  },
+  ashar: {
+    label: 'Misi Setelah Ashar',
+    misi: [
+      { id: 'ashar-ayat-kursi', name: 'Ayat Kursi', nameAr: 'آيَةُ الكُرْسِيِّ', type: 'dzikir', count: '1x', desc: 'Dibaca setelah salam. Penjaga dari Ashar hingga Maghrib.' },
+      { id: 'ashar-tasbih', name: 'Tasbih Sore (33-33-34)', nameAr: 'تَسْبِيحُ المَسَاء', type: 'dzikir', count: '100x', desc: 'Subhanallah 33x, Alhamdulillah 33x, Allahu Akbar 34x.' },
+      { id: 'ashar-dzikir-petang', name: 'Dzikir Petang', nameAr: 'أَذْكَارُ المَسَاء', type: 'dzikir', count: 'Hisnul Muslim', desc: 'Dimulai setelah Ashar hingga Maghrib. Termasuk 3 qul 3x dan doa perlindungan malam.' },
+      { id: 'ashar-istighfar', name: 'Istighfar 100x', nameAr: 'الاسْتِغْفَار', type: 'dzikir', count: '100x', desc: 'Astaghfirullahal adzim. Nabi beristighfar lebih dari 70x sehari walau sudah diampuni.' },
+    ]
+  },
+  maghrib: {
+    label: 'Misi Setelah Maghrib',
+    misi: [
+      { id: 'maghrib-rawatib-bad', name: 'Rawatib Ba\'diyah Maghrib', nameAr: 'سُنَّةُ المَغْرِبِ', type: 'sholat', rakaat: '2', desc: '2 rakaat setelah Maghrib. Bagian dari 12 rakaat rawatib muakkadah.' },
+      { id: 'maghrib-ayat-kursi', name: 'Ayat Kursi', nameAr: 'آيَةُ الكُرْسِيِّ', type: 'dzikir', count: '1x', desc: 'Penjaga malam hingga Subuh.' },
+      { id: 'maghrib-3qul', name: 'Al-Ikhlas, Al-Falaq, An-Nas', nameAr: 'المُعَوِّذَتَانِ', type: 'dzikir', count: '3x', desc: 'Dzikir petang — dibaca 3x masing-masing setelah Maghrib.' },
+      { id: 'maghrib-sayyidul-istighfar', name: 'Sayyidul Istighfar (Petang)', nameAr: 'سَيِّدُ الاسْتِغْفَار', type: 'dzikir', count: '1x', desc: 'Dibaca di sore hari — barangsiapa membacanya dan meninggal sebelum pagi, ia ahli surga.' },
+      { id: 'maghrib-shalawat', name: 'Shalawat (Jumat: 1000x)', nameAr: 'الصَّلَاةُ عَلَى النَّبِيّ', type: 'dzikir', count: '100x', desc: 'Hari Jumat sangat dianjurkan memperbanyak shalawat.' },
+    ]
+  },
+  isya: {
+    label: 'Misi Setelah Isya',
+    misi: [
+      { id: 'isya-rawatib-bad', name: 'Rawatib Ba\'diyah Isya', nameAr: 'سُنَّةُ العِشَاء', type: 'sholat', rakaat: '2', desc: '2 rakaat setelah Isya. Bagian dari 12 rakaat rawatib muakkadah.' },
+      { id: 'isya-witir', name: 'Sholat Witir', nameAr: 'صَلَاةُ الوِتْر', type: 'sholat', rakaat: '1-3', desc: 'Penutup sholat malam. Jika tidak yakin bisa Tahajud, witir sekarang sebelum tidur.' },
+      { id: 'isya-tasbih-tidur', name: 'Tasbih Fatimah', nameAr: 'تَسْبِيحُ فَاطِمَة', type: 'dzikir', count: '33-33-34', desc: 'Subhanallah 33x, Alhamdulillah 33x, Allahu Akbar 34x sebelum tidur. Lebih baik dari pembantu.' },
+      { id: 'isya-doa-tidur', name: 'Doa Sebelum Tidur', nameAr: 'دُعَاءُ النَّوْم', type: 'doa', desc: 'Bismika Allahumma amutu wa ahya. Dibaca sambil berbaring miring ke kanan.' },
+      { id: 'isya-tahajud-niat', name: 'Niat Tahajud', nameAr: 'نِيَّةُ التَّهَجُّد', type: 'sholat', desc: 'Pasang alarm sepertiga malam terakhir. Nabi bersabda: siapa yang berniat sholat malam lalu tertidur, niatnya tetap dicatat.' },
+    ]
+  },
+};
+
+2. DATA — Add BADGES constant to src/dashboard.jsx
+jsexport const BADGES = [
+  { id: 'subuh-7', name: 'Penjaga Fajar', nameAr: 'حَارِسُ الفَجْر', icon: '🌅', desc: 'Selesaikan semua misi Subuh 7 hari berturut-turut', condition: { prayer: 'subuh', streak: 7 } },
+  { id: 'dzikir-pagi-30', name: 'Lidah yang Basah', nameAr: 'اللِّسَانُ الرَّطْب', icon: '💧', desc: 'Selesaikan dzikir pagi 30 hari', condition: { misiId: 'subuh-sayyidul-istighfar', count: 30 } },
+  { id: 'rawatib-complete', name: 'Ahli Sunnah', nameAr: 'صَاحِبُ السُّنَّة', icon: '⭐', desc: 'Selesaikan semua rawatib dalam satu hari', condition: { type: 'rawatib-complete' } },
+  { id: 'witir-streak-7', name: 'Penutup Malam', nameAr: 'خَاتِمُ اللَّيْل', icon: '🌙', desc: 'Sholat Witir 7 hari berturut-turut', condition: { misiId: 'isya-witir', streak: 7 } },
+  { id: 'all-misi-complete', name: 'Hari Sempurna', nameAr: 'يَوْمٌ كَامِل', icon: '🏆', desc: 'Selesaikan semua misi dalam satu hari', condition: { type: 'all-complete' } },
+  { id: 'level-mutawassit', name: 'Mutawassit', nameAr: 'مُتَوَسِّط', icon: '🥈', desc: 'Capai 500 poin amal', condition: { points: 500 } },
+  { id: 'level-mutaqaddim', name: 'Mutaqaddim', nameAr: 'مُتَقَدِّم', icon: '🥇', desc: 'Capai 1000 poin amal', condition: { points: 1000 } },
+];
+
+3. POIN SISTEM
+Each completed misi earns points:
+
+type: 'sholat' → 20 poin
+type: 'dzikir' → 10 poin
+type: 'doa' → 10 poin
+Completing ALL misi of one sholat → bonus 15 poin
+Completing ALL misi of the day → bonus 50 poin
+
+Store total points in state and localStorage alongside streak data.
+
+4. LEVEL SYSTEM
+Based on total cumulative points:
+
+0-99: Mubtadi (مُبْتَدِئ)
+100-299: Mutaallim (مُتَعَلِّم)
+300-599: Mutawassit (مُتَوَسِّط)
+600-999: Mutaqaddim (مُتَقَدِّم)
+1000+: Muttaqi (مُتَّقِي)
+
+Show level name + Arabic in the right panel of dashboard below streak card.
+
+5. UI — Mission Panel (always visible, right panel of dashboard)
+Add below the existing streak + score cards in col-r. Show missions for the NEXT upcoming prayer (or current if just prayed). Each mission item:
+
+Checkbox toggle (done/not done)
+Mission name + Arabic
+Type badge (Sholat / Dzikir / Doa) colored chip
+Collapse/expand for description
+Gold glow on completed item
+
+Show progress: "3 / 6 misi selesai" with a thin gold progress bar.
+
+6. UI — Post-Prayer Popup
+When user marks a prayer as ✅ Tepat or 🟡 Telat (not qadha), trigger a slide-up modal/sheet from bottom with:
+
+Header: "Misi Setelah [Nama Sholat]" in Arabic + Indonesian
+Full mission list for that prayer (same checkbox UI as panel)
+Progress bar at top
+"Tutup" button
+Smooth slide-up animation (translateY from 100% to 0, 350ms ease-out)
+Gold confetti burst when ALL missions of that prayer are completed
+If a badge is unlocked, show badge unlock animation (scale up from 0, gold glow) before confetti
+
+
+7. UI — Timbangan Amal Progress Bar (dashboard header)
+Add a full-width progress bar below the date header on dashboard:
+
+Label: "Timbangan Amal Hari Ini" with ⚖️ icon
+Shows: total poin hari ini / target (default 200 poin = full bar)
+Gold fill, animated width transition
+Below bar: current level name in Arabic + Indonesian
+When bar fills 100%: gold pulse animation
+
+
+8. UI — Badge Collection Page
+Add a new section to StatistikPage — "Koleksi Badge" below the heatmap:
+
+Grid of all badges (locked = grayscale + lock icon, unlocked = full color + gold border)
+Show unlock date for unlocked badges
+Total unlocked / total badges counter
+
+
+9. STATE MANAGEMENT in src/App.jsx
+Add to existing state:
+jsconst [misiDone, setMisiDone] = useState(init.misiDone || {});
+// key: misi id, value: true/false, resets daily
+const [totalPoints, setTotalPoints] = useState(init.totalPoints || 0);
+const [unlockedBadges, setUnlockedBadges] = useState(init.unlockedBadges || []);
+const [misiPopup, setMisiPopup] = useState(null);
+// misiPopup: prayer key ('subuh', 'dzuhur', etc.) or null
+When prayer status changes to 'ok' or 'late': setMisiPopup(prayerKey)
+Pass misiDone, setMisiDone, totalPoints, unlockedBadges, misiPopup, setMisiPopup to DashboardPage.
+Add daily reset logic: if last saved date !== today, reset misiDone to {} and daily points to 0.
+
+10. ANIMATIONS
+All new animations use CSS only (no library):
+
+Slide-up popup: transform: translateY(100%) → translateY(0), 350ms ease-out
+Badge unlock: transform: scale(0) → scale(1), 400ms cubic-bezier(.3,1.5,.5,1), with gold box-shadow glow
+Progress bar fill: width transition 600ms ease
+Mission item complete: background fades to var(--gold-soft) + left border gold 3px, 250ms
+Points increment: number ticks up smoothly when points added
+
+Add all new CSS to src/deenme-theme.css under a /* ── missions & rewards ── */ comment block.
+
+IMPORTANT NOTES:
+
+Do NOT remove or modify existing prayer tracker, streak, score ring, or navigation
+Use existing CSS classes wherever possible (.card, .chip, .btn.gold, .eyebrow, .streak, etc.)
+All Arabic text uses font-family: var(--f-ar) and direction: rtl
+misiDone state resets daily (compare date string to today)
+Badge check runs after every misiDone update
+No external libraries — vanilla React hooks only

@@ -1,0 +1,47 @@
+DEENME — REMOVE ALL DUMMY DATA
+Clean up all hardcoded dummy/placeholder data in the app. Replace with real empty defaults. Do not change any UI or logic, only the default values.
+src/App.jsx — update DEFAULTS:
+jsconst DEFAULTS = {
+  prayers: {},        // was: { subuh: 'ok', dzuhur: 'late', ashar: 'ok' }
+  times: {},          // was: { subuh: '04:48', ... }
+  sunnah: {},         // was: { 'Rawatib Subuh': true, 'Dhuha': true }
+  bookmarks: {},      // was: pre-bookmarked doa
+  userDoa: [],
+  streak: 0,          // was: 12
+  freeze: 2,
+  totalPoints: 0,
+  unlockedBadges: [],
+  misiDone: {},
+};
+src/dashboard.jsx — update PRAYERS scheduled times:
+Replace hardcoded Cairo prayer times with a note that these will later come from an API. For now use generic placeholder times based on average Cairo schedule:
+jsexport const PRAYERS = [
+  { k: 'subuh',   id: 'Subuh',   ar: 'الفجر',   sched: '--:--' },
+  { k: 'dzuhur',  id: 'Dzuhur',  ar: 'الظهر',   sched: '--:--' },
+  { k: 'ashar',   id: 'Ashar',   ar: 'العصر',   sched: '--:--' },
+  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب',  sched: '--:--' },
+  { k: 'isya',    id: 'Isya',    ar: 'العشاء',  sched: '--:--' },
+];
+src/pages.jsx — Jurnal:
+
+Remove any hardcoded journal content
+MINI_SEQ heatmap: replace with array of 30 'none' (no data yet)
+day state default: use today's actual date from new Date().getDate()
+Display current month name dynamically from new Date()
+
+src/pages.jsx — Statistik:
+
+WEEK array: replace [0.82, 0.64, 1, 0.9, 0.42, 1, 0.74] with [0,0,0,0,0,0,0]
+MONTH_DATA array: replace all with 'none'
+Summary cards: replace hardcoded "78%", "Subuh", "132 solat" with -- placeholder text
+Streak display: show 0 when no streak yet, with empty state message: "Mulai catat sholat untuk membangun streak-mu 🔥"
+
+src/pages.jsx — Bank Doa:
+
+Keep the full DOA array as-is — this is real content, not dummy data
+
+General:
+
+Date headers: use new Date() for real current date in Arabic + Indonesian format
+Remove the login tip: "Tip: ketik 6 digit apa saja untuk masuk demo" — replace with empty string or remove entirely
+localStorage key: change from 'deenme-state-v4' to 'deenme-state-v1' to force fresh state for all users

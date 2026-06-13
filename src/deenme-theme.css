@@ -777,3 +777,154 @@ body {
   color: var(--text);
 }
 .amalan-ket { font-size: 12px; color: var(--text-2); line-height: 1.45 }
+
+/* ── missions & rewards ─────────────────────────────────────────────────────── */
+
+/* Animations */
+@keyframes slideUp {
+  from { transform: translateY(100%) }
+  to   { transform: translateY(0) }
+}
+@keyframes badgeUnlock {
+  0%   { transform: scale(0); opacity: 0; box-shadow: none }
+  70%  { transform: scale(1.15) }
+  100% { transform: scale(1); opacity: 1; box-shadow: 0 0 24px rgba(212,117,58,.5) }
+}
+@keyframes badgeToastIn {
+  from { transform: translateY(100%) scale(.95); opacity: 0 }
+  to   { transform: translateY(0) scale(1); opacity: 1 }
+}
+@keyframes badgeToastOut {
+  to { transform: translateY(100%) scale(.95); opacity: 0 }
+}
+@keyframes detailIn {
+  from { opacity: 0; transform: translateY(-4px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+@keyframes timbangPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,117,58,0) }
+  50%       { box-shadow: 0 0 0 6px rgba(212,117,58,.2) }
+}
+
+/* Slide-up popup */
+.misi-popup {
+  position: fixed;
+  bottom: 0; left: 50%; transform: translateX(-50%);
+  width: min(520px, 100vw);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+  animation: slideUp 350ms cubic-bezier(.25,.9,.5,1) both;
+  z-index: 39;
+  max-height: 84vh;
+  overflow-y: auto;
+  box-shadow: 0 -12px 48px rgba(0,0,0,.45);
+}
+.misi-popup::-webkit-scrollbar { width: 4px }
+.misi-popup::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px }
+
+/* Mission item */
+.misi-item {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 250ms, border-color 250ms;
+  position: relative;
+}
+.misi-item:last-child { border-bottom: 0 }
+.misi-item.done {
+  background: rgba(212,117,58,.06);
+  border-left: 3px solid var(--gold-line);
+}
+.misi-item:not(.done):hover { background: var(--elevated) }
+
+/* Misi checkbox */
+.misi-check {
+  width: 22px; height: 22px;
+  border: 1.5px solid var(--border-2);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: border-color 200ms, background 200ms;
+}
+.misi-check:hover { border-color: var(--gold) }
+
+/* Timbangan Amal bar */
+.timbang-amal {
+  transition: box-shadow 600ms;
+}
+.timbang-amal.timbang-full {
+  animation: timbangPulse 2s infinite;
+}
+.timbang-pts {
+  font-family: var(--f-head);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--gold);
+  letter-spacing: -0.5px;
+}
+
+/* Badge toast notification */
+.badge-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  background: var(--elevated);
+  border: 1px solid var(--gold-line);
+  border-radius: 16px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(212,117,58,.2);
+  min-width: 240px;
+  max-width: 340px;
+  animation: badgeToastIn 400ms cubic-bezier(.3,1.5,.5,1) both;
+}
+
+/* Badge grid (StatistikPage) */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+.badge-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--elevated);
+  transition: transform 200ms, box-shadow 200ms;
+  cursor: default;
+  text-align: center;
+}
+.badge-card.unlocked {
+  border-color: var(--gold-line);
+  background: linear-gradient(145deg, var(--elevated), rgba(212,117,58,.06));
+  box-shadow: 0 0 0 1px var(--gold-line), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.badge-card.unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(212,117,58,.18), 0 0 0 1px var(--gold-line);
+}
+.badge-card.locked {
+  filter: grayscale(.8);
+  opacity: .55;
+}
+.badge-icon {
+  font-size: 30px;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.badge-card.unlocked .badge-icon {
+  animation: badgeUnlock 400ms cubic-bezier(.3,1.5,.5,1) both;
+}
