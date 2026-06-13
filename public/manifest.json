@@ -1,0 +1,13 @@
+{
+  "name": "Deenme",
+  "short_name": "Deenme",
+  "description": "Personal Ibadah Tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141210",
+  "theme_color": "#c9a84c",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import './deenme-theme.css';
-import { Rail, fireConfetti } from './ui.jsx';
+import { Rail, BottomNav, fireConfetti } from './ui.jsx';
 import { PRAYERS, SUNNAH, DashboardPage, MISI_PER_SHOLAT, BADGES, computeDailyPoints, getLevel } from './dashboard.jsx';
 import { JournalPage, BankDoaPage, StatistikPage, AmalanPage } from './pages.jsx';
 
@@ -144,7 +144,6 @@ export default function App() {
   // ── Handlers ──────────────────────────────────────────────────────────────
   const setStatus = (k, val) => {
     setPrayers((p) => { const n = { ...p }; if (val) n[k] = val; else delete n[k]; return n; });
-    if (val) setTimes((tm) => tm[k] ? tm : { ...tm, [k]: PRAYERS.find((p) => p.k === k).sched });
     // Trigger mission popup on Tepat or Telat (not Qadha, not unset)
     if (val === 'ok' || val === 'late') setMisiPopup(k);
     if (!val) setMisiPopup(null);
@@ -222,6 +221,7 @@ export default function App() {
         {view === 'amalan'  && <AmalanPage />}
         {view === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} totalPoints={totalPoints} unlockedBadges={unlockedBadges} />}
       </div>
+      <BottomNav page={view} go={setView} />
     </div>
   );
 }

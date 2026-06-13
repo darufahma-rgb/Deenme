@@ -32,6 +32,16 @@ export function JournalPage({ go }) {
     setDetected(detectDoa(txt));
   };
   const cmd = (c) => { document.execCommand(c, false); edRef.current.focus(); };
+  useEffect(() => {
+    const handler = () => {
+      if (!window.visualViewport) return;
+      const kbH = window.innerHeight - window.visualViewport.height;
+      const el = edRef.current;
+      if (el) el.style.paddingBottom = (kbH > 0 ? kbH : 0) + 'px';
+    };
+    window.visualViewport?.addEventListener('resize', handler);
+    return () => window.visualViewport?.removeEventListener('resize', handler);
+  }, []);
   return (
     <div className="main fade-in">
       <div className="col-l scrl">
@@ -62,10 +72,10 @@ export function JournalPage({ go }) {
           <button className="iconbtn" onClick={() => setDay((d) => Math.max(1, d - 1))}>{Icon.chevL}</button>
           <div>
             <h1 className="h1">Jurnal</h1>
-            <div style={{ marginTop: 3, fontSize: 12, color: 'var(--text-3)' }}>{day} Juni 2026</div>
+            <div style={{ marginTop: 3, fontSize: 12, color: 'var(--text-3)' }}>{day} {_ID_MONTHS[new Date().getMonth()]} {new Date().getFullYear()}</div>
           </div>
-          <button className="iconbtn" onClick={() => setDay((d) => Math.min(13, d + 1))} disabled={day >= 13}
-            style={{ opacity: day >= 13 ? .4 : 1 }}>{Icon.chevR}</button>
+          <button className="iconbtn" onClick={() => setDay((d) => Math.min(new Date().getDate(), d + 1))} disabled={day >= new Date().getDate()}
+            style={{ opacity: day >= new Date().getDate() ? .4 : 1 }}>{Icon.chevR}</button>
         </div>
 
         <div className="editor">

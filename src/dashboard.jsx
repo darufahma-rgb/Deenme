@@ -621,14 +621,40 @@ function PrayerRowItem({ p, status, time, sched, isNext, timeRemaining, ring, on
   );
 }
 
+// ── Prayer Bottom Sheet (mobile) ─────────────────────────────────────────────
+function PrayerBottomSheet({ pKey, onClose }) {
+  if (!pKey) return null;
+  const p = PRAYERS.find((x) => x.k === pKey);
+  return (
+    <>
+      <div className="bottom-sheet-overlay" onClick={onClose} />
+      <div className="bottom-sheet">
+        <div className="bottom-sheet-handle" />
+        <div style={{ fontFamily: 'var(--f-ar)', fontSize: 22, color: 'var(--gold)', textAlign: 'right', direction: 'rtl', marginBottom: 2 }}>
+          {p?.ar}
+        </div>
+        <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 20, color: 'var(--text)', marginBottom: 20 }}>
+          {p?.id}
+        </div>
+        <DetailPanel pKey={pKey} />
+      </div>
+    </>
+  );
+}
+
 // ── Dashboard Page ───────────────────────────────────────────────────────────
 export function DashboardPage({
   prayers, times, sunnah, setStatus, setTime, toggleSunnah,
   score, ring, streak, freeze, useFreeze, pulse, go,
   misiDone = {}, onMisiToggle, dailyPoints = 0, totalPoints = 0, misiPopup, setMisiPopup, badgeToast, clearBadgeToast,
 }) {
-  const [openKey, setOpenKey] = useState(null);
-  const toggleOpen = (k) => setOpenKey((prev) => prev === k ? null : k);
+  const [openKey,  setOpenKey]  = useState(null);
+  const [sheetKey, setSheetKey] = useState(null);
+  const isMobile = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+  const handlePrayerToggle = (k) => {
+    if (isMobile()) { setSheetKey((prev) => prev === k ? null : k); }
+    else            { setOpenKey((prev)  => prev === k ? null : k); }
+  };
   const doneCount = PRAYERS.filter((p) => prayers[p.k]).length;
   const sunCount = SUNNAH.filter((s) => sunnah[s]).length;
   const level = getLevel(totalPoints);
@@ -716,6 +742,22 @@ export function DashboardPage({
         {/* Timbangan Amal */}
         <TimbangAmal dailyPoints={dailyPoints} totalPoints={totalPoints} />
 
+        {/* Mobile stats strip (hidden on desktop via CSS) */}
+        <div className="mobile-stats-strip">
+          {[
+            { label: 'Streak',  val: streak,                  unit: 'hari',     col: 'var(--mint)' },
+            { label: 'Skor',    val: `${Math.round(score * 100)}%`, unit: 'hari ini', col: 'var(--gold)' },
+            { label: 'Solat',   val: `${doneCount}/5`,         unit: 'wajib',    col: 'var(--text)' },
+            { label: 'Freeze',  val: freeze,                   unit: 'tersisa',  col: 'var(--text)' },
+          ].map(({ label, val, unit, col }) => (
+            <div key={label} className="mobile-stat-card">
+              <div style={{ fontFamily: 'var(--f-body)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--mint)', marginBottom: 4 }}>{label}</div>
+              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 26, color: col, letterSpacing: '-0.5px', lineHeight: 1 }}>{val}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 3 }}>{unit}</div>
+            </div>
+          ))}
+        </div>
+
         {/* Prayer list */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <span className="eyebrow">Solat Wajib</span>
@@ -728,7 +770,7 @@ export function DashboardPage({
               isNext={p.k === nextK}
               timeRemaining={remaining[p.k]}
               ring={ring} onStatus={setStatus} onTime={setTime}
-              open={openKey === p.k} onToggle={() => toggleOpen(p.k)} />
+              open={openKey === p.k} onToggle={() => handlePrayerToggle(p.k)} />
           ))}
         </div>
 
@@ -833,6 +875,9 @@ export function DashboardPage({
           onClose={() => setMisiPopup(null)}
         />
       )}
+
+      {/* Prayer Bottom Sheet — mobile only */}
+      <PrayerBottomSheet pKey={sheetKey} onClose={() => setSheetKey(null)} />
     </div>
   );
 }

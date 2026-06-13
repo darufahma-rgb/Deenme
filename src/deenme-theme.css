@@ -82,7 +82,7 @@ body {
 [data-density="compact"] { --pad: 22px; --gap: 8px; --rowpad: 11px }
 [data-density="comfy"]   { --pad: 48px; --gap: 18px; --rowpad: 22px }
 
-.deenme-root { height: 100vh; width: 100vw; position: relative; overflow: hidden }
+.deenme-root { height: 100dvh; width: 100vw; position: relative; overflow: hidden }
 
 /* top gradient bar — Lovable signature warm wash */
 .deenme-root::before {
@@ -108,7 +108,7 @@ body {
 .scrl::-webkit-scrollbar-thumb:hover { background: rgba(247,244,237,0.22) }
 
 /* ── app shell ── */
-.app { position: relative; z-index: 1; display: flex; height: 100vh }
+.app { position: relative; z-index: 1; display: flex; height: 100dvh }
 
 /* ── sidebar rail ── */
 .rail {
@@ -927,4 +927,152 @@ body {
 }
 .badge-card.unlocked .badge-icon {
   animation: badgeUnlock 400ms cubic-bezier(.3,1.5,.5,1) both;
+}
+
+/* ── mobile responsive ─────────────────────────────────────────────────────── */
+
+/* Mobile stats strip — hidden on desktop, shown only on mobile */
+.mobile-stats-strip { display: none; }
+
+/* Bottom nav — hidden on desktop */
+.bottom-nav { display: none; }
+
+@keyframes bsFadeIn { to { opacity: 1; } }
+
+@media (max-width: 767px) {
+
+  /* Full-screen app shell */
+  body { overflow: hidden; }
+  .deenme-root { height: 100dvh; }
+  .app { height: calc(100dvh - 64px); }
+
+  /* Hide desktop panels */
+  .rail  { display: none; }
+  .col-r { display: none; }
+  .col-l { display: none; }
+
+  /* Main layout stacked */
+  .main    { flex-direction: column; height: calc(100dvh - 64px); overflow: hidden; }
+  .content { padding: 16px; padding-bottom: 100px; }
+
+  /* Doa grid full width */
+  .doagrid { grid-template-columns: 1fr; }
+
+  /* Prayer row touch-friendly */
+  .prow   { flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
+  .seg    { width: 100%; justify-content: space-between; }
+  .segbtn { flex: 1; justify-content: center; min-height: 44px; }
+  .tinput { width: 100%; }
+  .pcard  { border-radius: 12px; }
+
+  /* Chips scrollable */
+  .chips { padding-bottom: 8px; }
+
+  /* FAB */
+  .fab { right: 20px; bottom: 84px; }
+
+  /* Touch feedback */
+  .pcard, .chip, .btn, .tab, .doacard {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .pcard:active  { transform: scale(.985); }
+  .chip:active   { transform: scale(.96); }
+  .btn:active    { transform: scale(.97); }
+  .doacard:active { transform: scale(.99); }
+
+  /* Heatmap touch-friendly cells */
+  .hc { min-width: 32px; min-height: 32px; }
+
+  /* ── Bottom Navigation ── */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 64px;
+    background: rgba(28, 25, 21, 0.96);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 40;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .bnav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: 0;
+    color: var(--text-2);
+    font-family: var(--f-head);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color .15s;
+    padding: 0;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bnav-btn.on { color: var(--gold); }
+  .bnav-btn.on svg { filter: drop-shadow(0 0 6px var(--gold)); }
+  .bnav-btn svg { width: 22px; height: 22px; }
+
+  /* ── Mobile Stats Strip ── */
+  .mobile-stats-strip {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .mobile-stats-strip::-webkit-scrollbar { display: none; }
+  .mobile-stat-card {
+    flex: 0 0 auto;
+    min-width: 108px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    text-align: center;
+  }
+
+  /* ── Bottom Sheet ── */
+  .bottom-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 45;
+    opacity: 0;
+    animation: bsFadeIn .2s ease forwards;
+  }
+  .bottom-sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    max-height: 85dvh;
+    background: var(--elevated);
+    border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 46;
+    padding: 0 20px calc(80px + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    animation: slideUp .35s cubic-bezier(.2,.8,.25,1) forwards;
+  }
+  .bottom-sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--border-2);
+    border-radius: 2px;
+    margin: 14px auto 20px;
+    flex-shrink: 0;
+  }
+
+  /* Stat strip heading compact */
+  .dashboard-header { padding: 12px 16px 8px; }
 }

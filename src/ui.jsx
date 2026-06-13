@@ -96,6 +96,25 @@ export function Rail({ page, go, onLogout }) {
   );
 }
 
+export function BottomNav({ page, go }) {
+  const items = [
+    { view: 'dashboard', icon: 'dash',    label: 'Beranda' },
+    { view: 'journal',   icon: 'journal', label: 'Jurnal' },
+    { view: 'doa',       icon: 'doa',     label: 'Doa' },
+    { view: 'stats',     icon: 'stats',   label: 'Statistik' },
+  ];
+  return (
+    <nav className="bottom-nav">
+      {items.map(({ view, icon, label }) => (
+        <button key={view} className={'bnav-btn' + (page === view ? ' on' : '')} onClick={() => go(view)}>
+          {Icon[icon]}
+          <span>{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 export function fireConfetti() {
   const layer = document.createElement('div');
   layer.className = 'confetti';
