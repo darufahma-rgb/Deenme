@@ -1,38 +1,147 @@
-// dashboard.jsx — Dashboard A layout + vertical-list prayer tracker
+// dashboard.jsx — Dashboard layout + vertical-list prayer tracker with accordion detail
+import { useState } from 'react';
 import { Icon, PrayerRing, ScoreRing } from './ui.jsx';
 
 export const PRAYERS = [
-  { k: 'subuh', id: 'Subuh', ar: 'الفجر', sched: '04:42' },
-  { k: 'dzuhur', id: 'Dzuhur', ar: 'الظهر', sched: '11:54' },
-  { k: 'ashar', id: 'Ashar', ar: 'العصر', sched: '15:18' },
-  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب', sched: '17:58' },
-  { k: 'isya', id: 'Isya', ar: 'العشاء', sched: '19:09' },
+  { k: 'subuh',   id: 'Subuh',   ar: 'الفجر',   sched: '04:42' },
+  { k: 'dzuhur',  id: 'Dzuhur',  ar: 'الظهر',   sched: '11:54' },
+  { k: 'ashar',   id: 'Ashar',   ar: 'العصر',   sched: '15:18' },
+  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب',  sched: '17:58' },
+  { k: 'isya',    id: 'Isya',    ar: 'العشاء',  sched: '19:09' },
 ];
 export const SUNNAH = ['Rawatib Subuh', 'Dhuha', 'Rawatib Dzuhur', 'Rawatib Maghrib', 'Tahajud', 'Witir'];
 const STATUS = [['ok', 'Tepat'], ['late', 'Telat'], ['qadha', 'Qadha']];
 
-function PrayerRowItem({ p, status, time, isNext, ring, onStatus, onTime }) {
-  const done = !!status;
+// ── Prayer-specific content ──────────────────────────────────────────────────
+const DETAIL = {
+  subuh: {
+    dzikir: [
+      { ar: 'أَسْتَغْفِرُ اللّٰهَ', tr: 'Aku memohon ampun kepada Allah', rep: '3×' },
+      { ar: 'اللّٰهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ', tr: 'Ya Allah, Engkau Maha Sejahtera dan dari-Mu kesejahteraan.', rep: '1×' },
+      { ar: 'سُبْحَانَ اللّٰهِ', tr: 'Maha Suci Allah', rep: '33×' },
+      { ar: 'الْحَمْدُ لِلّٰهِ', tr: 'Segala puji bagi Allah', rep: '33×' },
+      { ar: 'اللّٰهُ أَكْبَرُ', tr: 'Allah Maha Besar', rep: '33×' },
+      { ar: 'آيَةُ الْكُرْسِيِّ', tr: 'Ayat Kursi (QS. Al-Baqarah: 255)', rep: '1×' },
+    ],
+    amalan: [
+      { icon: '🌅', judul: 'Dhuha', ket: 'Setelah matahari terbit ~15 menit, minimal 2 rakaat.' },
+      { icon: '📖', judul: 'Murajaah hafalan', ket: 'Waktu pagi — kondisi pikiran paling segar.' },
+      { icon: '📿', judul: 'Baca Al-Quran', ket: 'Antara Subuh hingga terbit matahari, duduk di tempat solat.' },
+      { icon: '🤲', judul: 'Doa pagi', ket: 'Baca doa & dzikir pagi (al-ma\'tsurat) setelah Subuh.' },
+    ],
+    window: 'Subuh → Dzuhur',
+  },
+  dzuhur: {
+    dzikir: [
+      { ar: 'أَسْتَغْفِرُ اللّٰهَ', tr: 'Aku memohon ampun kepada Allah', rep: '3×' },
+      { ar: 'اللّٰهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ', tr: 'Ya Allah, Engkau Maha Sejahtera dan dari-Mu kesejahteraan.', rep: '1×' },
+      { ar: 'سُبْحَانَ اللّٰهِ', tr: 'Maha Suci Allah', rep: '33×' },
+      { ar: 'الْحَمْدُ لِلّٰهِ', tr: 'Segala puji bagi Allah', rep: '33×' },
+      { ar: 'اللّٰهُ أَكْبَرُ', tr: 'Allah Maha Besar', rep: '33×' },
+      { ar: 'لَا إِلٰهَ إِلَّا اللّٰهُ وَحْدَهُ…', tr: 'La ilaha illallah wahdah… (100×, hari Jumat)', rep: '100×' },
+    ],
+    amalan: [
+      { icon: '🕌', judul: 'Rawatib ba\'diyah', ket: '2 rakaat sunnah setelah Dzuhur.' },
+      { icon: '😴', judul: 'Tidur siang (qailulah)', ket: 'Sunnah tidur sebentar sebelum Ashar.' },
+      { icon: '📖', judul: 'Al-Kahfi (Jumat)', ket: 'Baca Surah Al-Kahfi setiap hari Jumat.' },
+      { icon: '📿', judul: 'Istighfar siang', ket: 'Perbanyak istighfar di sela aktivitas.' },
+    ],
+    window: 'Dzuhur → Ashar',
+  },
+  ashar: {
+    dzikir: [
+      { ar: 'أَسْتَغْفِرُ اللّٰهَ', tr: 'Aku memohon ampun kepada Allah', rep: '3×' },
+      { ar: 'اللّٰهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ', tr: 'Ya Allah, Engkau Maha Sejahtera dan dari-Mu kesejahteraan.', rep: '1×' },
+      { ar: 'سُبْحَانَ اللّٰهِ', tr: 'Maha Suci Allah', rep: '33×' },
+      { ar: 'الْحَمْدُ لِلّٰهِ', tr: 'Segala puji bagi Allah', rep: '33×' },
+      { ar: 'اللّٰهُ أَكْبَرُ', tr: 'Allah Maha Besar', rep: '33×' },
+      { ar: 'آيَةُ الْكُرْسِيِّ', tr: 'Ayat Kursi (QS. Al-Baqarah: 255)', rep: '1×' },
+    ],
+    amalan: [
+      { icon: '📖', judul: 'Tilawah Al-Quran', ket: 'Waktu yang baik untuk tadabbur Al-Quran.' },
+      { icon: '🚶', judul: 'Jangan tidur sore', ket: 'Makruh tidur antara Ashar dan Maghrib.' },
+      { icon: '📿', judul: 'Dzikir petang', ket: 'Baca doa & dzikir petang (al-ma\'tsurat).' },
+      { icon: '🤲', judul: 'Doa mustajab', ket: 'Waktu di antara Ashar & Maghrib sangat mustajab.' },
+    ],
+    window: 'Ashar → Maghrib',
+  },
+  maghrib: {
+    dzikir: [
+      { ar: 'أَسْتَغْفِرُ اللّٰهَ', tr: 'Aku memohon ampun kepada Allah', rep: '3×' },
+      { ar: 'اللّٰهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ', tr: 'Ya Allah, Engkau Maha Sejahtera dan dari-Mu kesejahteraan.', rep: '1×' },
+      { ar: 'سُبْحَانَ اللّٰهِ', tr: 'Maha Suci Allah', rep: '33×' },
+      { ar: 'الْحَمْدُ لِلّٰهِ', tr: 'Segala puji bagi Allah', rep: '33×' },
+      { ar: 'اللّٰهُ أَكْبَرُ', tr: 'Allah Maha Besar', rep: '33×' },
+      { ar: 'قُلْ هُوَ اللّٰهُ أَحَدٌ', tr: 'Surah Al-Ikhlas, Al-Falaq, An-Nas', rep: '3×' },
+    ],
+    amalan: [
+      { icon: '🕌', judul: 'Rawatib ba\'diyah', ket: '2 rakaat sunnah setelah Maghrib.' },
+      { icon: '📖', judul: 'Baca Al-Quran', ket: 'Setelah Maghrib adalah waktu yang dianjurkan.' },
+      { icon: '🚫', judul: 'Jauhi sibuk duniawi', ket: 'Waktu antara Maghrib–Isya untuk ibadah.' },
+      { icon: '🤲', judul: 'Doa buka puasa', ket: 'Jika berpuasa, doa saat berbuka sangat mustajab.' },
+    ],
+    window: 'Maghrib → Isya',
+  },
+  isya: {
+    dzikir: [
+      { ar: 'أَسْتَغْفِرُ اللّٰهَ', tr: 'Aku memohon ampun kepada Allah', rep: '3×' },
+      { ar: 'اللّٰهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ', tr: 'Ya Allah, Engkau Maha Sejahtera dan dari-Mu kesejahteraan.', rep: '1×' },
+      { ar: 'سُبْحَانَ اللّٰهِ', tr: 'Maha Suci Allah', rep: '33×' },
+      { ar: 'الْحَمْدُ لِلّٰهِ', tr: 'Segala puji bagi Allah', rep: '33×' },
+      { ar: 'اللّٰهُ أَكْبَرُ', tr: 'Allah Maha Besar', rep: '33×' },
+      { ar: 'آيَةُ الْكُرْسِيِّ', tr: 'Ayat Kursi sebelum tidur', rep: '1×' },
+    ],
+    amalan: [
+      { icon: '🌙', judul: 'Witir', ket: 'Minimal 1 rakaat, penutup solat malam.' },
+      { icon: '🌃', judul: 'Tahajud', ket: 'Bangun malam sepertiga akhir — waktu paling mustajab.' },
+      { icon: '📿', judul: 'Dzikir sebelum tidur', ket: 'Baca 3 Qul, Ayat Kursi, dan doa tidur.' },
+      { icon: '📖', judul: 'Tilawah malam', ket: 'Baca Al-Quran sebelum tidur, meski sedikit.' },
+    ],
+    window: 'Isya → Subuh',
+  },
+};
+
+// ── Accordion Detail Panel ───────────────────────────────────────────────────
+function DetailPanel({ pKey }) {
+  const d = DETAIL[pKey];
+  if (!d) return null;
   return (
-    <div className={'pcard' + (done ? ' done' : '') + (status === 'qadha' ? ' qadha' : '')}>
-      <div className="prow">
-        <PrayerRing letter={p.id[0]} pct={done ? 1 : 0} tone={status === 'qadha' ? 'qadha' : 'gold'} style={ring} size={56} />
-        <div className="pmeta">
-          <div className="pname">
-            {p.id}
-            <span className="pa">{p.ar}</span>
-            {isNext && <span className="next-tag">Berikutnya</span>}
-          </div>
-          <div className="psub">Jadwal {p.sched}{done ? ` · dicatat ${time || p.sched}` : ''}</div>
+    <div className="pdetail">
+      {/* Dzikir column */}
+      <div className="pdetail-col">
+        <div className="pdetail-heading">
+          <span className="pdetail-icon">📿</span>
+          Dzikir &amp; Doa Ba'da Solat
         </div>
-        <input className="tinput" value={time} placeholder="--:--" maxLength={5}
-          onChange={(e) => onTime(p.k, e.target.value)} aria-label={`Waktu ${p.id}`} />
-        <div className="seg">
-          {STATUS.map(([s, lbl]) => (
-            <button key={s} className={'segbtn ' + s + (status === s ? ' on' : '')}
-              onClick={() => onStatus(p.k, status === s ? null : s)}>
-              <span className="sd" />{lbl}
-            </button>
+        <div className="pdetail-dzikir-list">
+          {d.dzikir.map((item, i) => (
+            <div key={i} className="dzikir-row">
+              <div className="dzikir-ar">{item.ar}</div>
+              <div className="dzikir-meta">
+                <span className="dzikir-tr">{item.tr}</span>
+                <span className="dzikir-rep">{item.rep}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Amalan column */}
+      <div className="pdetail-col">
+        <div className="pdetail-heading">
+          <span className="pdetail-icon">⏱</span>
+          Amalan Antar Waktu
+          <span className="pdetail-window">{d.window}</span>
+        </div>
+        <div className="pdetail-amalan-list">
+          {d.amalan.map((item, i) => (
+            <div key={i} className="amalan-row">
+              <span className="amalan-emoji">{item.icon}</span>
+              <div className="amalan-body">
+                <div className="amalan-judul">{item.judul}</div>
+                <div className="amalan-ket">{item.ket}</div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -40,13 +149,88 @@ function PrayerRowItem({ p, status, time, isNext, ring, onStatus, onTime }) {
   );
 }
 
+// ── Prayer Card Row ──────────────────────────────────────────────────────────
+function PrayerRowItem({ p, status, time, isNext, ring, onStatus, onTime, open, onToggle }) {
+  const done = !!status;
+  return (
+    <div className={
+      'pcard' +
+      (done ? ' done' : '') +
+      (status === 'qadha' ? ' qadha' : '') +
+      (open ? ' open' : '')
+    }>
+      {/* Main row — click chevron area to toggle */}
+      <div className="prow">
+        {/* Chevron toggle — left side */}
+        <button
+          className="pchev"
+          onClick={onToggle}
+          aria-label={open ? 'Tutup detail' : 'Lihat detail'}
+          aria-expanded={open}
+        >
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transition: 'transform .22s', transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+            <path d="M6 3l5 5-5 5" />
+          </svg>
+        </button>
+
+        <PrayerRing letter={p.id[0]} pct={done ? 1 : 0} tone={status === 'qadha' ? 'qadha' : 'gold'} style={ring} size={54} />
+
+        <div className="pmeta">
+          <div className="pname">
+            {p.id}
+            <span className="pa">{p.ar}</span>
+            {isNext && <span className="next-tag">Berikutnya</span>}
+          </div>
+          <div className="psub">
+            Jadwal {p.sched}{done ? ` · dicatat ${time || p.sched}` : ''}
+            {!open && <span className="psub-hint"> · klik ▸ untuk dzikir &amp; amalan</span>}
+          </div>
+        </div>
+
+        <input
+          className="tinput"
+          value={time}
+          placeholder="--:--"
+          maxLength={5}
+          onChange={(e) => onTime(p.k, e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Waktu ${p.id}`}
+        />
+
+        <div className="seg">
+          {STATUS.map(([s, lbl]) => (
+            <button
+              key={s}
+              className={'segbtn ' + s + (status === s ? ' on' : '')}
+              onClick={(e) => { e.stopPropagation(); onStatus(p.k, status === s ? null : s); }}
+            >
+              <span className="sd" />{lbl}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Accordion detail panel */}
+      {open && <DetailPanel pKey={p.k} />}
+    </div>
+  );
+}
+
+// ── Dashboard Page ───────────────────────────────────────────────────────────
 export function DashboardPage({ prayers, times, sunnah, setStatus, setTime, toggleSunnah, score, ring, streak, freeze, useFreeze, pulse, go }) {
+  const [openKey, setOpenKey] = useState(null);
+
+  const toggleOpen = (k) => setOpenKey((prev) => prev === k ? null : k);
+
   const nextK = PRAYERS.find((p) => !prayers[p.k])?.k;
   const doneCount = PRAYERS.filter((p) => prayers[p.k]).length;
   const sunCount = SUNNAH.filter((s) => sunnah[s]).length;
+
   return (
     <div className="main fade-in">
       <div className="content scrl">
+        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: 28 }}>
           <div>
             <div style={{ fontFamily: 'var(--f-ar)', direction: 'rtl', color: 'var(--gold)', fontSize: 14, marginBottom: 4 }}>
@@ -69,17 +253,29 @@ export function DashboardPage({ prayers, times, sunnah, setStatus, setTime, togg
           )}
         </div>
 
+        {/* Prayer list */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <span className="eyebrow">Solat Wajib</span>
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{doneCount} / 5 dicatat</span>
         </div>
         <div className="plist">
           {PRAYERS.map((p) => (
-            <PrayerRowItem key={p.k} p={p} status={prayers[p.k]} time={times[p.k] || ''} isNext={p.k === nextK}
-              ring={ring} onStatus={setStatus} onTime={setTime} />
+            <PrayerRowItem
+              key={p.k}
+              p={p}
+              status={prayers[p.k]}
+              time={times[p.k] || ''}
+              isNext={p.k === nextK}
+              ring={ring}
+              onStatus={setStatus}
+              onTime={setTime}
+              open={openKey === p.k}
+              onToggle={() => toggleOpen(p.k)}
+            />
           ))}
         </div>
 
+        {/* Sunnah */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '28px 0 12px' }}>
           <span className="eyebrow">Solat Sunnah</span>
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{sunCount} / 6 selesai</span>
@@ -93,6 +289,7 @@ export function DashboardPage({ prayers, times, sunnah, setStatus, setTime, togg
         </div>
       </div>
 
+      {/* Right column */}
       <div className="col-r scrl">
         <div className="streak">
           <span className="flame" style={{ color: 'rgba(168,216,196,.3)' }}>{Icon.flame}</span>

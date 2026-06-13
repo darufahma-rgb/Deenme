@@ -593,3 +593,133 @@ body {
   border-radius: var(--radius);
   padding: 22px;
 }
+
+/* ── prayer chevron toggle ── */
+.pchev {
+  flex: 0 0 auto;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, border-color .15s, color .15s;
+  padding: 0;
+}
+.pchev:hover { background: var(--elevated); border-color: var(--border-2); color: var(--text-2) }
+.pcard.open .pchev { background: var(--gold-soft); border-color: var(--gold-line); color: var(--gold) }
+
+/* hint text in psub */
+.psub-hint { color: var(--border-2); font-style: italic }
+
+/* ── accordion detail panel ── */
+.pdetail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid var(--border);
+  animation: detailIn .24s ease both;
+}
+@keyframes detailIn {
+  from { opacity: 0; transform: translateY(-4px) }
+  to   { opacity: 1; transform: none }
+}
+
+.pdetail-col {
+  padding: 18px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pdetail-col + .pdetail-col {
+  border-left: 1px solid var(--border);
+  background: var(--bg-warm);
+}
+
+.pdetail-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--f-body);
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.pdetail-icon { font-size: 14px }
+.pdetail-window {
+  margin-left: auto;
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  text-transform: none;
+}
+
+/* dzikir rows */
+.pdetail-dzikir-list { display: flex; flex-direction: column; gap: 2px }
+.dzikir-row {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.dzikir-row:last-child { border-bottom: 0 }
+.dzikir-ar {
+  font-family: var(--f-ar);
+  direction: rtl;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--gold);
+}
+.dzikir-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dzikir-tr { font-size: 12px; color: var(--text-2); line-height: 1.4; flex: 1 }
+.dzikir-rep {
+  font-family: var(--f-body);
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* amalan rows */
+.pdetail-amalan-list { display: flex; flex-direction: column; gap: 2px }
+.amalan-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.amalan-row:last-child { border-bottom: 0 }
+.amalan-emoji {
+  font-size: 18px;
+  flex: 0 0 auto;
+  line-height: 1.4;
+  margin-top: 1px;
+}
+.amalan-body { display: flex; flex-direction: column; gap: 2px }
+.amalan-judul {
+  font-family: var(--f-body);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+}
+.amalan-ket { font-size: 12px; color: var(--text-2); line-height: 1.45 }
