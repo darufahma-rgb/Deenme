@@ -144,7 +144,20 @@ export default function App() {
   // ── Handlers ──────────────────────────────────────────────────────────────
   const setStatus = (k, val) => {
     setPrayers((p) => { const n = { ...p }; if (val) n[k] = val; else delete n[k]; return n; });
-    // Trigger mission popup on Tepat or Telat (not Qadha, not unset)
+
+    if (val) {
+      const now = new Date();
+      const wibTime = now.toLocaleTimeString('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      setTimes((tm) => ({ ...tm, [k]: wibTime }));
+    } else {
+      setTimes((tm) => { const n = { ...tm }; delete n[k]; return n; });
+    }
+
     if (val === 'ok' || val === 'late') setMisiPopup(k);
     if (!val) setMisiPopup(null);
   };

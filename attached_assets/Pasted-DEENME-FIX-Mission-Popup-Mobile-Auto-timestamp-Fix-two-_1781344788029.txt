@@ -1,0 +1,105 @@
+DEENME — FIX: Mission Popup Mobile + Auto-timestamp
+Fix two bugs in the current implementation:
+
+BUG 1 — Mission popup terpotong di mobile
+The mission popup/bottom sheet is overflowing horizontally on mobile. Fix:
+css.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100vw;
+  max-height: 85dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 0 20px 80px; /* 80px bottom for safe area + bottom nav */
+  border-radius: 20px 20px 0 0;
+  background: var(--elevated);
+  border-top: 1px solid var(--border);
+  z-index: 50;
+  transform: translateY(100%);
+  animation: slideUp .35s cubic-bezier(.2,.8,.25,1) forwards;
+}
+
+/* All content inside bottom sheet must not overflow */
+.bottom-sheet * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Mission item text truncation fix */
+.misi-item-name {
+  white-space: normal;
+  word-break: break-word;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Mission item layout fix */
+.misi-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+}
+
+/* Chip inside mission item — don't overflow */
+.misi-item .chip {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+Also ensure the bottom sheet overlay covers full screen:
+css.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  z-index: 49;
+}
+
+BUG 2 — Auto-timestamp saat sholat dicatat
+When user taps "Tepat", "Telat", or "Qadha" on a prayer, automatically fill the time input with the current WIB time at that exact moment.
+In setStatus function inside src/App.jsx, update to auto-fill time:
+jsconst setStatus = (k, val) => {
+  setPrayers((p) => {
+    const n = { ...p };
+    if (val) n[k] = val;
+    else delete n[k];
+    return n;
+  });
+
+  if (val) {
+    // Auto-fill current WIB time when prayer is marked
+    const now = new Date();
+    const wibTime = now.toLocaleTimeString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    setTimes((tm) => ({ ...tm, [k]: wibTime }));
+  } else {
+    // If unchecked, clear the time
+    setTimes((tm) => {
+      const n = { ...tm };
+      delete n[k];
+      return n;
+    });
+  }
+};
+This means:
+
+Tap "Tepat" at 04:38 → time input auto-fills "04:38"
+Tap "Telat" at 07:15 → time input auto-fills "07:15"
+Tap "Qadha" at 13:00 → time input auto-fills "13:00"
+User can still manually edit the time after auto-fill
+Untapping clears the time
+
+
+Do not change any other functionality. Only fix these two bugs.

@@ -1,0 +1,90 @@
+Pilihan yang tepat — simpel, aman, dan gak perlu backend. Kodenya gak akan keliatan di source code.
+Ini cara setupnya + promptnya:
+
+Step 1 — Set environment variable di Replit dulu:
+
+Di Replit, klik "Secrets" (ikon gembok di sidebar kiri)
+Klik "New Secret"
+Key: VITE_ACCESS_CODE
+Value: PIN 6 digit lo (misal: 847291)
+Klik "Add Secret"
+
+
+Step 2 — Set di Vercel (nanti saat deploy):
+
+Buka project di Vercel → Settings → Environment Variables
+Add: VITE_ACCESS_CODE = PIN lo
+Redeploy
+
+
+Step 3 — Kirim prompt ini ke Replit:
+
+
+DEENME — SECURE ACCESS CODE via Environment Variable
+Replace the current demo login (any 6 digits work) with a real access code check using an environment variable.
+In src/App.jsx, update the submit function inside LoginPage:
+jsconst submit = () => {
+  if (code.length < 6 || loading) return;
+  setLoading(true);
+  setErr(false);
+
+  const correctCode = import.meta.env.VITE_ACCESS_CODE;
+
+  setTimeout(() => {
+    if (code === correctCode) {
+      onEnter();
+    } else {
+      setErr(true);
+      setCode('');
+      setLoading(false);
+    }
+  }, 600);
+};
+Update error state UI — when err is true, show message below PIN cells:
+jsx{err && (
+  <div style={{
+    color: 'var(--danger)',
+    fontSize: 12,
+    fontFamily: 'var(--f-head)',
+    marginTop: 6,
+    textAlign: 'center'
+  }}>
+    Kode salah. Coba lagi.
+  </div>
+)}
+Remove the demo tip text completely:
+jsx// DELETE this line entirely:
+// "Tip: ketik 6 digit apa saja untuk masuk demo"
+Add brute force protection — lock login for 30 seconds after 5 wrong attempts:
+jsconst [attempts, setAttempts] = useState(0);
+const [locked, setLocked] = useState(false);
+const [lockTimer, setLockTimer] = useState(0);
+
+// In submit, if wrong:
+const newAttempts = attempts + 1;
+setAttempts(newAttempts);
+if (newAttempts >= 5) {
+  setLocked(true);
+  let t = 30;
+  setLockTimer(t);
+  const interval = setInterval(() => {
+    t--;
+    setLockTimer(t);
+    if (t <= 0) {
+      clearInterval(interval);
+      setLocked(false);
+      setAttempts(0);
+    }
+  }, 1000);
+}
+
+// Show when locked:
+{locked && (
+  <div style={{ color: 'var(--warn)', fontSize: 12, fontFamily: 'var(--f-head)', textAlign: 'center' }}>
+    Terlalu banyak percobaan. Tunggu {lockTimer} detik.
+  </div>
+)}
+
+// Disable button when locked:
+disabled={code.length < 6 || locked}
+Do not change anything else.

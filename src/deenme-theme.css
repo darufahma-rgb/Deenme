@@ -826,10 +826,24 @@ body {
 
 /* Mission item */
 .misi-item {
-  padding: 10px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
   transition: background 250ms, border-color 250ms;
   position: relative;
+  width: 100%;
+}
+.misi-item .chip {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.misi-item-name {
+  white-space: normal;
+  word-break: break-word;
+  flex: 1;
+  min-width: 0;
 }
 .misi-item:last-child { border-bottom: 0 }
 .misi-item.done {
@@ -1045,25 +1059,35 @@ body {
   .bottom-sheet-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.55);
+    width: 100vw;
+    height: 100dvh;
+    background: rgba(0,0,0,.6);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
-    z-index: 45;
+    z-index: 49;
     opacity: 0;
     animation: bsFadeIn .2s ease forwards;
   }
   .bottom-sheet {
     position: fixed;
     bottom: 0; left: 0; right: 0;
+    width: 100%;
+    max-width: 100vw;
     max-height: 85dvh;
-    background: var(--elevated);
-    border-radius: 20px 20px 0 0;
-    border-top: 1px solid var(--border);
     overflow-y: auto;
-    z-index: 46;
-    padding: 0 20px calc(80px + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+    box-sizing: border-box;
+    padding: 0 20px 80px;
+    border-radius: 20px 20px 0 0;
+    background: var(--elevated);
+    border-top: 1px solid var(--border);
+    z-index: 50;
     transform: translateY(100%);
     animation: slideUp .35s cubic-bezier(.2,.8,.25,1) forwards;
+  }
+  .bottom-sheet * {
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .bottom-sheet-handle {
     width: 36px; height: 4px;
