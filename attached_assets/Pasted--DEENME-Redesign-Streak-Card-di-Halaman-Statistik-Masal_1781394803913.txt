@@ -1,0 +1,133 @@
+# DEENME — Redesign Streak Card di Halaman Statistik
+
+## Masalah
+Card Streak punya background gradient gelap (`#0d2a18`) tapi teks pakai `var(--text)` 
+yang di light mode berwarna gelap → teks nyaris tidak terbaca (nyaru dengan background).
+
+---
+
+## Fix 1 — `src/deenme-theme.css`
+
+Cari blok `.streak {` yang berisi `background: linear-gradient(135deg, #0d2a18` 
+(sekitar baris 853) dan **ganti seluruh blok** dengan ini:
+
+```css
+.streak {
+  background: linear-gradient(145deg, #1a3a24 0%, #0f2318 60%, #0a1c13 100%);
+  border: 1px solid rgba(106, 153, 78, 0.35);
+  border-radius: var(--radius);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+}
+.streak .flame { position: absolute; right: -8px; top: -12px; opacity: .12 }
+.bignum {
+  font-family: var(--f-head);
+  font-weight: 800;
+  font-size: 56px;
+  line-height: .9;
+  color: #fff;
+  letter-spacing: -1.5px;
+  font-variant-numeric: tabular-nums;
+}
+.bignum.pulse { animation: pulse .55s cubic-bezier(.3,1.4,.5,1) }
+@keyframes pulse { 0%{transform:scale(1)} 40%{transform:scale(1.14)} 100%{transform:scale(1)} }
+```
+
+---
+
+## Fix 2 — `src/pages.jsx`
+
+Cari blok `{/* Streak */}` (sekitar baris 1125) dan **ganti seluruhnya** dengan:
+
+```jsx
+{/* Streak */}
+<div className="streak" style={{ marginBottom: 16 }}>
+  
+  {/* Top accent bar */}
+  <div style={{
+    height: 3,
+    background: 'linear-gradient(90deg, #6a994e, #a7c957, #6a994e)',
+    flexShrink: 0,
+  }} />
+
+  {/* Content */}
+  <div style={{ padding: '20px 22px 22px' }}>
+
+    {/* Label */}
+    <div style={{
+      fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 10,
+      letterSpacing: '.12em', textTransform: 'uppercase',
+      color: '#a7c957', marginBottom: 16,
+      display: 'flex', alignItems: 'center', gap: 6,
+    }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2c0 6-6 8-6 14a6 6 0 0 0 12 0c0-6-6-8-6-14z"/>
+        <path d="M12 12c0 3-2 4-2 7a2 2 0 0 0 4 0c0-3-2-4-2-7z" fill="currentColor" opacity=".4"/>
+      </svg>
+      Streak Saat Ini
+    </div>
+
+    {/* Big number + label row */}
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginBottom: 6 }}>
+      <span className="bignum">{streak}</span>
+      <span style={{
+        fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 22,
+        color: 'rgba(255,255,255,0.6)', marginBottom: 8, lineHeight: 1,
+      }}>hari</span>
+    </div>
+
+    {/* Subtitle */}
+    <div style={{
+      fontSize: 12, color: 'rgba(255,255,255,0.45)',
+      fontFamily: 'var(--f-head)', marginBottom: 20,
+    }}>
+      Terpanjang · {streak} hari
+    </div>
+
+    {/* Divider */}
+    <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 16 }} />
+
+    {/* Freeze button */}
+    <button
+      onClick={useFreeze}
+      disabled={freeze === 0}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        background: 'rgba(255,255,255,0.07)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 8, padding: '9px 14px',
+        cursor: freeze > 0 ? 'pointer' : 'not-allowed',
+        fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12,
+        color: freeze > 0 ? '#a7c957' : 'rgba(255,255,255,0.3)',
+        transition: 'background .15s, border-color .15s',
+        opacity: freeze === 0 ? .5 : 1,
+      }}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/>
+      </svg>
+      <span>{freeze} freeze tersisa</span>
+      <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>·</span>
+      <span>Gunakan</span>
+    </button>
+
+  </div>
+</div>
+```
+
+---
+
+## Hasil yang Diharapkan
+- Background card tetap gelap hijau tapi **semua teks putih/terang** → terbaca jelas
+- Angka streak besar berwarna putih bold
+- Label "hari" lebih kecil abu-abu halus di sebelah kanan angka
+- Top accent bar hijau gradient sebagai visual separator
+- Freeze button punya styling sendiri yang jelas terlihat
+- Disabled state kalau freeze = 0
+
+## File yang Diubah
+- `src/deenme-theme.css` — update `.streak` & `.bignum`
+- `src/pages.jsx` — redesign JSX streak card

@@ -851,21 +851,21 @@ label, .label, .caption {
 
 /* ── streak / score panel ── */
 .streak {
-  background: linear-gradient(135deg, #0d2a18, color-mix(in srgb, #2ecc8a 12%, var(--elevated)));
-  border: 1px solid var(--gold-line);
+  background: linear-gradient(145deg, #1a3a24 0%, #0f2318 60%, #0a1c13 100%);
+  border: 1px solid rgba(106, 153, 78, 0.35);
   border-radius: var(--radius);
-  padding: 22px;
+  padding: 0;
   position: relative;
   overflow: hidden;
-  color: var(--text);
+  color: #fff;
 }
 .streak .flame { position: absolute; right: -8px; top: -12px; opacity: .12 }
 .bignum {
   font-family: var(--f-head);
-  font-weight: 600;
+  font-weight: 800;
   font-size: 56px;
   line-height: .9;
-  color: var(--gold);
+  color: #fff;
   letter-spacing: -1.5px;
   font-variant-numeric: tabular-nums;
 }

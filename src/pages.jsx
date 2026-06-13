@@ -1122,16 +1122,78 @@ export function StatistikPage({ streak, freeze, useFreeze, prayers, sunnah, misi
             </div>
 
             {/* Streak */}
-            <div className="streak" style={{ padding: 22, marginBottom: 16 }}>
-              <div className="eyebrow" style={{ color: 'var(--gold)', marginBottom: 8 }}>🔥 Streak Saat Ini</div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 8 }}>
-                <span className="bignum">{streak}</span>
-                <span className="h2" style={{ marginBottom: 10 }}>hari</span>
+            <div className="streak" style={{ marginBottom: 16 }}>
+
+              {/* Top accent bar */}
+              <div style={{
+                height: 3,
+                background: 'linear-gradient(90deg, #6a994e, #a7c957, #6a994e)',
+                flexShrink: 0,
+              }} />
+
+              {/* Content */}
+              <div style={{ padding: '20px 22px 22px' }}>
+
+                {/* Label */}
+                <div style={{
+                  fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 10,
+                  letterSpacing: '.12em', textTransform: 'uppercase',
+                  color: '#a7c957', marginBottom: 16,
+                  display: 'flex', alignItems: 'center', gap: 6,
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2c0 6-6 8-6 14a6 6 0 0 0 12 0c0-6-6-8-6-14z"/>
+                    <path d="M12 12c0 3-2 4-2 7a2 2 0 0 0 4 0c0-3-2-4-2-7z" fill="currentColor" opacity=".4"/>
+                  </svg>
+                  Streak Saat Ini
+                </div>
+
+                {/* Big number + label row */}
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginBottom: 6 }}>
+                  <span className="bignum">{streak}</span>
+                  <span style={{
+                    fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 22,
+                    color: 'rgba(255,255,255,0.6)', marginBottom: 8, lineHeight: 1,
+                  }}>hari</span>
+                </div>
+
+                {/* Subtitle */}
+                <div style={{
+                  fontSize: 12, color: 'rgba(255,255,255,0.45)',
+                  fontFamily: 'var(--f-head)', marginBottom: 20,
+                }}>
+                  Terpanjang · {streak} hari
+                </div>
+
+                {/* Divider */}
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 16 }} />
+
+                {/* Freeze button */}
+                <button
+                  onClick={useFreeze}
+                  disabled={freeze === 0}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    background: 'rgba(255,255,255,0.07)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: 8, padding: '9px 14px',
+                    cursor: freeze > 0 ? 'pointer' : 'not-allowed',
+                    fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12,
+                    color: freeze > 0 ? '#a7c957' : 'rgba(255,255,255,0.3)',
+                    transition: 'background .15s, border-color .15s',
+                    opacity: freeze === 0 ? .5 : 1,
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/>
+                  </svg>
+                  <span>{freeze} freeze tersisa</span>
+                  <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>·</span>
+                  <span>Gunakan</span>
+                </button>
+
               </div>
-              <div className="muted tiny" style={{ marginBottom: 14 }}>Terpanjang · {streak} hari</div>
-              <button className="btn ghost sm" onClick={useFreeze} style={{ borderColor: 'var(--gold-line)', color: 'var(--gold)' }}>
-                ❄️ {freeze} freeze tersisa · Gunakan
-              </button>
             </div>
           </>
         )}
