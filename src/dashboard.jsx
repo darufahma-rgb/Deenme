@@ -300,7 +300,7 @@ function MisiPanel({ prayerKey, misiDone, onToggle }) {
           }} />
         </div>
       </div>
-      <div style={{ padding: '6px 0 4px' }}>
+      <div className="misi-panel-list" style={{ padding: '6px 0 4px' }}>
         {data.misi.map((m) => (
           <MisiItem key={m.id} misi={m} done={!!misiDone[m.id]} onToggle={() => onToggle(m.id, data.misi)} />
         ))}
@@ -851,19 +851,6 @@ export function DashboardPage({
             onToggle={(id, allMisi) => onMisiToggle(id, allMisi)} />
         )}
 
-        {/* Journal shortcut */}
-        <div className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 11 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span className="h2">Jurnal hari ini</span>
-            <span style={{ color: 'var(--text-3)' }}>{Icon.journal}</span>
-          </div>
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
-            Luangkan sejenak untuk merefleksikan harimu, akhi.
-          </p>
-          <button className="btn gold sm" style={{ alignSelf: 'flex-start' }} onClick={() => go('journal')}>
-            Tulis sekarang →
-          </button>
-        </div>
       </div>
 
       {/* Post-prayer Mission Popup */}

@@ -824,6 +824,14 @@ body {
 .misi-popup::-webkit-scrollbar { width: 4px }
 .misi-popup::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px }
 
+/* Mission panel list — scrollable */
+.misi-panel-list {
+  overflow-y: auto;
+  max-height: 600px;
+  scrollbar-width: thin;
+  scrollbar-color: #33333f transparent;
+}
+
 /* Mission item */
 .misi-item {
   display: flex;
@@ -1084,6 +1092,7 @@ body {
     z-index: 50;
     transform: translateY(100%);
     animation: slideUp .35s cubic-bezier(.2,.8,.25,1) forwards;
+    -webkit-overflow-scrolling: touch;
   }
   .bottom-sheet * {
     max-width: 100%;
