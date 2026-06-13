@@ -1,0 +1,371 @@
+DEENME — AMALAN HARIAN: Bacaan, Dalil, Keutamaan, Faedah
+Update the AmalanPage component to show full detail for each amalan: bacaan (Arabic + latin + arti), keutamaan, dalil, and faedah.
+
+STEP 1 — Replace AMALAN_HARIAN data in src/pages.jsx with this complete dataset:
+jsexport const AMALAN_HARIAN = [
+  {
+    id: 'dzikir-pagi',
+    name: 'Dzikir Pagi',
+    nameAr: 'أَذْكَارُ الصَّبَاحِ',
+    category: 'dzikir',
+    time: 'Setelah Subuh',
+    rakaat: null,
+    bacaan: [
+      { ar: 'اللهُ لَا إِلٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', latin: 'Allahu laa ilaaha illaa huwal hayyul qayyuum...', arti: 'Allah, tidak ada ilah melainkan Dia, Yang Maha Hidup...', nama: 'Ayat Kursi', jumlah: '1×', src: 'QS. Al-Baqarah: 255' },
+      { ar: 'قُلْ هُوَ اللهُ أَحَدٌ...', latin: 'Qul huwallahu ahad...', arti: 'Katakanlah: Dialah Allah Yang Maha Esa...', nama: 'Al-Ikhlas, Al-Falaq, An-Nas', jumlah: '3× masing-masing', src: 'HR. Abu Dawud no. 5082' },
+      { ar: 'سُبْحَانَ اللهِ وَبِحَمْدِهِ', latin: 'Subhaanallahi wa bihamdih', arti: 'Maha Suci Allah dan segala puji bagi-Nya', nama: 'Tasbih Pagi', jumlah: '33x Subhanallah, 33x Alhamdulillah, 34x Allahu Akbar', src: 'HR. Muslim no. 597' },
+      { ar: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي، فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ', latin: 'Allahumma anta rabbii laa ilaaha illaa anta...', arti: 'Ya Allah, Engkau adalah Rabbku, tidak ada ilah selain Engkau...', nama: 'Sayyidul Istighfar', jumlah: '1×', src: 'HR. Bukhari no. 6306' },
+    ],
+    keutamaan: 'Barangsiapa mengucapkan Sayyidul Istighfar di pagi hari dengan penuh keyakinan, lalu meninggal sebelum sore hari, maka ia termasuk ahli surga. (HR. Bukhari no. 6306)',
+    dalil: 'Dari Abdullah bin Khubaib radhiyallahu anhu, Rasulullah ﷺ bersabda: "Bacalah Al-Ikhlas, Al-Falaq, dan An-Nas tiga kali di pagi dan sore hari — itu cukup bagimu dari segala sesuatu." (HR. Abu Dawud no. 5082, shahih Al-Albani)',
+    faedah: 'Dzikir pagi adalah perisai harian dari gangguan setan, sihir, penyakit ain, dan keburukan hari itu. Membaca Ayat Kursi setelah sholat wajib, tidak ada yang menghalanginya masuk surga selain kematian.',
+    tuntunan: 'Duduk di tempat sholat setelah salam Subuh. Baca Ayat Kursi (1×), Al-Ikhlas/Al-Falaq/An-Nas (3× masing-masing), tasbih (33-33-34), lalu Sayyidul Istighfar. Selesaikan sebelum matahari naik sepenggalah.',
+  },
+  {
+    id: 'dzikir-petang',
+    name: 'Dzikir Petang',
+    nameAr: 'أَذْكَارُ الْمَسَاءِ',
+    category: 'dzikir',
+    time: 'Setelah Ashar',
+    rakaat: null,
+    bacaan: [
+      { ar: 'اللهُ لَا إِلٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', latin: 'Allahu laa ilaaha illaa huwal hayyul qayyuum...', arti: 'Allah, tidak ada ilah melainkan Dia, Yang Maha Hidup...', nama: 'Ayat Kursi', jumlah: '1×', src: 'QS. Al-Baqarah: 255' },
+      { ar: 'قُلْ هُوَ اللهُ أَحَدٌ...', latin: 'Qul huwallahu ahad...', arti: 'Katakanlah: Dialah Allah Yang Maha Esa...', nama: 'Al-Ikhlas, Al-Falaq, An-Nas', jumlah: '3× masing-masing', src: 'HR. Abu Dawud no. 5082' },
+      { ar: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلٰهَ إِلَّا أَنْتَ...', latin: 'Allahumma anta rabbii...', arti: 'Ya Allah, Engkau adalah Rabbku...', nama: 'Sayyidul Istighfar (Sore)', jumlah: '1×', src: 'HR. Bukhari no. 6306' },
+      { ar: 'أَعُوذُ بِكَلِمَاتِ اللهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', latin: 'A\'udzu bikalimaatillahit taammaati min syarri maa khalaq', arti: 'Aku berlindung dengan kalimat-kalimat Allah yang sempurna dari kejahatan makhluk yang Dia ciptakan', nama: 'Doa Perlindungan Malam', jumlah: '3×', src: 'HR. Muslim no. 2709' },
+    ],
+    keutamaan: 'Barangsiapa membaca Sayyidul Istighfar di sore hari dengan penuh keyakinan, lalu meninggal sebelum pagi hari, maka ia termasuk ahli surga. (HR. Bukhari no. 6306)',
+    dalil: 'Dari Abud Darda radhiyallahu anhu, Rasulullah ﷺ bersabda: "Barangsiapa membaca A\'udzu bikalimaatillahit taammaati... tiga kali di sore hari, tidak ada racun atau sengatan yang membahayakannya malam itu." (HR. Muslim no. 2709)',
+    faedah: 'Dzikir petang adalah penjaga dari gangguan malam, setan, jin, dan keburukan makhluk. Membacanya secara konsisten menjadi penghalang antara diri kita dan berbagai bencana yang tidak terlihat.',
+    tuntunan: 'Dimulai setelah sholat Ashar hingga sebelum Maghrib. Baca Ayat Kursi, tiga qul 3× masing-masing, Sayyidul Istighfar, dan doa perlindungan malam.',
+  },
+  {
+    id: 'sholat-dhuha',
+    name: 'Sholat Dhuha',
+    nameAr: 'صَلَاةُ الضُّحَى',
+    category: 'sholat-sunnah',
+    time: 'Pagi (15-20 menit setelah matahari terbit)',
+    rakaat: '2-12',
+    bacaan: [
+      { ar: 'اللَّهُمَّ إِنَّ الضُّحَى ضُحَاؤُكَ، وَالْبَهَاءَ بَهَاؤُكَ، وَالْجَمَالَ جَمَالُكَ، وَالْقُوَّةَ قُوَّتُكَ، وَالْقُدْرَةَ قُدْرَتُكَ، وَالْعِصْمَةَ عِصْمَتُكَ. اللَّهُمَّ إِنْ كَانَ رِزْقِي فِي السَّمَاءِ فَأَنْزِلْهُ، وَإِنْ كَانَ فِي الْأَرْضِ فَأَخْرِجْهُ', latin: 'Allahumma innad dhuhaa dhuhaauka, wal bahaa\'a bahaauka...', arti: 'Ya Allah, sesungguhnya waktu dhuha adalah waktu dhuha-Mu, keagungan adalah keagungan-Mu... jika rezekiku di langit turunkanlah, jika di bumi keluarkanlah...', nama: 'Doa Setelah Sholat Dhuha', jumlah: '1× setelah salam', src: 'Doa ma\'tsur dari ulama' },
+    ],
+    keutamaan: 'Nabi ﷺ bersabda: "Setiap ruas tulang manusia wajib disedekahi tiap harinya. Dan dua rakaat Dhuha mencukupi semua itu." (HR. Muslim no. 720). Allah berfirman: "Wahai anak Adam, sholatlah 4 rakaat di awal hari, niscaya Aku cukupi kamu di sore harinya." (HR. Tirmidzi no. 475)',
+    dalil: 'Dari Abu Hurairah radhiyallahu anhu: "Kekasihku ﷺ mewasiatkan kepadaku tiga hal: puasa tiga hari setiap bulan, dua rakaat Dhuha, dan sholat Witir sebelum tidur." (HR. Bukhari no. 1178, Muslim no. 721)',
+    faedah: 'Sholat Dhuha adalah sedekah bagi seluruh 360 sendi tubuh. Menjadi sebab kecukupan rezeki hari itu, membuka pintu keberkahan, dan menggantikan kewajiban sedekah harian.',
+    tuntunan: 'Dikerjakan setelah matahari naik ±15 menit (syuruq) hingga 15 menit sebelum Dzuhur. Minimal 2 rakaat, terbaik 8 rakaat. Setiap 2 rakaat satu salam. Baca Asy-Syams (91) dan Adh-Dhuha (93) pada 2 rakaat pertama.',
+  },
+  {
+    id: 'sholat-rawatib',
+    name: 'Sholat Rawatib',
+    nameAr: 'صَلَاةُ الرَّوَاتِبِ',
+    category: 'sholat-sunnah',
+    time: 'Sebelum/sesudah sholat wajib',
+    rakaat: '12',
+    bacaan: [
+      { ar: 'قُلْ يَا أَيُّهَا الْكَافِرُونَ...', latin: 'Qul yaa ayyuhal kafiruun...', arti: 'Katakanlah: Wahai orang-orang kafir...', nama: 'Al-Kafirun & Al-Ikhlas', jumlah: 'Untuk rawatib Subuh & Maghrib', src: 'HR. Muslim no. 726' },
+    ],
+    keutamaan: 'Barangsiapa menjaga 12 rakaat sunnah rawatib, Allah bangunkan untuknya rumah di surga. (HR. Muslim no. 728)',
+    dalil: 'Dari Aisyah radhiyallahu anha: "Nabi ﷺ tidak pernah meninggalkan 4 rakaat sebelum Dzuhur dan 2 rakaat sebelum Subuh — baik ketika di rumah maupun dalam perjalanan." (HR. Bukhari no. 1182)',
+    faedah: 'Rawatib adalah penambal kekurangan sholat wajib. Konsisten menjaga 12 rakaat rawatib menjadi jaminan rumah di surga. Nabi tidak pernah meninggalkan qabliyah Subuh meski dalam perjalanan.',
+    tuntunan: 'Kerjakan langsung sebelum atau sesudah sholat wajib. Qabliyah Subuh paling utama. Baca Al-Kafirun (109) dan Al-Ikhlas (112) pada rawatib Subuh dan Maghrib.',
+  },
+  {
+    id: 'sholat-tahajud',
+    name: 'Sholat Tahajud',
+    nameAr: 'صَلَاةُ التَّهَجُّدِ',
+    category: 'sholat-sunnah',
+    time: 'Sepertiga malam terakhir',
+    rakaat: '2-8',
+    bacaan: [
+      { ar: 'اللَّهُمَّ لَكَ الْحَمْدُ، أَنْتَ نُورُ السَّمَوَاتِ وَالْأَرْضِ وَمَنْ فِيهِنَّ', latin: 'Allahumma lakal hamdu, anta nuurus samaawaati wal ardhi wa man fiihinna...', arti: 'Ya Allah, bagiMu segala puji, Engkau cahaya langit dan bumi serta semua yang ada di dalamnya...', nama: 'Doa Iftitah Tahajud', jumlah: 'Sebelum membaca Al-Fatihah rakaat pertama', src: 'HR. Bukhari no. 1120' },
+      { ar: 'اللَّهُمَّ إِنِّي أَعُوذُ بِرِضَاكَ مِنْ سَخَطِكَ، وَبِمُعَافَاتِكَ مِنْ عُقُوبَتِكَ', latin: 'Allahumma innii a\'udzu biridhaaka min sakhotika wa bimu\'aafaatika min \'uquubatik', arti: 'Ya Allah, aku berlindung dengan keridhaan-Mu dari kemurkaan-Mu, dan dengan ampunan-Mu dari siksa-Mu', nama: 'Doa dalam Sujud Tahajud', jumlah: 'Dalam sujud terakhir', src: 'HR. Muslim no. 486' },
+    ],
+    keutamaan: 'Sholat yang paling utama setelah sholat wajib adalah sholat malam. (HR. Muslim no. 1163). Allah turun ke langit dunia di sepertiga malam terakhir: "Siapa yang berdoa kepada-Ku, Aku kabulkan. Siapa yang meminta, Aku berikan. Siapa yang memohon ampun, Aku ampuni." (HR. Bukhari no. 1145)',
+    dalil: 'Dari Jabir radhiyallahu anhu: "Sesungguhnya di malam hari ada suatu waktu, tidaklah seorang Muslim memohon kebaikan dunia dan akhirat bertepatan dengan waktu itu melainkan Allah berikan padanya." (HR. Muslim no. 757)',
+    faedah: 'Tahajud adalah tanda orang-orang sholeh. Menjadi sebab dekatnya Allah, dikabulkannya doa, diangkatnya derajat ke maqam mahmud, dan dikuatkannya iman. Wajah orang yang rajin tahajud bersinar di siang hari.',
+    tuntunan: 'Pasang alarm ±1-1.5 jam sebelum Subuh. Setelah bangun baca doa bangun tidur, berwudhu, sholat minimal 2 rakaat. Baca surat panjang dengan tartil. Perbanyak sujud dan doa. Tutup dengan Witir.',
+  },
+  {
+    id: 'sholat-witir',
+    name: 'Sholat Witir',
+    nameAr: 'صَلَاةُ الْوِتْرِ',
+    category: 'sholat-sunnah',
+    time: 'Sebelum tidur atau setelah Tahajud',
+    rakaat: '1-11',
+    bacaan: [
+      { ar: 'سَبِّحِ اسْمَ رَبِّكَ الْأَعْلَى', latin: 'Sabbihisma rabbikal a\'laa...', arti: 'Sucikanlah nama Tuhanmu Yang Maha Tinggi...', nama: 'Surat untuk Witir', jumlah: 'R1: Al-A\'la (87), R2: Al-Kafirun (109), R3: Al-Ikhlas + Al-Falaq + An-Nas', src: 'HR. Nasai no. 1729' },
+      { ar: 'اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ، وَعَافِنِي فِيمَنْ عَافَيْتَ، وَتَوَلَّنِي فِيمَنْ تَوَلَّيْتَ، وَبَارِكْ لِي فِيمَا أَعْطَيْتَ، وَقِنِي شَرَّ مَا قَضَيْتَ', latin: 'Allahummahdinii fiiman hadayt, wa \'aafinii fiiman \'aafayt, wa tawallanii fiiman tawallayt...', arti: 'Ya Allah, berilah aku petunjuk bersama orang yang telah Engkau beri petunjuk, berilah aku kesehatan bersama orang yang telah Engkau beri kesehatan...', nama: 'Doa Qunut Witir', jumlah: 'Setelah ruku\' rakaat terakhir', src: 'HR. Abu Dawud no. 1425, shahih Al-Albani' },
+    ],
+    keutamaan: 'Sesungguhnya Allah itu witir (ganjil) dan mencintai yang witir. Maka berwitirlah wahai ahli Quran. (HR. Abu Dawud no. 1416)',
+    dalil: 'Dari Ali radhiyallahu anhu: "Witir bukan kewajiban seperti sholat wajib, akan tetapi Nabi ﷺ selalu melakukannya dan bersabda: sesungguhnya Allah witir dan mencintai yang witir." (HR. Tirmidzi no. 453)',
+    faedah: 'Witir adalah penutup sholat malam yang menyempurnakan ibadah. Nabi ﷺ tidak pernah meninggalkan Witir baik ketika mukim maupun safar. Sholat malam yang tidak ditutup Witir seperti sholat yang belum sempurna.',
+    tuntunan: 'Jika tidak yakin bisa bangun: Witir sebelum tidur (1-3 rakaat). Jika yakin bisa Tahajud: Witir setelah Tahajud. Pada rakaat terakhir baca Doa Qunut setelah ruku\'.',
+  },
+  {
+    id: 'puasa-senin-kamis',
+    name: 'Puasa Senin-Kamis',
+    nameAr: 'صِيَامُ الِاثْنَيْنِ وَالْخَمِيسِ',
+    category: 'puasa',
+    time: 'Setiap Senin dan Kamis',
+    rakaat: null,
+    bacaan: [
+      { ar: 'نَوَيْتُ صَوْمَ يَوْمِ الِاثْنَيْنِ سُنَّةً للهِ تَعَالَى', latin: 'Nawaitu shauma yaumil itsnaini sunnatan lillaahi ta\'aalaa', arti: 'Aku niat puasa hari Senin, sunnah karena Allah Ta\'ala', nama: 'Niat Puasa Senin', jumlah: 'Di malam hari atau pagi sebelum makan', src: 'Fiqh Sunnah' },
+      { ar: 'ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللهُ', latin: 'Dzahabazh zhama\'u wabtallatil uruuqu wa tsabatal ajru insyaallah', arti: 'Telah hilang rasa haus, telah basah urat nadi, dan telah tetap pahala insya Allah', nama: 'Doa Buka Puasa', jumlah: 'Saat berbuka', src: 'HR. Abu Dawud no. 2357, hasan Al-Albani' },
+    ],
+    keutamaan: 'Nabi ﷺ: "Pada hari itu amal manusia diangkat kepada Allah, dan aku ingin saat amalku diangkat aku dalam keadaan berpuasa." (HR. Nasai no. 2358). Pintu surga dibuka pada hari Senin dan Kamis, diampuni dosa setiap hamba yang tidak menyekutukan Allah. (HR. Muslim no. 2565)',
+    dalil: 'Dari Aisyah radhiyallahu anha: "Rasulullah ﷺ sangat menjaga puasa Senin dan Kamis." (HR. Tirmidzi no. 745)',
+    faedah: 'Puasa Senin-Kamis adalah amalan paling disenangi Nabi ﷺ karena amal diangkat pada hari itu. Manfaat fisik yang terbukti: detoksifikasi, menstabilkan gula darah, dan memperpanjang umur sel.',
+    tuntunan: 'Niat di malam Senin/Kamis atau di pagi hari sebelum makan apapun. Buka puasa dengan kurma atau air putih. Boleh digabung dengan puasa Ayyamul Bidh (13-14-15 setiap bulan).',
+  },
+  {
+    id: 'baca-quran',
+    name: 'Tilawah Al-Quran',
+    nameAr: 'تِلَاوَةُ الْقُرْآنِ',
+    category: 'quran',
+    time: 'Setelah Subuh (paling utama)',
+    rakaat: null,
+    bacaan: [
+      { ar: 'أَعُوذُ بِاللهِ مِنَ الشَّيْطَانِ الرَّجِيمِ، بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ', latin: 'A\'udzu billahi minasy syaithaanir rajiim, bismillaahir rahmaanir rahiim', arti: 'Aku berlindung kepada Allah dari setan yang terkutuk. Dengan nama Allah Yang Maha Pengasih lagi Maha Penyayang.', nama: 'Ta\'awwudz & Basmalah', jumlah: 'Sebelum membaca', src: 'QS. An-Nahl: 98' },
+    ],
+    keutamaan: 'Sebaik-baik kalian adalah yang mempelajari Al-Quran dan mengajarkannya. (HR. Bukhari no. 5027). Satu huruf Al-Quran dibalas 10 kebaikan — Alif satu huruf, Lam satu huruf, Mim satu huruf. (HR. Tirmidzi no. 2910)',
+    dalil: 'Dari Abdullah bin Masud radhiyallahu anhu: "Bacalah Al-Quran karena ia akan datang pada hari kiamat sebagai pemberi syafa\'at bagi para pembacanya." (HR. Muslim no. 804)',
+    faedah: 'Tilawah Al-Quran mengalirkan pahala per huruf. Membuat hati tenang, wajah bercahaya, rumah diberkahi, dan mendapat syafaat di hari kiamat. Setiap huruf = 10 kebaikan.',
+    tuntunan: 'Baca ta\'awwudz dan basmalah sebelum mulai. Baca dengan tartil, tidak terburu-buru. Target minimal 1 halaman/hari. Waktu terbaik: setelah Subuh dan setelah Maghrib.',
+  },
+  {
+    id: 'baca-alkahfi-jumat',
+    name: 'Baca Al-Kahfi (Jumat)',
+    nameAr: 'قِرَاءَةُ سُورَةِ الْكَهْفِ يَوْمَ الْجُمُعَةِ',
+    category: 'quran',
+    time: 'Hari Jumat (Kamis malam - Jumat sore)',
+    rakaat: null,
+    bacaan: [
+      { ar: 'الْحَمْدُ لِلَّهِ الَّذِي أَنزَلَ عَلَى عَبْدِهِ الْكِتَابَ وَلَمْ يَجْعَل لَّهُ عِوَجًا', latin: 'Alhamdu lillaahil ladzii anzala \'alaa \'abdihil kitaaba wa lam yaj\'al lahu \'iwajaa', arti: 'Segala puji bagi Allah yang telah menurunkan Kitab kepada hamba-Nya dan Dia tidak mengadakan kebengkokan di dalamnya.', nama: 'Pembuka Al-Kahfi (QS. 18: 1)', jumlah: '—', src: 'QS. Al-Kahfi: 1' },
+    ],
+    keutamaan: 'Barangsiapa membaca surat Al-Kahfi pada hari Jumat, Allah menerangi cahaya baginya di antara dua Jumat. (HR. Hakim 2/399, shahih Al-Albani). Barangsiapa membaca 10 ayat pertama Al-Kahfi, ia terlindung dari fitnah Dajjal. (HR. Muslim no. 809)',
+    dalil: 'Dari Abu Said Al-Khudri radhiyallahu anhu, Rasulullah ﷺ bersabda: "Barangsiapa membaca surat Al-Kahfi pada hari Jumat, ia mendapat cahaya di antara dirinya dan Ka\'bah." (HR. Baihaqi, hasan Al-Albani)',
+    faedah: 'Al-Kahfi mengandung 4 kisah: Ashabul Kahfi (fitnah agama), si empunya kebun (fitnah harta), Nabi Musa & Khidir (fitnah ilmu), Dzulqarnain (fitnah kekuasaan). Membacanya melindungi dari 4 fitnah besar dunia.',
+    tuntunan: 'Waktunya dari Kamis setelah Maghrib hingga Jumat sebelum Maghrib. Bisa dibaca sekaligus atau dibagi beberapa sesi. Dianjurkan dibaca dengan tartil dan tadabbur.',
+  },
+  {
+    id: 'shalawat-100',
+    name: 'Shalawat 100×',
+    nameAr: 'الصَّلَاةُ عَلَى النَّبِيِّ ١٠٠×',
+    category: 'dzikir',
+    time: 'Bebas, dianjurkan pagi dan petang',
+    rakaat: null,
+    bacaan: [
+      { ar: 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ', latin: 'Allahumma shalli \'alaa Muhammad wa \'alaa aali Muhammad', arti: 'Ya Allah, limpahkanlah rahmat kepada Muhammad dan keluarga Muhammad', nama: 'Shalawat Ibrahimiyyah', jumlah: '100×', src: 'HR. Muslim no. 408' },
+    ],
+    keutamaan: 'Barangsiapa bershalawat kepadaku sekali, Allah bershalawat (merahmati) kepadanya 10 kali. (HR. Muslim no. 408). Perbanyak shalawat pada hari Jumat karena shalawatmu disampaikan kepadaku. (HR. Abu Dawud no. 1047)',
+    dalil: 'Dari Aus bin Aus radhiyallahu anhu, Rasulullah ﷺ bersabda: "Sesungguhnya hari terbaik kalian adalah hari Jumat. Perbanyaklah shalawat kepadaku pada hari itu." (HR. Abu Dawud no. 1047, shahih Al-Albani)',
+    faedah: 'Shalawat adalah sebab turunnya rahmat Allah, terhapusnya dosa, naiknya derajat, dan terpenuhinya hajat. Nabi ﷺ mengetahui siapa yang bershalawat kepadanya dan membalasnya.',
+    tuntunan: 'Bisa dibaca kapan saja: saat berjalan, menunggu, atau setelah sholat. Hari Jumat dianjurkan 1000×.',
+  },
+  {
+    id: 'istighfar-100',
+    name: 'Istighfar 100×',
+    nameAr: 'الِاسْتِغْفَارُ ١٠٠×',
+    category: 'dzikir',
+    time: 'Setelah sholat atau kapan saja',
+    rakaat: null,
+    bacaan: [
+      { ar: 'أَسْتَغْفِرُ اللهَ الْعَظِيمَ الَّذِي لَا إِلٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ', latin: 'Astaghfirullahal \'azhiim alladzii laa ilaaha illaa huwal hayyul qayyuum wa atuubu ilaih', arti: 'Aku memohon ampun kepada Allah Yang Maha Agung, yang tidak ada ilah selain Dia, Yang Maha Hidup, dan aku bertaubat kepada-Nya', nama: 'Istighfar Lengkap', jumlah: '100×', src: 'HR. Tirmidzi no. 3577' },
+    ],
+    keutamaan: 'Demi Allah, aku beristighfar dan bertaubat kepada Allah lebih dari 70 kali sehari. (HR. Bukhari no. 6307). Barangsiapa memperbanyak istighfar, Allah jadikan setiap kesempitan menjadi jalan keluar dan memberinya rezeki dari arah yang tidak disangka. (HR. Ahmad no. 2234)',
+    dalil: 'Dari Abdullah bin Umar: "Kami menghitung Rasulullah ﷺ dalam satu majelis mengucapkan Rabbighfir lii wa tub \'alayya sebanyak 100 kali." (HR. Abu Dawud no. 1516, shahih Al-Albani)',
+    faedah: 'Istighfar adalah pembuka rezeki, pengangkat bala, penyebab turunnya hujan rahmat, dan penghapus dosa. Bahkan Nabi ﷺ yang sudah diampuni tetap beristighfar lebih dari 70 kali sehari.',
+    tuntunan: 'Setelah setiap sholat wajib minimal 3×. Target harian 100×. Bisa dibaca saat berkendara, menunggu, atau sebelum tidur.',
+  },
+  {
+    id: 'sedekah-harian',
+    name: 'Sedekah Harian',
+    nameAr: 'الصَّدَقَةُ الْيَوْمِيَّةُ',
+    category: 'muamalah',
+    time: 'Pagi hari (paling utama)',
+    rakaat: null,
+    bacaan: [
+      { ar: 'اللَّهُمَّ أَعْطِ مُنْفِقًا خَلَفًا', latin: 'Allahumma a\'thi munfiqan khalafaa', arti: 'Ya Allah, berilah ganti kepada orang yang berinfak', nama: 'Doa Malaikat untuk Orang yang Bersedekah', jumlah: '—', src: 'HR. Bukhari no. 1442' },
+    ],
+    keutamaan: 'Setiap pagi ada dua malaikat yang turun. Salah satunya berdoa: "Ya Allah, berilah ganti kepada yang berinfak." Yang lain: "Ya Allah, berilah kerusakan kepada yang menahan hartanya." (HR. Bukhari no. 1442). Sedekah tidak mengurangi harta. (HR. Muslim no. 2588)',
+    dalil: 'Dari Abu Hurairah radhiyallahu anhu: "Setiap ruas tulang manusia wajib bersedekah setiap harinya... ucapan yang baik adalah sedekah, setiap langkah menuju sholat adalah sedekah." (HR. Bukhari no. 2989)',
+    faedah: 'Sedekah memadamkan murka Allah, menolak bala, memanjangkan umur, membuka pintu rezeki, dan menjadi perisai dari api neraka. Senyum kepada saudaramu pun adalah sedekah.',
+    tuntunan: 'Niatkan setiap pagi untuk bersedekah walau sedikit. Bisa berupa uang, makanan, tenaga, ilmu, atau kata-kata baik. Konsistensi lebih utama dari jumlah.',
+  },
+];
+
+STEP 2 — Update AmalanPage component to show expandable detail sections:
+Each amalan card should have 4 collapsible sections: Bacaan, Keutamaan, Dalil, Faedah & Tuntunan.
+jsxfunction AmalanCard({ amalan, done, onToggle }) {
+  const [openSection, setOpenSection] = useState(null);
+
+  const toggleSection = (section) => {
+    setOpenSection(openSection === section ? null : section);
+  };
+
+  return (
+    <div className={'amalan-card card' + (done ? ' amalan-done' : '')}>
+      {/* Header row */}
+      <div className="amalan-header">
+        <div
+          className={'misi-item-checkbox' + (done ? ' checked' : '')}
+          onClick={() => onToggle(amalan.id)}
+          style={{ flexShrink: 0, marginTop: 2 }}
+        >
+          {done && <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 20, color: 'var(--gold)', direction: 'rtl', marginBottom: 2 }}>{amalan.nameAr}</div>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{amalan.name}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 2 }}>{amalan.description || amalan.tuntunan?.slice(0, 80) + '...'}</div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+          {amalan.rakaat && <span className="chip" style={{ fontSize: 11, padding: '2px 10px', pointerEvents: 'none' }}>{amalan.rakaat} rakaat</span>}
+          <span className="chip" style={{ fontSize: 11, padding: '2px 10px', pointerEvents: 'none', color: 'var(--text-3)' }}>{amalan.time}</span>
+        </div>
+      </div>
+
+      {/* Expandable sections */}
+      <div className="amalan-sections">
+        {/* Bacaan */}
+        {amalan.bacaan?.length > 0 && (
+          <div className="amalan-section">
+            <button className="amalan-section-toggle" onClick={() => toggleSection('bacaan')}>
+              <span>📿 Bacaan</span>
+              <span>{openSection === 'bacaan' ? '▾' : '›'}</span>
+            </button>
+            {openSection === 'bacaan' && (
+              <div className="amalan-section-body">
+                {amalan.bacaan.map((b, i) => (
+                  <div key={i} className="amalan-bacaan-item">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--gold)' }}>{b.nama}</span>
+                      <span className="chip" style={{ fontSize: 10, padding: '1px 8px', pointerEvents: 'none' }}>{b.jumlah}</span>
+                    </div>
+                    <div style={{ fontFamily: 'var(--f-ar)', fontSize: 22, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.8, marginBottom: 8 }}>{b.ar}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-2)', fontStyle: 'italic', marginBottom: 4, lineHeight: 1.6 }}>{b.latin}</div>
+                    <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6, marginBottom: 6 }}>"{b.arti}"</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'var(--f-head)', fontWeight: 600 }}>{b.src}</div>
+                    {i < amalan.bacaan.length - 1 && <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '12px 0' }}/>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Keutamaan */}
+        <div className="amalan-section">
+          <button className="amalan-section-toggle" onClick={() => toggleSection('keutamaan')}>
+            <span>⭐ Keutamaan</span>
+            <span>{openSection === 'keutamaan' ? '▾' : '›'}</span>
+          </button>
+          {openSection === 'keutamaan' && (
+            <div className="amalan-section-body">
+              <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.keutamaan}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Dalil */}
+        <div className="amalan-section">
+          <button className="amalan-section-toggle" onClick={() => toggleSection('dalil')}>
+            <span>📖 Dalil Anjuran</span>
+            <span>{openSection === 'dalil' ? '▾' : '›'}</span>
+          </button>
+          {openSection === 'dalil' && (
+            <div className="amalan-section-body">
+              <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.dalil}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Faedah & Tuntunan */}
+        <div className="amalan-section" style={{ borderBottom: 'none' }}>
+          <button className="amalan-section-toggle" onClick={() => toggleSection('faedah')}>
+            <span>💡 Faedah & Tuntunan</span>
+            <span>{openSection === 'faedah' ? '▾' : '›'}</span>
+          </button>
+          {openSection === 'faedah' && (
+            <div className="amalan-section-body">
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12, color: 'var(--gold)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Faedah</div>
+                <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.faedah}</p>
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12, color: 'var(--gold)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Cara Mengamalkan</div>
+                <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.tuntunan}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+STEP 3 — Add CSS to src/deenme-theme.css:
+css/* ── amalan cards ── */
+.amalan-card {
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  transition: box-shadow .2s;
+}
+
+.amalan-card.amalan-done {
+  opacity: 0.65;
+}
+
+.amalan-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.amalan-sections {
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.amalan-section {
+  border-bottom: 1px solid var(--border);
+}
+
+.amalan-section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--f-head);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-2);
+  transition: color .15s;
+  text-align: left;
+}
+
+.amalan-section-toggle:hover { color: var(--gold); }
+
+.amalan-section-body {
+  padding: 8px 0 14px;
+  animation: detailIn .2s ease;
+}
+
+.amalan-bacaan-item {
+  background: var(--elevated);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 8px;
+}
+
+IMPORTANT:
+
+Replace existing AMALAN_HARIAN data completely with the new data above
+Keep existing filter tabs (Semua, Dzikir, Sholat Sunnah, Puasa, Al-Quran, Muamalah)
+Keep existing checkbox toggle & progress bar
+Do not change any other pages or functionality
