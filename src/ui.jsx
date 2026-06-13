@@ -101,6 +101,7 @@ export function BottomNav({ page, go }) {
     { view: 'dashboard', icon: 'dash',    label: 'Beranda' },
     { view: 'journal',   icon: 'journal', label: 'Jurnal' },
     { view: 'doa',       icon: 'doa',     label: 'Doa' },
+    { view: 'amalan',    icon: 'amalan',  label: 'Amalan' },
     { view: 'stats',     icon: 'stats',   label: 'Statistik' },
   ];
   return (
