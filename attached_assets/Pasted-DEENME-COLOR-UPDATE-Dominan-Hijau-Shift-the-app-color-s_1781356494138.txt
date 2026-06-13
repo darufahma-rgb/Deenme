@@ -1,0 +1,208 @@
+DEENME — COLOR UPDATE: Dominan Hijau
+Shift the app color scheme so green is the dominant color — darker green surfaces instead of white/light gray.
+Replace :root variables in src/deenme-theme.css:
+css:root {
+  /* Base — dark green dominant */
+  --bg: #0f1f15;
+  --bg-warm: #0f1f15;
+  --surface: #162b1c;
+  --elevated: #1c3524;
+  --elevated-2: #22402b;
+
+  /* Primary — Emerald green accent */
+  --gold: #2ecc8a;
+  --gold-2: #3ddb99;
+  --gold-soft: color-mix(in srgb, #2ecc8a 15%, transparent);
+  --gold-line: color-mix(in srgb, #2ecc8a 30%, transparent);
+
+  /* Text */
+  --text: #e8f5ee;
+  --text-2: #7aaa8a;
+  --text-3: #4a7a5a;
+
+  /* Status */
+  --ok: #2ecc8a;
+  --warn: #f0a500;
+  --danger: #e05555;
+
+  /* Borders */
+  --border: #1e3a26;
+  --border-2: #264d30;
+
+  /* Radius & spacing */
+  --radius: 16px;
+  --radius-sm: 12px;
+  --pad: 24px;
+  --gap: 12px;
+  --rowpad: 16px;
+
+  /* Fonts */
+  --f-head: 'Bricolage Grotesque', system-ui, sans-serif;
+  --f-body: 'Bricolage Grotesque', system-ui, sans-serif;
+  --f-ar: 'IBM Plex Sans Arabic', 'Tajawal', serif;
+  --ring-dur: .55s;
+}
+
+/* Global */
+body { background: var(--bg); color: var(--text); }
+
+/* Candle — subtle green glow */
+.candle { display: block; }
+.candle::before {
+  background: radial-gradient(closest-side, color-mix(in srgb, #2ecc8a 10%, transparent), transparent 72%);
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 6px rgba(0,0,0,.2);
+}
+
+/* Prayer cards */
+.pcard { background: var(--surface); border: 1px solid var(--border); }
+.pcard:hover { border-color: var(--gold-line); box-shadow: 0 0 0 1px var(--gold-soft); }
+.pcard.done {
+  background: linear-gradient(100deg, color-mix(in srgb, #2ecc8a 10%, var(--surface)), var(--surface) 60%);
+  border-color: var(--gold-line);
+  box-shadow: 0 0 20px -10px #2ecc8a;
+}
+.pcard.qadha {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--danger) 10%, var(--surface)), var(--surface) 60%);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+}
+
+/* Sidebar */
+.rail { background: #0d1a11; border-right: 1px solid var(--border); }
+.rail .brand { background: var(--gold-soft); border: 1px solid var(--gold-line); color: var(--gold); box-shadow: 0 0 20px -6px #2ecc8a; }
+
+/* Nav */
+.navbtn { color: var(--text-2); }
+.navbtn:hover { background: var(--elevated); color: var(--text); }
+.navbtn.on { color: var(--gold); background: var(--gold-soft); }
+.navbtn.on::before { background: var(--gold); }
+
+/* Bottom nav */
+.bottom-nav { background: rgba(13,26,17,.96); border-top: 1px solid var(--border); backdrop-filter: blur(20px); }
+.bnav-btn { color: var(--text-3); }
+.bnav-btn.on { color: var(--gold); }
+
+/* Streak */
+.streak {
+  background: linear-gradient(135deg, #0d2a18, color-mix(in srgb, #2ecc8a 12%, var(--elevated)));
+  border: 1px solid var(--gold-line);
+}
+.bignum { color: var(--gold); }
+
+/* Buttons */
+.btn { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text); }
+.btn:hover { border-color: var(--gold-line); }
+.btn.gold { background: var(--gold); border-color: var(--gold); color: #061208; box-shadow: 0 4px 16px rgba(46,204,138,.35); font-weight: 700; }
+.btn.gold:hover { background: var(--gold-2); border-color: var(--gold-2); }
+.btn.ghost { background: transparent; }
+
+/* Icon buttons */
+.iconbtn { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text-2); }
+.iconbtn:hover { color: var(--text); border-color: var(--gold-line); }
+
+/* Chips */
+.chip { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text-2); }
+.chip:hover { color: var(--text); border-color: var(--gold-line); }
+.chip.on { color: var(--gold); border-color: var(--gold-line); background: var(--gold-soft); }
+
+/* Tabs */
+.tab { color: var(--text-2); background: transparent; border: 1px solid transparent; }
+.tab:hover { color: var(--text); }
+.tab.on { color: var(--gold); background: var(--gold-soft); border-color: var(--gold-line); }
+
+/* Arabic text */
+.ar { color: var(--gold); }
+.doacard .dar { color: var(--gold); }
+.misi-item-ar { color: var(--gold); }
+.prow .pname .pa { color: var(--gold); }
+
+/* Doa cards */
+.doacard { background: var(--surface); border: 1px solid var(--border); }
+.doacard:hover { border-color: var(--gold-line); box-shadow: 0 4px 16px rgba(46,204,138,.1); transform: translateY(-2px); }
+
+/* Bookmark */
+.bm { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text-3); }
+.bm:hover { color: var(--gold); border-color: var(--gold-line); }
+.bm.on { color: var(--gold); background: var(--gold-soft); border-color: var(--gold-line); }
+
+/* FAB */
+.fab { background: var(--gold); color: #061208; box-shadow: 0 8px 24px rgba(46,204,138,.4); }
+.fab:hover { background: var(--gold-2); }
+
+/* Login */
+.login { background: var(--bg); }
+.authcard { background: var(--surface); border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+.authlogo { background: var(--gold-soft); border: 1px solid var(--gold-line); color: var(--gold); box-shadow: 0 0 28px -6px #2ecc8a; }
+.pincell { background: var(--elevated); border: 1px solid var(--border-2); color: var(--gold); }
+.pincell.fill { border-color: var(--gold-line); background: var(--gold-soft); }
+.pincell.active { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+
+/* Status segments */
+.segbtn { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text-2); }
+.segbtn:hover { color: var(--text); }
+.segbtn.on.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.segbtn.on.late { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.segbtn.on.qadha { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+
+/* Time input */
+.tinput { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text); }
+.tinput:focus { border-color: var(--gold-line); background: var(--surface); }
+
+/* Next prayer tag */
+.next-tag { color: var(--gold) !important; background: var(--gold-soft) !important; border-color: var(--gold-line) !important; }
+
+/* Bar chart */
+.bar { background: linear-gradient(var(--gold-2), var(--gold)); }
+.bar.low { background: var(--border-2); }
+
+/* Amal bar */
+.amal-bar-fill { background: linear-gradient(90deg, #1a9e6a, #2ecc8a); }
+
+/* Editor */
+.editor { background: var(--surface); border: 1px solid var(--border); }
+.etools { border-bottom: 1px solid var(--border); }
+.etb { background: transparent; border: 1px solid var(--border-2); color: var(--text-2); }
+.etb:hover { color: var(--text); border-color: var(--gold-line); }
+
+/* Panels */
+.col-r { background: color-mix(in srgb, var(--surface) 70%, var(--bg)); border-left: 1px solid var(--border); }
+.col-l { background: color-mix(in srgb, var(--surface) 70%, var(--bg)); border-right: 1px solid var(--border); }
+
+/* Bottom sheet */
+.bottom-sheet { background: var(--elevated); border-top: 1px solid var(--border); }
+.bottom-sheet-handle { background: var(--border-2); }
+.bottom-sheet-overlay { background: rgba(0,0,0,.5); }
+
+/* Scrollbar */
+.scrl { scrollbar-color: var(--border-2) transparent; }
+.scrl::-webkit-scrollbar-thumb { background: var(--border-2); }
+
+/* Mission items */
+.misi-item { border-bottom: 1px solid var(--border); }
+.misi-item-name { color: var(--text); }
+.misi-item-name.checked { color: var(--text-3); }
+.misi-item-checkbox { border: 1.5px solid var(--border-2); background: transparent; }
+.misi-item-checkbox.checked { background: var(--gold); border-color: var(--gold); }
+
+/* Amalan cards */
+.amalan-card { background: var(--surface); border: 1px solid var(--border); }
+.amalan-section { border-bottom: 1px solid var(--border); }
+.amalan-section-toggle { color: var(--text-2); }
+.amalan-section-toggle:hover { color: var(--gold); }
+.amalan-bacaan-item { background: var(--elevated); }
+
+/* H tags */
+.h1, .h2 { color: var(--text); }
+.eyebrow { color: var(--text-3); }
+.muted { color: var(--text-2); }
+IMPORTANT:
+
+Only modify src/deenme-theme.css
+Do NOT touch any JavaScript, JSX, or logic
+Landing page .lp-* classes are separate — don't touch them
+Result: dark forest green base, bright emerald accent, feels like a premium Islamic app at night
