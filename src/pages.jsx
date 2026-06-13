@@ -753,7 +753,7 @@ export function StatistikPage({ streak, freeze, useFreeze, prayers, sunnah, misi
 }
 
 // ─── AMALAN PER WAKTU SHOLAT ──────────────────────────────
-const AMALAN_PER_WAKTU = [
+export const AMALAN_PER_WAKTU = [
   {
     id: 'tahajud', waktu: 'Tahajud', waktuAr: 'قِيَامُ اللَّيْل',
     waktuDesc: 'Sepertiga malam terakhir · ±1-1.5 jam sebelum Subuh', emoji: '🌙',

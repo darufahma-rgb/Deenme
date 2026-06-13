@@ -1,0 +1,236 @@
+DEENME — AMALAN: Full Page Detail Instead of Accordion
+When user taps an amalan item in AmalanPage, instead of expanding inline (accordion), navigate to a full detail page so all content is fully visible with proper hierarchy.
+
+STEP 1 — Add AmalanDetailPage component to src/pages.jsx:
+jsxexport function AmalanDetailPage({ amalan, waktu, onBack }) {
+  return (
+    <div className="main fade-in">
+      <div className="content scrl" style={{ maxWidth: 720, paddingBottom: 60 }}>
+
+        {/* Back button */}
+        <button
+          onClick={onBack}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, padding: '0 0 20px', marginLeft: -4 }}
+        >
+          ‹ Kembali ke {waktu.waktu}
+        </button>
+
+        {/* Amalan header */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 28, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.8, marginBottom: 10, textAlign: 'right' }}>
+            {amalan.nameAr}
+          </div>
+          <h1 style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 26, color: 'var(--text)', letterSpacing: '-.02em', margin: '0 0 6px' }}>
+            {amalan.name}
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span className="chip" style={{ fontSize: 11, pointerEvents: 'none' }}>{waktu.emoji} {waktu.waktu}</span>
+            <span className="muted tiny">{waktu.waktuDesc}</span>
+          </div>
+        </div>
+
+        {/* ── BACAAN & LAFAZ ── */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: 'var(--text)' }}>📿 Bacaan & Lafaz</span>
+          </div>
+          {amalan.bacaan.map((b, i) => (
+            <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20, marginBottom: 12 }}>
+              {/* Jumlah badge */}
+              <div style={{ marginBottom: 14 }}>
+                <span className="chip on" style={{ fontSize: 11, padding: '3px 12px', pointerEvents: 'none' }}>{b.jumlah}</span>
+              </div>
+              {/* Arabic */}
+              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 26, color: 'var(--gold)', direction: 'rtl', lineHeight: 2.2, textAlign: 'right', marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
+                {b.ar}
+              </div>
+              {/* Latin */}
+              <div style={{ fontSize: 13, color: 'var(--text-2)', fontStyle: 'italic', lineHeight: 1.8, marginBottom: 10 }}>
+                {b.latin}
+              </div>
+              {/* Translation */}
+              <div style={{ background: 'var(--elevated)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', borderLeft: '3px solid var(--gold-line)' }}>
+                <div className="eyebrow" style={{ fontSize: 10, marginBottom: 6 }}>ARTINYA</div>
+                <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.8 }}>"{b.arti}"</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── CARA MENGAMALKAN ── */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: 'var(--text)', marginBottom: 14 }}>📋 Cara Mengamalkan</div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.85, margin: 0 }}>{amalan.tuntunan}</p>
+          </div>
+        </div>
+
+        {/* ── KHASIAT & FAEDAH ── */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: 'var(--text)', marginBottom: 14 }}>✨ Khasiat & Faedah</div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20, borderLeft: '3px solid var(--gold)' }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.85, margin: 0 }}>{amalan.khasiat}</p>
+          </div>
+        </div>
+
+        {/* ── DALIL ANJURAN ── */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: 'var(--text)', marginBottom: 14 }}>📖 Dalil Anjuran</div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.85, margin: '0 0 14px' }}>{amalan.dalil}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'var(--elevated)', borderRadius: 'var(--radius-sm)' }}>
+              <span style={{ fontSize: 12 }}>📚</span>
+              <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--gold)', letterSpacing: '.04em' }}>{amalan.sumber}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── KEUTAMAAN ── */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: 'var(--text)', marginBottom: 14 }}>⭐ Keutamaan</div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20, borderLeft: '3px solid var(--gold)' }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.85, margin: 0 }}>{amalan.keutamaan}</p>
+          </div>
+        </div>
+
+        {/* ── DONE BUTTON ── */}
+        <button
+          className="btn gold"
+          style={{ width: '100%', padding: 16, fontSize: 15 }}
+          onClick={onBack}
+        >
+          ✓ Selesai Membaca — Kembali
+        </button>
+
+      </div>
+    </div>
+  );
+}
+
+STEP 2 — Update AmalanPage in src/pages.jsx:
+Add state for selected amalan detail:
+jsxexport function AmalanPage({ amalanDone, setAmalanDone }) {
+  const [activeTab, setActiveTab] = useState('subuh');
+  const [selectedAmalan, setSelectedAmalan] = useState(null); // { amalan, waktu }
+
+  // If detail page is open, render it instead
+  if (selectedAmalan) {
+    return (
+      <AmalanDetailPage
+        amalan={selectedAmalan.amalan}
+        waktu={selectedAmalan.waktu}
+        onBack={() => setSelectedAmalan(null)}
+      />
+    );
+  }
+
+  const currentWaktu = AMALAN_PER_WAKTU.find(w => w.id === activeTab);
+  const doneInTab = currentWaktu?.amalan.filter(a => amalanDone?.[a.id]).length || 0;
+  const totalInTab = currentWaktu?.amalan.length || 0;
+
+  return (
+    <div className="main fade-in">
+      <div className="content scrl" style={{ display: 'flex', flexDirection: 'column' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 20 }}>
+          <h1 className="h1">Amalan Harian</h1>
+          <div className="muted tiny" style={{ marginTop: 4 }}>
+            {doneInTab} dari {totalInTab} amalan selesai · {currentWaktu?.waktu}
+          </div>
+          <div style={{ background: 'var(--border)', borderRadius: 999, height: 4, marginTop: 10 }}>
+            <div style={{ width: totalInTab ? `${(doneInTab/totalInTab)*100}%` : '0%', height: '100%', borderRadius: 999, background: 'var(--gold)', transition: 'width .5s ease' }} />
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="tabs scrl" style={{ marginBottom: 20, gap: 6 }}>
+          {AMALAN_PER_WAKTU.map(w => (
+            <button
+              key={w.id}
+              className={'tab' + (activeTab === w.id ? ' on' : '')}
+              onClick={() => setActiveTab(w.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+            >
+              <span>{w.emoji}</span>
+              <span>{w.waktu}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Waktu header card */}
+        {currentWaktu && (
+          <div className="card" style={{ padding: '14px 18px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span style={{ fontSize: 28 }}>{currentWaktu.emoji}</span>
+            <div>
+              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 18, color: 'var(--gold)', direction: 'rtl', marginBottom: 2 }}>{currentWaktu.waktuAr}</div>
+              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{currentWaktu.waktu}</div>
+              <div className="muted tiny">{currentWaktu.waktuDesc}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Amalan list — tappable rows, NO accordion */}
+        {currentWaktu?.amalan.map(amalan => {
+          const done = !!amalanDone?.[amalan.id];
+          return (
+            <div
+              key={amalan.id}
+              className="card"
+              style={{ marginBottom: 8, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', transition: 'border-color .15s, transform .12s', opacity: done ? .7 : 1 }}
+              onClick={() => setSelectedAmalan({ amalan, waktu: currentWaktu })}
+            >
+              {/* Checkbox — stop propagation so it doesn't open detail */}
+              <div
+                style={{ width: 22, height: 22, borderRadius: 7, border: `1.5px solid ${done ? 'var(--gold)' : 'var(--border-2)'}`, background: done ? 'var(--gold)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: '.18s' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAmalanDone(prev => ({ ...prev, [amalan.id]: !prev[amalan.id] }));
+                }}
+              >
+                {done && <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+              </div>
+
+              {/* Content */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--f-ar)', fontSize: 15, color: 'var(--gold)', direction: 'rtl', marginBottom: 2, lineHeight: 1.6, textAlign: 'right' }}>{amalan.nameAr}</div>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, color: done ? 'var(--text-2)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none' }}>{amalan.name}</div>
+                <div className="muted tiny" style={{ marginTop: 3 }}>Ketuk untuk lihat bacaan & keutamaan</div>
+              </div>
+
+              {/* Arrow */}
+              <span style={{ color: 'var(--text-3)', fontSize: 18, flexShrink: 0 }}>›</span>
+            </div>
+          );
+        })}
+
+      </div>
+    </div>
+  );
+}
+
+STEP 3 — Remove all accordion/expand logic from AmalanPage:
+
+Delete openSections, openAmalan, toggleSection, toggleAmalan, isOpen state and functions
+Delete the old expandable section JSX inside amalan cards
+The amalan list is now just a simple tappable row → opens AmalanDetailPage
+
+
+STEP 4 — Mobile: back navigation with device back button
+Add useEffect to handle browser back button in AmalanPage:
+jsxuseEffect(() => {
+  if (selectedAmalan) {
+    window.history.pushState({ detail: true }, '');
+    const handlePop = () => setSelectedAmalan(null);
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }
+}, [selectedAmalan]);
+
+IMPORTANT:
+
+AmalanDetailPage renders ALL content fully visible — no collapse, no accordion, no truncation
+Hierarchy is: Bacaan (Arabic → Latin → Arti) → Cara Mengamalkan → Khasiat → Dalil → Keutamaan
+Checkbox in list view toggles done state WITHOUT opening detail page (stopPropagation)
+Tapping anywhere else on the row OPENS the detail page
+Do not change any other pages or functionality

@@ -1,6 +1,7 @@
 // dashboard.jsx — Dashboard layout + prayer tracker + mission & reward system
 import { useState, useEffect, useRef } from 'react';
 import { Icon, PrayerRing, ScoreRing, fireConfetti } from './ui.jsx';
+import { AMALAN_PER_WAKTU } from './pages.jsx';
 
 export const PRAYERS = [
   { k: 'subuh',   id: 'Subuh',   ar: 'الفجر'  },
@@ -8,6 +9,14 @@ export const PRAYERS = [
   { k: 'ashar',   id: 'Ashar',   ar: 'العصر'  },
   { k: 'maghrib', id: 'Maghrib', ar: 'المغرب' },
   { k: 'isya',    id: 'Isya',    ar: 'العشاء' },
+];
+export const PRAYER_CARDS = [
+  { k: 'tahajud', id: 'Tahajud', ar: 'التَّهَجُّد', emoji: '🌙', sched: '03:00' },
+  { k: 'subuh',   id: 'Subuh',   ar: 'الفجر',       emoji: '🌅', sched: '--:--' },
+  { k: 'dzuhur',  id: 'Dzuhur',  ar: 'الظهر',       emoji: '🕛', sched: '--:--' },
+  { k: 'ashar',   id: 'Ashar',   ar: 'العصر',       emoji: '🌤️', sched: '--:--' },
+  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب',      emoji: '🌇', sched: '--:--' },
+  { k: 'isya',    id: 'Isya',    ar: 'العشاء',      emoji: '🌙', sched: '--:--' },
 ];
 export const SUNNAH = ['Rawatib Subuh', 'Dhuha', 'Rawatib Dzuhur', 'Rawatib Maghrib', 'Tahajud', 'Witir'];
 const STATUS = [['ok', 'Tepat'], ['late', 'Telat'], ['qadha', 'Qadha']];
@@ -723,15 +732,185 @@ function PrayerBottomSheet({ pKey, onClose }) {
   );
 }
 
+// ── Prayer Card (grid tile) ──────────────────────────────────────────────────
+function PrayerCard({ p, status, time, isNext, onStatus, onSetTime, onClick, schedules, schedLoading }) {
+  const done = !!status;
+  const sched = p.k === 'tahajud' ? p.sched : (schedules?.[p.k] || (schedLoading ? '...' : p.sched));
+  return (
+    <div
+      className={'prayer-card' + (done ? ' done' : '') + (status === 'qadha' ? ' qadha' : '') + (isNext ? ' next' : '')}
+      onClick={() => onClick(p)}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+        <span style={{ fontFamily: 'var(--f-ar)', fontSize: 13, color: done ? 'var(--gold)' : 'var(--text-3)', direction: 'rtl', lineHeight: 1.4 }}>{p.ar}</span>
+        <span style={{ fontSize: 16 }}>{p.emoji}</span>
+      </div>
+      <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 2, letterSpacing: '-.01em' }}>{p.id}</div>
+      <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: done ? 'var(--gold)' : 'var(--text-3)', marginBottom: 10 }}>
+        {sched}
+        {time && done && <span style={{ color: 'var(--text-2)', marginLeft: 4 }}>· {time}</span>}
+      </div>
+      <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
+        {[['ok', '✓', 'Tepat'], ['late', '!', 'Telat'], ['qadha', '○', 'Qadha']].map(([s, icon, lbl]) => (
+          <button
+            key={s}
+            className={'prayer-status-btn ' + s + (status === s ? ' on' : '')}
+            onClick={(e) => { e.stopPropagation(); onStatus(p.k, status === s ? null : s); }}
+            title={lbl}
+          >{icon}</button>
+        ))}
+      </div>
+      {isNext && (
+        <div style={{ marginTop: 8, fontSize: 9, padding: '2px 7px', borderRadius: 999, border: '1px solid var(--gold-line)', color: 'var(--gold)', display: 'inline-block', letterSpacing: '.05em', fontFamily: 'var(--f-head)', fontWeight: 700 }}>
+          BERIKUTNYA
+        </div>
+      )}
+      {done && (
+        <div style={{ position: 'absolute', top: 10, right: 10, width: 7, height: 7, borderRadius: '50%', background: status === 'qadha' ? 'var(--danger)' : 'var(--ok)', boxShadow: `0 0 5px ${status === 'qadha' ? 'var(--danger)' : 'var(--ok)'}` }} />
+      )}
+    </div>
+  );
+}
+
+// ── Prayer Amalan Sheet — per-amalan item (sub-component avoids useState-in-map) ──
+function AmalanSheetItem({ amalan, done, onToggle }) {
+  const [expanded, setExpanded] = useState(false);
+  const [openSections, setOpenSections] = useState({});
+  const toggleSec = (sec) => setOpenSections(p => ({ ...p, [sec]: !p[sec] }));
+
+  return (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', marginBottom: 10, overflow: 'hidden', opacity: done ? .7 : 1, transition: 'opacity .2s' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px' }}>
+        <div
+          style={{ width: 22, height: 22, borderRadius: 7, border: `1.5px solid ${done ? 'var(--gold)' : 'var(--border-2)'}`, background: done ? 'var(--gold)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: '.18s', marginTop: 2 }}
+          onClick={() => onToggle(amalan.id)}
+        >
+          {done && <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 15, color: 'var(--gold)', direction: 'rtl', marginBottom: 3, lineHeight: 1.6 }}>{amalan.nameAr}</div>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14, color: done ? 'var(--text-2)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none' }}>{amalan.name}</div>
+        </div>
+        <button onClick={() => setExpanded(e => !e)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 18, flexShrink: 0, padding: '0 4px' }}>
+          {expanded ? '▾' : '›'}
+        </button>
+      </div>
+      {expanded && (
+        <div style={{ borderTop: '1px solid var(--border)', padding: '4px 16px 10px' }}>
+          {amalan.bacaan?.length > 0 && (
+            <div style={{ borderBottom: '1px solid var(--border)' }}>
+              <button className="amalan-section-toggle" onClick={() => toggleSec('bacaan')}>
+                <span>📿 Bacaan &amp; Lafaz</span><span>{openSections.bacaan ? '▾' : '›'}</span>
+              </button>
+              {openSections.bacaan && (
+                <div style={{ paddingBottom: 12 }}>
+                  {amalan.bacaan.map((b, i) => (
+                    <div key={i} style={{ background: 'var(--elevated)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+                      <div style={{ marginBottom: 8 }}>
+                        <span className="chip" style={{ fontSize: 10, padding: '2px 8px', pointerEvents: 'none' }}>{b.jumlah}</span>
+                      </div>
+                      <div style={{ fontFamily: 'var(--f-ar)', fontSize: 19, color: 'var(--gold)', direction: 'rtl', lineHeight: 2, marginBottom: 8 }}>{b.ar}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-2)', fontStyle: 'italic', marginBottom: 6, lineHeight: 1.6 }}>{b.latin}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.7 }}>"{b.arti}"</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {amalan.tuntunan && (
+            <div style={{ borderBottom: '1px solid var(--border)' }}>
+              <button className="amalan-section-toggle" onClick={() => toggleSec('tuntunan')}>
+                <span>📋 Cara Mengamalkan</span><span>{openSections.tuntunan ? '▾' : '›'}</span>
+              </button>
+              {openSections.tuntunan && <div style={{ paddingBottom: 12 }}><p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.tuntunan}</p></div>}
+            </div>
+          )}
+          {amalan.khasiat && (
+            <div style={{ borderBottom: '1px solid var(--border)' }}>
+              <button className="amalan-section-toggle" onClick={() => toggleSec('khasiat')}>
+                <span>✨ Khasiat &amp; Faedah</span><span>{openSections.khasiat ? '▾' : '›'}</span>
+              </button>
+              {openSections.khasiat && <div style={{ paddingBottom: 12 }}><p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.khasiat}</p></div>}
+            </div>
+          )}
+          {amalan.dalil && (
+            <div style={{ borderBottom: '1px solid var(--border)' }}>
+              <button className="amalan-section-toggle" onClick={() => toggleSec('dalil')}>
+                <span>📖 Dalil Anjuran</span><span>{openSections.dalil ? '▾' : '›'}</span>
+              </button>
+              {openSections.dalil && (
+                <div style={{ paddingBottom: 12 }}>
+                  <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: '0 0 8px' }}>{amalan.dalil}</p>
+                  {amalan.sumber && <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: 'var(--gold)', letterSpacing: '.04em' }}>{amalan.sumber}</div>}
+                </div>
+              )}
+            </div>
+          )}
+          {amalan.keutamaan && (
+            <div>
+              <button className="amalan-section-toggle" onClick={() => toggleSec('keutamaan')}>
+                <span>⭐ Keutamaan</span><span>{openSections.keutamaan ? '▾' : '›'}</span>
+              </button>
+              {openSections.keutamaan && <div style={{ paddingBottom: 12 }}><p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.keutamaan}</p></div>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Prayer Amalan Bottom Sheet ────────────────────────────────────────────────
+const WAKTU_MAP = { tahajud: 'tahajud', subuh: 'subuh', dzuhur: 'dzuhur', ashar: 'ashar', maghrib: 'maghrib', isya: 'isya', witir: 'witir' };
+
+function PrayerAmalanSheet({ card, onClose, misiDone, onToggleMisi }) {
+  const data = AMALAN_PER_WAKTU.find(w => w.id === WAKTU_MAP[card.k]);
+  return (
+    <>
+      <div className="bottom-sheet-overlay" onClick={onClose} />
+      <div className="bottom-sheet scrl" style={{ maxHeight: '88dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div className="bottom-sheet-handle" />
+        <div style={{ padding: '0 20px 16px', display: 'flex', alignItems: 'center', gap: 14, borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+          <span style={{ fontSize: 26 }}>{card.emoji}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--f-ar)', fontSize: 18, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.5 }}>{card.ar}</div>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 17, color: 'var(--text)' }}>Amalan Setelah {card.id}</div>
+            {data && <div className="muted tiny">{data.waktuDesc}</div>}
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 22, cursor: 'pointer', flexShrink: 0, padding: '0 4px' }}>✕</button>
+        </div>
+        <div style={{ padding: '8px 20px 40px' }}>
+          {!data ? (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-3)' }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>📿</div>
+              <div className="muted">Amalan untuk waktu ini belum tersedia</div>
+            </div>
+          ) : data.amalan.map(amalan => (
+            <AmalanSheetItem
+              key={amalan.id}
+              amalan={amalan}
+              done={!!misiDone?.[amalan.id]}
+              onToggle={onToggleMisi}
+            />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ── Dashboard Page ───────────────────────────────────────────────────────────
 export function DashboardPage({
   prayers, times, sunnah, setStatus, setTime, toggleSunnah,
   score, ring, streak, freeze, useFreeze, pulse, go,
-  misiDone = {}, onMisiToggle, dailyPoints = 0, totalPoints = 0, misiPopup, setMisiPopup, badgeToast, clearBadgeToast,
+  misiDone = {}, onMisiToggle, toggleMisi, dailyPoints = 0, totalPoints = 0, badgeToast, clearBadgeToast,
   userName = 'Akhi',
 }) {
+  const [activeCard, setActiveCard] = useState(null);
   const [openKey,  setOpenKey]  = useState(null);
   const [sheetKey, setSheetKey] = useState(null);
+  const misiToggleFn = toggleMisi || onMisiToggle;
   const isMobile = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
   const handlePrayerToggle = (k) => {
     if (isMobile()) { setSheetKey((prev) => prev === k ? null : k); }
@@ -840,19 +1019,25 @@ export function DashboardPage({
           ))}
         </div>
 
-        {/* Prayer list */}
+        {/* Prayer card grid */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span className="eyebrow">Solat Wajib</span>
+          <span className="eyebrow">Waktu Sholat</span>
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{doneCount} / 5 dicatat</span>
         </div>
-        <div className="plist">
-          {PRAYERS.map((p) => (
-            <PrayerRowItem key={p.k} p={p} status={prayers[p.k]} time={times[p.k] || ''}
-              sched={schedules[p.k] || (schedLoading ? '...' : '--:--')}
+        <div className="prayer-grid">
+          {PRAYER_CARDS.map((p) => (
+            <PrayerCard
+              key={p.k}
+              p={p}
+              status={prayers[p.k]}
+              time={times[p.k]}
               isNext={p.k === nextK}
-              timeRemaining={remaining[p.k]}
-              ring={ring} onStatus={setStatus} onTime={setTime}
-              open={openKey === p.k} onToggle={() => handlePrayerToggle(p.k)} />
+              onStatus={setStatus}
+              onSetTime={(k) => setTime(k, _wibNow().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }))}
+              onClick={() => setActiveCard(p)}
+              schedules={schedules}
+              schedLoading={schedLoading}
+            />
           ))}
         </div>
 
@@ -892,23 +1077,20 @@ export function DashboardPage({
         {/* Mission Panel */}
         {panelKey && (
           <MisiPanel prayerKey={panelKey} misiDone={misiDone}
-            onToggle={(id, allMisi) => onMisiToggle(id, allMisi)} />
+            onToggle={(id, allMisi) => misiToggleFn(id, allMisi)} />
         )}
 
       </div>
 
-      {/* Post-prayer Mission Popup */}
-      {misiPopup && (
-        <MisiPopup
-          prayerKey={misiPopup}
+      {/* Prayer Amalan Bottom Sheet */}
+      {activeCard && (
+        <PrayerAmalanSheet
+          card={activeCard}
+          onClose={() => setActiveCard(null)}
           misiDone={misiDone}
-          onToggle={(id, allMisi) => onMisiToggle(id, allMisi)}
-          onClose={() => setMisiPopup(null)}
+          onToggleMisi={(id) => misiToggleFn(id)}
         />
       )}
-
-      {/* Prayer Bottom Sheet — mobile only */}
-      <PrayerBottomSheet pKey={sheetKey} onClose={() => setSheetKey(null)} />
     </div>
   );
 }

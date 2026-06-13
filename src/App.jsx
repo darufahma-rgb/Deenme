@@ -244,7 +244,6 @@ export default function App() {
   const [totalPoints,    setTotalPoints]   = useState(0);
   const [dailyPoints,    setDailyPoints]   = useState(0);
   const [unlockedBadges, setUnlockedBadges] = useState([]);
-  const [misiPopup,      setMisiPopup]     = useState(null);
   const [badgeToast,     setBadgeToast]    = useState(null);
   const [amalanDone,     setAmalanDone]    = useState({});
 
@@ -346,8 +345,6 @@ export default function App() {
       setTimes((tm) => { const n = { ...tm }; delete n[k]; return n; });
     }
 
-    if (val === 'ok' || val === 'late') setMisiPopup(k);
-    if (!val) setMisiPopup(null);
   };
 
   const setTime        = (k, v) => setTimes((tm) => ({ ...tm, [k]: v }));
@@ -441,9 +438,8 @@ export default function App() {
                 setStatus={setStatus} setTime={setTime} toggleSunnah={toggleSunnah}
                 score={score} ring="solid" streak={streak} freeze={freeze}
                 useFreeze={useFreeze} pulse={pulse} go={setView}
-                misiDone={misiDone} onMisiToggle={onMisiToggle}
+                misiDone={misiDone} onMisiToggle={onMisiToggle} toggleMisi={onMisiToggle}
                 dailyPoints={dailyPoints} totalPoints={totalPoints}
-                misiPopup={misiPopup} setMisiPopup={setMisiPopup}
                 badgeToast={badgeToast} clearBadgeToast={() => setBadgeToast(null)}
                 userName={userName}
               />}
