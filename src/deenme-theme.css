@@ -2369,29 +2369,31 @@ label, .label, .caption {
 .sl-rank-sss { animation-duration: 1s; }
 
 .sl-hunter-card {
-  background: linear-gradient(135deg, #0d1a11, #091410);
-  border: 1px solid #1a3320;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 14px;
+  background: linear-gradient(145deg, #0e1d13 0%, #091410 55%, #070e0a 100%);
+  border: 1px solid #1e3d26;
+  border-radius: 20px;
+  padding: 22px 20px 16px;
+  margin-bottom: 10px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(46,204,138,.08);
 }
 
 .sl-hunter-card::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(46,204,138,.04), transparent 60%);
+  top: -30px; left: -30px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(46,204,138,.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .sl-hunter-card::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0; left: 10%; right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(46,204,138,.35), transparent);
+  background: linear-gradient(90deg, transparent, rgba(46,204,138,.5), transparent);
 }
 
 .sl-xp-track {
@@ -2603,25 +2605,32 @@ label, .label, .caption {
   50% { box-shadow: 0 0 20px var(--gold-soft), 0 0 0 1px var(--gold-line); border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
 }
 
-.sl-stats-strip {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 14px;
+.sl-stats-row {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,.25);
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.sl-stat {
-  background: #0a160d;
-  border: 1px solid #1a3320;
-  border-radius: 10px;
-  padding: 12px;
+.sl-stat-item {
+  flex: 1;
+  padding: 11px 8px;
   text-align: center;
+}
+
+.sl-stat-div {
+  width: 1px;
+  height: 30px;
+  background: rgba(255,255,255,.07);
+  flex-shrink: 0;
 }
 
 .sl-stat-val {
   font-family: var(--f-head);
   font-weight: 800;
-  font-size: 26px;
+  font-size: 22px;
   letter-spacing: -.02em;
   color: #2ecc8a;
   line-height: 1;
@@ -2633,8 +2642,8 @@ label, .label, .caption {
   font-weight: 600;
   color: var(--text-3);
   text-transform: uppercase;
-  letter-spacing: .08em;
-  margin-top: 4px;
+  letter-spacing: .07em;
+  margin-top: 5px;
 }
 
 @media (max-width: 600px) {

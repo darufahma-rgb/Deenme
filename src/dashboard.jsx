@@ -163,65 +163,60 @@ export function SoloLevelingPanel({ totalPoints, streak, freeze, score, prayers,
   const prayerCount = Object.values(prayers   || {}).filter(Boolean).length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <div className="sl-hunter-card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
-          <div
-            className={`sl-rank-badge sl-rank-${rank.rank.toLowerCase()}`}
-            style={{
-              background: rank.bg,
-              color: rank.color,
-              '--rank-glow':   rank.glow,
-              '--rank-border': rank.border,
-              '--rank-color':  rank.color,
-            }}
-          >
-            {rank.rank}
+    <div className="sl-hunter-card" style={{ '--rank-color': rank.color, '--rank-glow': rank.glow, '--rank-border': rank.border }}>
+
+      {/* Top row — badge + identity + shield */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+        <div
+          className={`sl-rank-badge sl-rank-${rank.rank.toLowerCase()}`}
+          style={{ background: rank.bg, color: rank.color, '--rank-glow': rank.glow, '--rank-border': rank.border, '--rank-color': rank.color }}
+        >
+          {rank.rank}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: rank.color, letterSpacing: '-.02em', lineHeight: 1 }}>{rank.label}</span>
+            <span style={{ fontFamily: 'var(--f-ar)', fontSize: 14, color: rank.color, opacity: .55, lineHeight: 1 }}>{rank.ar}</span>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 16, color: rank.color, letterSpacing: '-.01em' }}>
-              {rank.label}
-            </div>
-            <div style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)', marginTop: 2, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-              Rank {rank.rank} Hunter · {totalPoints} XP
-            </div>
+          <div style={{ fontFamily: 'var(--f-head)', fontSize: 10, color: 'var(--text-3)', letterSpacing: '.09em', textTransform: 'uppercase' }}>
+            Rank {rank.rank} Hunter · {totalPoints} XP
           </div>
         </div>
-
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, fontWeight: 700, color: rank.color }}>
-              {nextRank ? `${xpToNext} XP → Rank ${nextRank.rank}` : 'MAX RANK'}
-            </span>
-            <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>
-              {Math.round(xpPct)}%
-            </span>
-          </div>
-          <div className="sl-xp-track">
-            <div className="sl-xp-fill" style={{ width: xpPct + '%' }} />
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 10, padding: '7px 10px', flexShrink: 0 }}>
+          <span style={{ fontSize: 14, lineHeight: 1 }}>🛡️</span>
+          <span style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 12, color: '#2ecc8a', lineHeight: 1, marginTop: 2 }}>{freeze}×</span>
         </div>
       </div>
 
-      <div className="sl-stats-strip">
-        <div className="sl-stat">
+      {/* XP bar */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
+          <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, fontWeight: 700, color: rank.color }}>
+            {nextRank ? `${xpToNext} XP → Rank ${nextRank.rank}` : 'MAX RANK ✦'}
+          </span>
+          <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>{Math.round(xpPct)}%</span>
+        </div>
+        <div className="sl-xp-track">
+          <div className="sl-xp-fill" style={{ width: xpPct + '%' }} />
+        </div>
+      </div>
+
+      {/* Stats row — inline inside card */}
+      <div className="sl-stats-row">
+        <div className="sl-stat-item">
           <div className="sl-stat-val">{streak}</div>
-          <div className="sl-stat-lbl">Streak</div>
+          <div className="sl-stat-lbl">Streak 🔥</div>
         </div>
-        <div className="sl-stat">
+        <div className="sl-stat-div" />
+        <div className="sl-stat-item">
           <div className="sl-stat-val">{prayerCount}/5</div>
-          <div className="sl-stat-lbl">Solat</div>
+          <div className="sl-stat-lbl">Sholat 🕌</div>
         </div>
-        <div className="sl-stat">
+        <div className="sl-stat-div" />
+        <div className="sl-stat-item">
           <div className="sl-stat-val">{doneCount}</div>
-          <div className="sl-stat-lbl">Quest</div>
+          <div className="sl-stat-lbl">Misi ⚔️</div>
         </div>
-      </div>
-
-      <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
-        <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>
-          {freeze}× Streak Shield tersisa
-        </span>
       </div>
     </div>
   );
