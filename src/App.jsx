@@ -410,7 +410,7 @@ export default function App() {
 
         {view === 'journal' && <JournalPage go={setView} />}
         {view === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
-        {view === 'amalan'  && <AmalanPage />}
+        {view === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
         {view === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
       </div>
       <BottomNav page={view} go={setView} />
