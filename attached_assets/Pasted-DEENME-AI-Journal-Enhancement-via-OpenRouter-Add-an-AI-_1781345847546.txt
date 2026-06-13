@@ -1,0 +1,226 @@
+DEENME — AI Journal Enhancement via OpenRouter
+Add an AI "Rapikan" button to the journal editor that rewrites and formats the user's raw notes into clean markdown using OpenRouter API.
+
+STEP 1 — Add OpenRouter API key to Replit Secrets:
+
+Key: VITE_OPENROUTER_KEY
+Value: your OpenRouter API key
+
+
+STEP 2 — Update src/pages.jsx — JournalPage
+Add these imports at top:
+jsimport { useState, useRef, useEffect } from 'react';
+Add react-markdown for rendering — install first:
+bashnpm install react-markdown
+Import in pages.jsx:
+jsimport ReactMarkdown from 'react-markdown';
+Add state for AI mode:
+jsconst [aiLoading, setAiLoading] = useState(false);
+const [isMarkdownMode, setIsMarkdownMode] = useState(false);
+const [markdownContent, setMarkdownContent] = useState('');
+
+STEP 3 — Add rapikanJurnal function:
+jsconst rapikanJurnal = async () => {
+  const rawText = edRef.current?.innerText?.trim();
+  if (!rawText || rawText.length < 10) return;
+
+  setAiLoading(true);
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://deenme.app',
+        'X-Title': 'Deenme Journal',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-flash-1.5',
+        messages: [
+          {
+            role: 'system',
+            content: `Kamu adalah asisten jurnal pribadi Muslim yang bertugas merapikan dan memperindah catatan harian.
+
+Tugasmu:
+1. Perbaiki diksi dan tata bahasa Indonesia (santai tapi tetap elegan)
+2. Strukturkan dengan markdown: gunakan ## untuk heading utama, ### untuk sub-heading jika perlu
+3. Pisahkan paragraf dengan baik
+4. Pertahankan makna, suasana, dan kesan personal dari tulisan asli — jangan ubah fakta atau perasaan
+5. Jika ada ungkapan Arab/doa, pertahankan dengan benar
+6. Jangan tambahkan konten yang tidak ada di tulisan asli
+7. Mulai langsung dengan konten, tanpa pengantar atau penjelasan apapun
+8. Output hanya markdown, tidak ada komentar tambahan`
+          },
+          {
+            role: 'user',
+            content: rawText
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+      })
+    });
+
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content;
+
+    if (result) {
+      setMarkdownContent(result);
+      setIsMarkdownMode(true);
+      setEmpty(false);
+    }
+  } catch (err) {
+    console.error('OpenRouter error:', err);
+  } finally {
+    setAiLoading(false);
+  }
+};
+
+const backToEdit = () => {
+  setIsMarkdownMode(false);
+  // Put markdown back as plain text for editing
+  if (edRef.current) {
+    edRef.current.innerText = markdownContent;
+    setEmpty(false);
+  }
+};
+
+STEP 4 — Update editor toolbar UI:
+Replace existing .etools div with:
+jsx<div className="etools">
+  {!isMarkdownMode ? (
+    <>
+      <button className="etb" style={{ fontWeight: 700 }}
+        onMouseDown={(e) => { e.preventDefault(); cmd('bold'); }}>B</button>
+      <button className="etb" style={{ fontStyle: 'italic' }}
+        onMouseDown={(e) => { e.preventDefault(); cmd('italic'); }}>I</button>
+      <div style={{ flex: 1 }} />
+      <button
+        className="btn gold sm"
+        style={{ padding: '6px 14px', fontSize: 12, opacity: aiLoading ? 0.6 : 1 }}
+        onClick={rapikanJurnal}
+        disabled={aiLoading || empty}
+      >
+        {aiLoading ? (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="spin" style={{ width: 12, height: 12, borderWidth: 2 }} />
+            Merapikan...
+          </span>
+        ) : '✦ Rapikan'}
+      </button>
+      <span className="muted tiny" style={{ marginLeft: 8 }}>Tersimpan otomatis</span>
+    </>
+  ) : (
+    <>
+      <span style={{ fontFamily: 'var(--f-head)', fontSize: 12, color: 'var(--gold)', fontWeight: 600 }}>
+        ✦ Dirapikan AI
+      </span>
+      <div style={{ flex: 1 }} />
+      <button className="btn ghost sm" style={{ fontSize: 12 }} onClick={backToEdit}>
+        Edit lagi
+      </button>
+    </>
+  )}
+</div>
+
+STEP 5 — Update editor area to support markdown rendering:
+Replace the existing .earea div with conditional rendering:
+jsx{isMarkdownMode ? (
+  <div
+    className="earea scrl markdown-render"
+    style={{ cursor: 'default' }}
+  >
+    <ReactMarkdown>{markdownContent}</ReactMarkdown>
+  </div>
+) : (
+  <div
+    ref={edRef}
+    className="earea scrl"
+    contentEditable
+    suppressContentEditableWarning
+    data-empty={empty ? '1' : '0'}
+    data-ph="Hari ini bagaimana, akhi?"
+    onInput={onInput}
+  />
+)}
+
+STEP 6 — Add markdown styles to src/deenme-theme.css:
+css/* ── markdown render ── */
+.markdown-render {
+  cursor: default !important;
+  user-select: text;
+}
+
+.markdown-render h1,
+.markdown-render h2 {
+  font-family: var(--f-head);
+  font-weight: 700;
+  color: var(--text);
+  margin: 20px 0 10px;
+  line-height: 1.3;
+}
+
+.markdown-render h1 { font-size: 22px; color: var(--gold); }
+.markdown-render h2 { font-size: 18px; }
+.markdown-render h3 { font-size: 15px; font-family: var(--f-head); font-weight: 600; margin: 14px 0 6px; }
+
+.markdown-render p {
+  margin: 0 0 14px;
+  line-height: 1.85;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.markdown-render strong {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.markdown-render em {
+  color: var(--text-2);
+  font-style: italic;
+}
+
+.markdown-render ul, .markdown-render ol {
+  padding-left: 20px;
+  margin: 0 0 14px;
+}
+
+.markdown-render li {
+  margin-bottom: 6px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.markdown-render blockquote {
+  border-left: 3px solid var(--gold);
+  padding: 8px 16px;
+  margin: 14px 0;
+  background: var(--gold-soft);
+  border-radius: 0 8px 8px 0;
+  color: var(--text-2);
+  font-style: italic;
+}
+
+.markdown-render hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+.markdown-render code {
+  font-family: monospace;
+  background: var(--elevated);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+IMPORTANT:
+
+Model: google/gemini-flash-1.5 — fast and cheap, good for Indonesian text
+If OpenRouter key is missing, show a toast: "API key tidak ditemukan. Tambahkan VITE_OPENROUTER_KEY di Replit Secrets."
+isMarkdownMode resets to false when user navigates to a different day
+Do not change journal save logic — markdown content should also be saved to Supabase as-is
+Do not break any existing features

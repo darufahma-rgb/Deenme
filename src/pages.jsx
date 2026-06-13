@@ -1,5 +1,6 @@
 // pages.jsx — Jurnal, Bank Doa, Statistik, Amalan Harian
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Icon } from './ui.jsx';
 import { BADGES, getLevel } from './dashboard.jsx';
 
