@@ -1,65 +1,63 @@
-/* Deenme — Dark mode. Inspired by Lovable design language. */
+/* Deenme — Muslim Pro Dark Mode Aesthetic. */
 
 :root {
-  /* ── surfaces (warm espresso dark) ── */
-  --bg:       #141210;
-  --bg-warm:  #1a1714;
-  --surface:  #1c1915;
-  --elevated: #242018;
-  --elev-2:   #2c2820;
+  /* Muslim Pro dark — deep teal-black base */
+  --bg:       #0a0e14;
+  --bg-warm:  #0a0e14;
+  --surface:  #111820;
+  --elevated: #1a2332;
+  --elev-2:   #1e2a3a;
 
-  /* ── signature accent — warm amber ── */
-  --gold:      #d4753a;
-  --gold-2:    #e8894e;
-  --gold-soft: rgba(212, 117, 58, 0.14);
-  --gold-line: rgba(212, 117, 58, 0.32);
+  /* Muslim Pro signature teal-green accent */
+  --gold:      #3db98a;
+  --gold-2:    #4ecfa0;
+  --gold-soft: color-mix(in srgb, #3db98a 12%, transparent);
+  --gold-line: color-mix(in srgb, #3db98a 30%, transparent);
 
-  /* ── signature extras ── */
-  --forest: #0d2414;
-  --mint:   #6ee7b7;
-  --cream:  #f7f4ed;
-  --peach:  #fb923c;
-  --mustard: #fbbf24;
+  /* ── signature extras (updated to teal palette) ── */
+  --forest: #0d2a20;
+  --mint:   #4ecfa0;
+  --cream:  #e8edf2;
+  --peach:  #f0a500;
+  --mustard: #f0a500;
 
-  /* ── ink scale (cream-derived, Lovable opacity system) ── */
-  --text:   #f7f4ed;
-  --text-2: rgba(247, 244, 237, 0.65);
-  --text-3: rgba(247, 244, 237, 0.38);
+  /* Text */
+  --text:   #e8edf2;
+  --text-2: #7a8a9a;
+  --text-3: #4a5a6a;
 
-  /* ── semantic ── */
-  --ok:     #4ade80;
-  --warn:   #fbbf24;
-  --danger: #f87171;
+  /* Status */
+  --ok:     #3db98a;
+  --warn:   #f0a500;
+  --danger: #e05555;
 
-  /* ── borders (Lovable opacity system) ── */
-  --border:   rgba(247, 244, 237, 0.09);
-  --border-2: rgba(247, 244, 237, 0.22);
+  /* Borders */
+  --border:   #1e2a3a;
+  --border-2: #263040;
 
-  /* ── shape (Lovable radius scale) ── */
-  --radius:    12px;
-  --radius-sm:  8px;
-
-  /* ── spacing ── */
-  --pad:    36px;
+  /* Radius & spacing */
+  --radius:    16px;
+  --radius-sm: 12px;
+  --pad:    24px;
   --gap:    12px;
   --rowpad: 16px;
 
-  /* ── typography ── */
-  --f-head: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-  --f-body: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  /* Fonts */
+  --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --f-body: 'Inter', system-ui, sans-serif;
   --f-ar:   'Tajawal', serif;
 
-  /* ── animation ── */
+  /* animation */
   --ring-dur: .55s;
 
-  /* ── Lovable inset shadow (dark surface variant) ── */
-  --shadow-inset: rgba(255,255,255,0.07) 0px 0.5px 0px 0px inset,
-                  rgba(0,0,0,0.45) 0px 0px 0px 0.5px inset,
+  /* shadows */
+  --shadow-inset: rgba(255,255,255,0.04) 0px 0.5px 0px 0px inset,
+                  rgba(0,0,0,0.50) 0px 0px 0px 0.5px inset,
+                  rgba(0,0,0,0.25) 0px 1px 2px 0px;
+  --shadow-focus: rgba(0,0,0,0.40) 0px 4px 12px;
+  --shadow-gold:  rgba(61,185,138,0.18) 0px 0.5px 0px 0px inset,
+                  rgba(0,0,0,0.40) 0px 0px 0px 0.5px inset,
                   rgba(0,0,0,0.20) 0px 1px 2px 0px;
-  --shadow-focus: rgba(0,0,0,0.35) 0px 4px 12px;
-  --shadow-gold:  rgba(212,117,58,0.18) 0px 0.5px 0px 0px inset,
-                  rgba(0,0,0,0.35) 0px 0px 0px 0.5px inset,
-                  rgba(0,0,0,0.15) 0px 1px 2px 0px;
 }
 
 * { box-sizing: border-box }
@@ -74,7 +72,7 @@ body {
   overflow: hidden;
 }
 ::selection {
-  background: rgba(212,117,58,0.25);
+  background: color-mix(in srgb, #3db98a 25%, transparent);
   color: var(--text);
 }
 
@@ -84,17 +82,17 @@ body {
 
 .deenme-root { height: 100dvh; width: 100vw; position: relative; overflow: hidden }
 
-/* top gradient bar — Lovable signature warm wash */
+/* top gradient bar — Muslim Pro teal wash */
 .deenme-root::before {
   content: "";
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 3px;
   background: linear-gradient(90deg,
-    #d4753a 0%,
-    #e8894e 35%,
-    #fbbf24 65%,
-    #6ee7b7 100%
+    #2a9a72 0%,
+    #3db98a 40%,
+    #4ecfa0 70%,
+    #68e6b8 100%
   );
   z-index: 100;
 }
@@ -102,10 +100,10 @@ body {
 .candle { display: none }
 
 /* ── scrollbars ── */
-.scrl { scrollbar-width: thin; scrollbar-color: rgba(247,244,237,0.12) transparent }
+.scrl { scrollbar-width: thin; scrollbar-color: #1e2a3a transparent }
 .scrl::-webkit-scrollbar { width: 6px; height: 6px }
-.scrl::-webkit-scrollbar-thumb { background: rgba(247,244,237,0.12); border-radius: 6px }
-.scrl::-webkit-scrollbar-thumb:hover { background: rgba(247,244,237,0.22) }
+.scrl::-webkit-scrollbar-thumb { background: #1e2a3a; border-radius: 6px }
+.scrl::-webkit-scrollbar-thumb:hover { background: #263040 }
 
 /* ── app shell ── */
 .app { position: relative; z-index: 1; display: flex; height: 100dvh }
@@ -126,12 +124,13 @@ body {
   width: 40px; height: 40px;
   border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center;
-  background: var(--gold);
-  color: var(--cream);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold);
   font-family: var(--f-ar);
   font-size: 22px;
   margin-bottom: 18px;
-  box-shadow: var(--shadow-gold);
+  box-shadow: 0 0 20px -6px #3db98a;
 }
 .navbtn {
   position: relative;
@@ -260,12 +259,12 @@ body {
 .btn:active { opacity: .8 }
 .btn.gold {
   background: var(--gold);
-  border-color: transparent;
-  color: var(--cream);
-  font-weight: 500;
-  box-shadow: var(--shadow-gold);
+  border-color: var(--gold);
+  color: #071510;
+  font-weight: 700;
+  box-shadow: 0 6px 24px -8px #3db98a;
 }
-.btn.gold:hover { background: var(--gold-2) }
+.btn.gold:hover { background: var(--gold-2); border-color: var(--gold-2); }
 .btn.ghost { background: transparent; border-color: var(--border); box-shadow: none }
 .btn.ghost:hover { background: var(--elevated) }
 .btn.sm { padding: 6px 12px; font-size: 13px; border-radius: 6px }
@@ -296,18 +295,21 @@ body {
 }
 .pcard:hover { border-color: var(--border-2) }
 .pcard.done {
-  background: linear-gradient(105deg,
-    rgba(212,117,58,0.09) 0%,
-    var(--surface) 55%
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, #3db98a 8%, var(--surface)),
+    var(--surface) 60%
   );
   border-color: var(--gold-line);
+  box-shadow: 0 0 20px -10px #3db98a, inset 0 0 0 1px var(--gold-soft);
 }
 .pcard.qadha {
-  background: linear-gradient(105deg,
-    rgba(248,113,113,0.08) 0%,
-    var(--surface) 55%
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--danger) 8%, var(--surface)),
+    var(--surface) 60%
   );
-  border-color: rgba(248,113,113,0.28);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
 }
 .prow {
   display: flex; align-items: center; gap: 16px;
@@ -378,9 +380,9 @@ body {
 }
 .segbtn .sd { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid currentColor; transition: .14s }
 .segbtn:hover { color: var(--text-2); border-color: var(--border-2) }
-.segbtn.on.ok    { color: var(--ok);     border-color: rgba(74,222,128,.35);  background: rgba(74,222,128,.10) }
-.segbtn.on.late  { color: var(--warn);   border-color: rgba(251,191,36,.35);  background: rgba(251,191,36,.10) }
-.segbtn.on.qadha { color: var(--danger); border-color: rgba(248,113,113,.35); background: rgba(248,113,113,.10) }
+.segbtn.on.ok    { color: var(--ok);     border-color: color-mix(in srgb, var(--ok) 45%, transparent);     background: color-mix(in srgb, var(--ok) 12%, transparent) }
+.segbtn.on.late  { color: var(--warn);   border-color: color-mix(in srgb, var(--warn) 45%, transparent);   background: color-mix(in srgb, var(--warn) 12%, transparent) }
+.segbtn.on.qadha { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); background: color-mix(in srgb, var(--danger) 12%, transparent) }
 .segbtn.on .sd { background: currentColor }
 
 /* ── chips ── */
@@ -414,8 +416,12 @@ body {
 
 /* ── streak / score panel ── */
 .streak {
-  background: var(--forest);
-  border: 1px solid rgba(110,231,183,0.12);
+  background: linear-gradient(
+    160deg,
+    #0d2a20,
+    color-mix(in srgb, #3db98a 10%, var(--elevated))
+  );
+  border: 1px solid var(--gold-line);
   border-radius: var(--radius);
   padding: 22px;
   position: relative;
@@ -428,7 +434,7 @@ body {
   font-weight: 600;
   font-size: 56px;
   line-height: .9;
-  color: var(--mint);
+  color: var(--gold);
   letter-spacing: -1.5px;
   font-variant-numeric: tabular-nums;
 }
@@ -477,10 +483,10 @@ body {
   border: 0;
   cursor: pointer;
   background: var(--gold);
-  color: var(--cream);
+  color: #071510;
   font-size: 26px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 20px rgba(212,117,58,.4), var(--shadow-gold);
+  box-shadow: 0 10px 30px -8px #3db98a;
   transition: transform .14s, background .15s;
   z-index: 30;
 }
@@ -577,23 +583,23 @@ body {
 }
 .authcard {
   width: 380px; max-width: 88vw;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 85%, var(--bg));
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 44px 40px;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  box-shadow: 0 16px 64px rgba(0,0,0,.5), var(--shadow-focus);
+  box-shadow: 0 40px 120px -40px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.03);
 }
 .authlogo {
   width: 60px; height: 60px;
   border-radius: var(--radius);
   display: flex; align-items: center; justify-content: center;
   background: var(--gold);
-  color: var(--cream);
+  color: #071510;
   font-family: var(--f-ar);
   font-size: 34px;
   margin-bottom: 4px;
-  box-shadow: var(--shadow-gold), 0 4px 20px rgba(212,117,58,.3);
+  box-shadow: 0 0 32px -8px #3db98a;
 }
 .pin { display: flex; gap: 9px; margin: 6px 0 }
 .pincell {
@@ -671,9 +677,9 @@ body {
 
 /* ── misc ── */
 .daynav { display: flex; align-items: center; gap: 12px }
-.spin { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid rgba(247,244,237,.25); border-top-color: var(--cream); animation: sp .65s linear infinite }
+.spin { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--border-2); border-top-color: var(--text-2); animation: sp .65s linear infinite }
 @keyframes sp { to { transform: rotate(360deg) } }
-.divline { height: 1px; background: rgba(247,244,237,.1); border: 0; margin: 0 }
+.divline { height: 1px; background: var(--border); border: 0; margin: 0 }
 .summary-num {
   font-family: var(--f-head);
   font-weight: 600;
@@ -709,7 +715,7 @@ body {
 .pcard.open .pchev { background: var(--gold-soft); border-color: var(--gold-line); color: var(--gold); box-shadow: none }
 
 /* hint text in psub */
-.psub-hint { color: rgba(247,244,237,0.22); font-style: italic }
+.psub-hint { color: var(--text-3); font-style: italic }
 
 /* ── accordion detail panel ── */
 .pdetail {
@@ -832,7 +838,7 @@ body {
 @keyframes badgeUnlock {
   0%   { transform: scale(0); opacity: 0; box-shadow: none }
   70%  { transform: scale(1.15) }
-  100% { transform: scale(1); opacity: 1; box-shadow: 0 0 24px rgba(212,117,58,.5) }
+  100% { transform: scale(1); opacity: 1; box-shadow: 0 0 24px rgba(61,185,138,.5) }
 }
 @keyframes badgeToastIn {
   from { transform: translateY(100%) scale(.95); opacity: 0 }
@@ -846,8 +852,8 @@ body {
   to   { opacity: 1; transform: translateY(0) }
 }
 @keyframes timbangPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212,117,58,0) }
-  50%       { box-shadow: 0 0 0 6px rgba(212,117,58,.2) }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(61,185,138,0) }
+  50%       { box-shadow: 0 0 0 6px rgba(61,185,138,.2) }
 }
 
 /* Slide-up popup */
@@ -1022,7 +1028,7 @@ body {
   display: flex;
   align-items: center;
   gap: 14px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(212,117,58,.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(61,185,138,.2);
   min-width: 240px;
   max-width: 340px;
   animation: badgeToastIn 400ms cubic-bezier(.3,1.5,.5,1) both;
@@ -1050,12 +1056,12 @@ body {
 }
 .badge-card.unlocked {
   border-color: var(--gold-line);
-  background: linear-gradient(145deg, var(--elevated), rgba(212,117,58,.06));
+  background: linear-gradient(145deg, var(--elevated), color-mix(in srgb, #3db98a 6%, transparent));
   box-shadow: 0 0 0 1px var(--gold-line), inset 0 1px 0 rgba(255,255,255,.04);
 }
 .badge-card.unlocked:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(212,117,58,.18), 0 0 0 1px var(--gold-line);
+  box-shadow: 0 4px 20px rgba(61,185,138,.18), 0 0 0 1px var(--gold-line);
 }
 .badge-card.locked {
   filter: grayscale(.8);
@@ -1138,7 +1144,7 @@ body {
     position: fixed;
     bottom: 0; left: 0; right: 0;
     height: 64px;
-    background: rgba(28, 25, 21, 0.96);
+    background: color-mix(in srgb, #0d1520 96%, transparent);
     border-top: 1px solid var(--border);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);

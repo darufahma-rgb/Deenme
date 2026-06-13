@@ -1,0 +1,282 @@
+DEENME — REDESIGN: Muslim Pro Dark Mode Aesthetic
+Redesign the entire color system and visual style to match Muslim Pro's dark mode aesthetic. Keep all functionality intact — only change colors, typography weights, shadows, and visual details.
+
+Replace entire src/deenme-theme.css :root variables:
+css:root {
+  /* Muslim Pro dark — deep teal-black base */
+  --bg: #0a0e14;
+  --bg-warm: #0a0e14;
+  --surface: #111820;
+  --elevated: #1a2332;
+  --elevated-2: #1e2a3a;
+
+  /* Muslim Pro signature teal-green accent */
+  --gold: #3db98a;
+  --gold-2: #4ecfa0;
+  --gold-soft: color-mix(in srgb, #3db98a 12%, transparent);
+  --gold-line: color-mix(in srgb, #3db98a 30%, transparent);
+
+  /* Text */
+  --text: #e8edf2;
+  --text-2: #7a8a9a;
+  --text-3: #4a5a6a;
+
+  /* Status */
+  --ok: #3db98a;
+  --warn: #f0a500;
+  --danger: #e05555;
+
+  /* Borders */
+  --border: #1e2a3a;
+  --border-2: #263040;
+
+  /* Radius & spacing */
+  --radius: 16px;
+  --radius-sm: 12px;
+  --pad: 24px;
+  --gap: 12px;
+  --rowpad: 16px;
+
+  /* Fonts */
+  --f-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --f-body: 'Inter', system-ui, sans-serif;
+  --f-ar: 'Tajawal', serif;
+
+  --ring-dur: .55s;
+}
+
+Update global styles to match Muslim Pro feel:
+cssbody {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--f-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Muslim Pro style: subtle blue-teal candlelight instead of gold */
+.candle::before {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, #3db98a 8%, transparent),
+    transparent 72%
+  );
+}
+
+/* Sidebar — Muslim Pro style: slightly lighter than bg */
+.rail {
+  background: #0d1520;
+  border-right: 1px solid var(--border);
+}
+
+.rail .brand {
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold);
+  box-shadow: 0 0 20px -6px #3db98a;
+}
+
+/* Cards — Muslim Pro: slightly blue-tinted dark */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* Prayer cards — Muslim Pro style */
+.pcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color .25s, box-shadow .25s, background .35s;
+}
+
+.pcard:hover {
+  border-color: var(--gold-line);
+  box-shadow: 0 0 0 1px var(--gold-soft);
+}
+
+.pcard.done {
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, #3db98a 8%, var(--surface)),
+    var(--surface) 60%
+  );
+  border-color: var(--gold-line);
+  box-shadow: 0 0 20px -10px #3db98a, inset 0 0 0 1px var(--gold-soft);
+}
+
+.pcard.qadha {
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--danger) 8%, var(--surface)),
+    var(--surface) 60%
+  );
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+}
+
+/* Streak card — Muslim Pro teal gradient */
+.streak {
+  background: linear-gradient(
+    160deg,
+    #0d2a20,
+    color-mix(in srgb, #3db98a 10%, var(--elevated))
+  );
+  border: 1px solid var(--gold-line);
+}
+
+/* Buttons */
+.btn.gold {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #071510;
+  font-weight: 700;
+  box-shadow: 0 6px 24px -8px #3db98a;
+}
+
+.btn.gold:hover {
+  background: var(--gold-2);
+  border-color: var(--gold-2);
+}
+
+/* Chips */
+.chip.on {
+  color: var(--gold);
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+}
+
+/* Tabs */
+.tab.on {
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-color: var(--gold-line);
+}
+
+/* Nav active */
+.navbtn.on {
+  color: var(--gold);
+  background: var(--gold-soft);
+}
+
+.navbtn.on::before {
+  background: var(--gold);
+}
+
+/* Bottom nav active */
+.bnav-btn.on {
+  color: var(--gold);
+}
+
+.bnav-btn.on svg {
+  filter: drop-shadow(0 0 5px #3db98a);
+}
+
+/* Arabic text */
+.ar {
+  color: var(--gold);
+}
+
+.doacard .dar {
+  color: var(--gold);
+}
+
+/* Score ring */
+/* PrayerRing and ScoreRing use var(--gold) already — auto-updates */
+
+/* Bar chart */
+.bar {
+  background: linear-gradient(var(--gold-2), var(--gold));
+}
+
+/* Heatmap full */
+/* HEATC uses var(--ok) for full — auto-updates to teal */
+
+/* Mission item type colors */
+/* Sholat: teal (--ok), Dzikir: gold/amber, Doa: purple */
+
+/* Login card */
+.authcard {
+  background: color-mix(in srgb, var(--surface) 85%, var(--bg));
+  border: 1px solid var(--border);
+  box-shadow: 0 40px 120px -40px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.authlogo {
+  box-shadow: 0 0 32px -8px #3db98a;
+}
+
+/* Segmented status buttons */
+.segbtn.on.ok {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+
+/* Timbangan amal bar */
+.amal-bar-fill {
+  background: linear-gradient(90deg, #2a9a72, var(--gold));
+}
+
+/* FAB */
+.fab {
+  background: var(--gold);
+  color: #071510;
+  box-shadow: 0 10px 30px -8px #3db98a;
+}
+
+.fab:hover {
+  background: var(--gold-2);
+}
+
+/* Bookmark active */
+.bm.on {
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-color: var(--gold-line);
+}
+
+/* Col-r and col-l panels */
+.col-r {
+  background: color-mix(in srgb, var(--surface) 60%, var(--bg));
+  border-left: 1px solid var(--border);
+}
+
+.col-l {
+  background: color-mix(in srgb, var(--surface) 60%, var(--bg));
+  border-right: 1px solid var(--border);
+}
+
+/* Bottom nav */
+.bottom-nav {
+  background: color-mix(in srgb, #0d1520 96%, transparent);
+  border-top: 1px solid var(--border);
+}
+
+/* Bottom sheet */
+.bottom-sheet {
+  background: var(--elevated);
+  border-top: 1px solid var(--border);
+}
+
+/* Scrollbar */
+.scrl {
+  scrollbar-color: #1e2a3a transparent;
+}
+
+.scrl::-webkit-scrollbar-thumb {
+  background: #1e2a3a;
+}
+
+Update bignum color:
+css.bignum {
+  color: var(--gold);
+}
+
+IMPORTANT:
+
+Do NOT touch any JavaScript, JSX, or logic
+Only modify src/deenme-theme.css
+All existing CSS class names stay the same
+The teal-green #3db98a replaces gold #c9a84c as the primary accent
+Background shifts from pure black to deep blue-teal black (#0a0e14)
+Result should feel like Muslim Pro: dark navy base, clean teal accents, premium Islamic app
