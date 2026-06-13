@@ -1,42 +1,21 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './deenme-theme.css';
 import { Rail, BottomNav, fireConfetti } from './ui.jsx';
 import { PRAYERS, SUNNAH, DashboardPage, MISI_PER_SHOLAT, BADGES, computeDailyPoints, getLevel } from './dashboard.jsx';
 import { JournalPage, BankDoaPage, StatistikPage, AmalanPage } from './pages.jsx';
-
-const LS_KEY = 'deenme-state-v1';
-const TODAY  = new Date().toISOString().slice(0, 10);
-
-const loadState = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; } };
-
-const DEFAULTS = {
-  prayers: {},
-  times: {},
-  sunnah: {},
-  bookmarks: {},
-  userDoa: [],
-  streak: 0,
-  freeze: 2,
-  misiDone: {},
-  totalPoints: 0,
-  dailyPoints: 0,
-  unlockedBadges: [],
-  lastDate: TODAY,
-};
+import { supabase } from './supabase.js';
+import { AdminPage } from './AdminPage.jsx';
 
 // ── Helper: check badge conditions ──────────────────────────────────────────
 function checkBadges(misiDone, totalPoints, current) {
   const add = [];
   const rawatibIds = ['subuh-rawatib-qabl','dzuhur-rawatib-qabl','dzuhur-rawatib-bad','maghrib-rawatib-bad','isya-rawatib-bad'];
 
-  // all-misi-complete: all missions done today
   const allComplete = Object.values(MISI_PER_SHOLAT).every(({ misi }) => misi.every((m) => misiDone[m.id]));
   if (allComplete && !current.includes('all-misi-complete')) add.push('all-misi-complete');
 
-  // rawatib-complete
   if (rawatibIds.every((id) => misiDone[id]) && !current.includes('rawatib-complete')) add.push('rawatib-complete');
 
-  // points-based badges
   BADGES.filter((b) => b.condition.type === 'points').forEach((b) => {
     if (totalPoints >= b.condition.points && !current.includes(b.id)) add.push(b.id);
   });
@@ -55,38 +34,57 @@ function LoginPage({ onEnter }) {
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current && inputRef.current.focus(); }, []);
 
-  const submit = () => {
+  const submit = async () => {
     if (code.length < 6 || loading || locked) return;
     setLoading(true);
     setErr(false);
 
-    const correctCode = import.meta.env.VITE_ACCESS_CODE;
+    // Admin login (12 digit)
+    if (code.length === 12) {
+      const { data } = await supabase
+        .from('admin_codes')
+        .select('id')
+        .eq('code', code)
+        .single();
+      if (data) { onEnter(null, 'Admin', 'admin'); return; }
+      setErr(true);
+      setCode('');
+      setLoading(false);
+      return;
+    }
 
-    setTimeout(() => {
-      if (code === correctCode) {
-        onEnter();
-      } else {
-        setErr(true);
-        setCode('');
-        setLoading(false);
-        const newAttempts = attempts + 1;
-        setAttempts(newAttempts);
-        if (newAttempts >= 5) {
-          setLocked(true);
-          let t = 30;
+    // Member login (6 digit)
+    const { data, error } = await supabase
+      .from('member_codes')
+      .select('id, name')
+      .eq('code', code)
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) {
+      setErr(true);
+      setCode('');
+      setLoading(false);
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      if (newAttempts >= 5) {
+        setLocked(true);
+        let t = 30;
+        setLockTimer(t);
+        const interval = setInterval(() => {
+          t--;
           setLockTimer(t);
-          const interval = setInterval(() => {
-            t--;
-            setLockTimer(t);
-            if (t <= 0) {
-              clearInterval(interval);
-              setLocked(false);
-              setAttempts(0);
-            }
-          }, 1000);
-        }
+          if (t <= 0) {
+            clearInterval(interval);
+            setLocked(false);
+            setAttempts(0);
+          }
+        }, 1000);
       }
-    }, 600);
+      return;
+    }
+
+    onEnter(data.id, data.name || 'Akhi', 'dashboard');
   };
 
   return (
@@ -104,8 +102,8 @@ function LoginPage({ onEnter }) {
               </div>
             ))}
           </div>
-          <input ref={inputRef} value={code} inputMode="numeric" maxLength={6}
-            onChange={(e) => { setErr(false); setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); }}
+          <input ref={inputRef} value={code} inputMode="numeric" maxLength={12}
+            onChange={(e) => { setErr(false); setCode(e.target.value.replace(/\D/g, '').slice(0, 12)); }}
             onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
             style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'text' }} aria-label="Kode member" />
         </div>
@@ -120,7 +118,7 @@ function LoginPage({ onEnter }) {
             Terlalu banyak percobaan. Tunggu {lockTimer} detik.
           </div>
         )}
-        <button className="btn gold" style={{ width: '100%', padding: '12px 18px', marginTop: 6, opacity: (code.length === 6 && !locked) ? 1 : .5 }}
+        <button className="btn gold" style={{ width: '100%', padding: '12px 18px', marginTop: 6, opacity: (code.length >= 6 && !locked) ? 1 : .5 }}
           onClick={submit} disabled={code.length < 6 || locked}>
           {loading ? <span className="spin" /> : 'Masuk'}
         </button>
@@ -133,45 +131,75 @@ function LoginPage({ onEnter }) {
 
 // ── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const saved = useMemo(loadState, []);
+  const [codeId,   setCodeId]   = useState(() => localStorage.getItem('deenme-code-id') || null);
+  const [userName, setUserName] = useState(() => localStorage.getItem('deenme-user-name') || 'Akhi');
+  const [view,     setView]     = useState(codeId ? 'dashboard' : 'login');
 
-  // Daily reset: if lastDate !== today, reset misiDone + dailyPoints
-  const isNewDay = saved.lastDate !== TODAY;
-  const init = {
-    ...DEFAULTS,
-    ...saved,
-    misiDone:    isNewDay ? {} : (saved.misiDone    || {}),
-    dailyPoints: isNewDay ? 0  : (saved.dailyPoints || 0),
-    lastDate: TODAY,
-  };
+  // App data state — loaded from Supabase after login
+  const [prayers,        setPrayers]       = useState({});
+  const [times,          setTimes]         = useState({});
+  const [sunnah,         setSunnah]        = useState({});
+  const [bookmarks,      setBookmarks]     = useState({});
+  const [userDoa,        setUserDoa]       = useState([]);
+  const [streak,         setStreak]        = useState(0);
+  const [freeze,         setFreeze]        = useState(2);
+  const [pulse,          setPulse]         = useState(false);
+  const [misiDone,       setMisiDone]      = useState({});
+  const [totalPoints,    setTotalPoints]   = useState(0);
+  const [dailyPoints,    setDailyPoints]   = useState(0);
+  const [unlockedBadges, setUnlockedBadges] = useState([]);
+  const [misiPopup,      setMisiPopup]     = useState(null);
+  const [badgeToast,     setBadgeToast]    = useState(null);
 
-  const [view,          setView]         = useState('login');
-  const [prayers,       setPrayers]      = useState(init.prayers);
-  const [times,         setTimes]        = useState(init.times);
-  const [sunnah,        setSunnah]       = useState(init.sunnah);
-  const [bookmarks,     setBookmarks]    = useState(init.bookmarks);
-  const [userDoa,       setUserDoa]      = useState(init.userDoa);
-  const [streak]                         = useState(init.streak);
-  const [freeze,        setFreeze]       = useState(init.freeze);
-  const [pulse,         setPulse]        = useState(false);
+  const prevAll = useRef(false);
 
-  // Mission & Reward state
-  const [misiDone,      setMisiDone]     = useState(init.misiDone);
-  const [totalPoints,   setTotalPoints]  = useState(init.totalPoints);
-  const [dailyPoints,   setDailyPoints]  = useState(init.dailyPoints);
-  const [unlockedBadges, setUnlockedBadges] = useState(init.unlockedBadges);
-  const [misiPopup,     setMisiPopup]    = useState(null);
-  const [badgeToast,    setBadgeToast]   = useState(null);
-
-  const prevAll = useRef(PRAYERS.every((p) => init.prayers[p.k]));
-
-  // Persist state
+  // ── Load data from Supabase on login ────────────────────────────────────
   useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify({
-      prayers, times, sunnah, bookmarks, userDoa, streak, freeze,
-      misiDone, totalPoints, dailyPoints, unlockedBadges, lastDate: TODAY,
-    }));
-  }, [prayers, times, sunnah, bookmarks, userDoa, freeze, misiDone, totalPoints, dailyPoints, unlockedBadges]);
+    if (!codeId) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from('user_data')
+        .select('data')
+        .eq('code_id', codeId)
+        .single();
+      if (data?.data) {
+        const d = data.data;
+        const lastDate = d.lastSaved ? new Date(d.lastSaved).toDateString() : null;
+        const today = new Date().toDateString();
+        const isNewDay = lastDate !== today;
+        if (!isNewDay) {
+          if (d.prayers)   setPrayers(d.prayers);
+          if (d.times)     setTimes(d.times);
+          if (d.sunnah)    setSunnah(d.sunnah);
+          if (d.misiDone)  setMisiDone(d.misiDone);
+          if (d.dailyPoints !== undefined) setDailyPoints(d.dailyPoints);
+        }
+        if (d.bookmarks)      setBookmarks(d.bookmarks);
+        if (d.userDoa)        setUserDoa(d.userDoa);
+        if (d.streak !== undefined)       setStreak(d.streak);
+        if (d.freeze !== undefined)       setFreeze(d.freeze);
+        if (d.totalPoints !== undefined)  setTotalPoints(d.totalPoints);
+        if (d.unlockedBadges)             setUnlockedBadges(d.unlockedBadges);
+      }
+    };
+    load();
+  }, [codeId]);
+
+  // ── Save data to Supabase (debounced 2 seconds) ──────────────────────────
+  useEffect(() => {
+    if (!codeId) return;
+    const timeout = setTimeout(async () => {
+      const payload = {
+        prayers, times, sunnah, bookmarks, userDoa,
+        streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone,
+        lastSaved: new Date().toISOString(),
+      };
+      await supabase
+        .from('user_data')
+        .upsert({ code_id: codeId, data: payload }, { onConflict: 'code_id' });
+    }, 2000);
+    return () => clearTimeout(timeout);
+  }, [prayers, times, sunnah, bookmarks, userDoa, streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone]);
 
   // Score
   const score = (PRAYERS.filter((p) => prayers[p.k]).length / 5) * 0.7
@@ -184,7 +212,26 @@ export default function App() {
     prevAll.current = all;
   }, [prayers]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Auth handlers ────────────────────────────────────────────────────────
+  const onEnter = (id, name, destination) => {
+    if (id) localStorage.setItem('deenme-code-id', id);
+    localStorage.setItem('deenme-user-name', name);
+    setCodeId(id);
+    setUserName(name);
+    setView(destination);
+  };
+
+  const onLogout = () => {
+    localStorage.removeItem('deenme-code-id');
+    localStorage.removeItem('deenme-user-name');
+    setCodeId(null);
+    setPrayers({}); setTimes({}); setSunnah({}); setBookmarks({});
+    setUserDoa([]); setStreak(0); setFreeze(2); setMisiDone({});
+    setTotalPoints(0); setDailyPoints(0); setUnlockedBadges([]);
+    setView('login');
+  };
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
   const setStatus = (k, val) => {
     setPrayers((p) => { const n = { ...p }; if (val) n[k] = val; else delete n[k]; return n; });
 
@@ -205,33 +252,28 @@ export default function App() {
     if (!val) setMisiPopup(null);
   };
 
-  const setTime      = (k, v) => setTimes((tm) => ({ ...tm, [k]: v }));
-  const toggleSunnah = (s) => setSunnah((x) => ({ ...x, [s]: !x[s] }));
+  const setTime        = (k, v) => setTimes((tm) => ({ ...tm, [k]: v }));
+  const toggleSunnah   = (s) => setSunnah((x) => ({ ...x, [s]: !x[s] }));
   const toggleBookmark = (key) => setBookmarks((b) => ({ ...b, [key]: !b[key] }));
-  const addDoa       = (d) => setUserDoa((u) => [d, ...u]);
-  const useFreeze    = () => setFreeze((f) => Math.max(0, f - 1));
+  const addDoa         = (d) => setUserDoa((u) => [d, ...u]);
+  const useFreeze      = () => setFreeze((f) => Math.max(0, f - 1));
 
-  // Toggle a mission item and recalculate points + check badges
   const onMisiToggle = (id) => {
     setMisiDone((prev) => {
       const next = { ...prev, [id]: !prev[id] };
 
-      // Recalculate daily points from scratch
       const dp = computeDailyPoints(next);
       setDailyPoints(dp);
 
-      // Increment total points by the delta
       const oldDp = computeDailyPoints(prev);
       const delta = dp - oldDp;
       setTotalPoints((tp) => {
         const newTp = Math.max(0, tp + delta);
 
-        // Check badges after total points update
         const newBadges = checkBadges(next, newTp, unlockedBadges);
         if (newBadges.length > 0) {
           setUnlockedBadges((ub) => {
             const merged = [...ub, ...newBadges];
-            // Show toast for the first new badge
             const badge = BADGES.find((b) => b.id === newBadges[0]);
             if (badge) setBadgeToast(badge);
             return merged;
@@ -244,12 +286,21 @@ export default function App() {
     });
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ───────────────────────────────────────────────────────────────
   if (view === 'login') {
     return (
       <div className="deenme-root">
         <div className="candle" />
-        <LoginPage onEnter={() => setView('dashboard')} />
+        <LoginPage onEnter={onEnter} />
+      </div>
+    );
+  }
+
+  if (view === 'admin') {
+    return (
+      <div className="deenme-root">
+        <div className="candle" />
+        <AdminPage onLogout={onLogout} />
       </div>
     );
   }
@@ -258,7 +309,7 @@ export default function App() {
     <div className="deenme-root">
       <div className="candle" />
       <div className="app">
-        <Rail page={view} go={setView} onLogout={() => setView('login')} />
+        <Rail page={view} go={setView} onLogout={onLogout} />
 
         {view === 'dashboard' &&
           <DashboardPage
@@ -270,6 +321,7 @@ export default function App() {
             dailyPoints={dailyPoints} totalPoints={totalPoints}
             misiPopup={misiPopup} setMisiPopup={setMisiPopup}
             badgeToast={badgeToast} clearBadgeToast={() => setBadgeToast(null)}
+            userName={userName}
           />}
 
         {view === 'journal' && <JournalPage go={setView} />}

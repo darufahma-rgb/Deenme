@@ -647,6 +647,7 @@ export function DashboardPage({
   prayers, times, sunnah, setStatus, setTime, toggleSunnah,
   score, ring, streak, freeze, useFreeze, pulse, go,
   misiDone = {}, onMisiToggle, dailyPoints = 0, totalPoints = 0, misiPopup, setMisiPopup, badgeToast, clearBadgeToast,
+  userName = 'Akhi',
 }) {
   const [openKey,  setOpenKey]  = useState(null);
   const [sheetKey, setSheetKey] = useState(null);
