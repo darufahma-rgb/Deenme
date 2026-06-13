@@ -11,12 +11,30 @@ export const PRAYERS = [
   { k: 'isya',    id: 'Isya',    ar: 'العشاء' },
 ];
 export const PRAYER_CARDS = [
-  { k: 'tahajud', id: 'Tahajud', ar: 'التَّهَجُّد', emoji: '🌙', sched: '03:00' },
-  { k: 'subuh',   id: 'Subuh',   ar: 'الفجر',       emoji: '🌅', sched: '--:--' },
-  { k: 'dzuhur',  id: 'Dzuhur',  ar: 'الظهر',       emoji: '🕛', sched: '--:--' },
-  { k: 'ashar',   id: 'Ashar',   ar: 'العصر',       emoji: '🌤️', sched: '--:--' },
-  { k: 'maghrib', id: 'Maghrib', ar: 'المغرب',      emoji: '🌇', sched: '--:--' },
-  { k: 'isya',    id: 'Isya',    ar: 'العشاء',      emoji: '🌙', sched: '--:--' },
+  {
+    k: 'tahajud', id: 'Tahajud', ar: 'التَّهَجُّد', sched: '03:00',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+  },
+  {
+    k: 'subuh', id: 'Subuh', ar: 'الفجر', sched: '--:--',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="2" y1="18" x2="4" y2="18"/><line x1="20" y1="18" x2="22" y2="18"/><line x1="19.78" y1="10.22" x2="18.36" y2="11.64"/></svg>,
+  },
+  {
+    k: 'dzuhur', id: 'Dzuhur', ar: 'الظهر', sched: '--:--',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>,
+  },
+  {
+    k: 'ashar', id: 'Ashar', ar: 'العصر', sched: '--:--',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M3 12h1M20 12h1M12 3v1M12 20v1M5.64 5.64l.7.7M17.66 17.66l.7.7M17.66 6.34l-.7.7M5.64 18.36l.7-.7"/></svg>,
+  },
+  {
+    k: 'maghrib', id: 'Maghrib', ar: 'المغرب', sched: '--:--',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="2" y1="18" x2="22" y2="18"/><path d="M12 2L12 9"/><path d="M4.22 10.22L5.64 11.64"/><path d="M19.78 10.22L18.36 11.64"/></svg>,
+  },
+  {
+    k: 'isya', id: 'Isya', ar: 'العشاء', sched: '--:--',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg>,
+  },
 ];
 export const SUNNAH = ['Rawatib Subuh', 'Dhuha', 'Rawatib Dzuhur', 'Rawatib Maghrib', 'Tahajud', 'Witir'];
 const STATUS = [['ok', 'Tepat'], ['late', 'Telat'], ['qadha', 'Qadha']];
@@ -743,7 +761,9 @@ function PrayerCard({ p, status, time, isNext, onStatus, onSetTime, onClick, sch
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
         <span style={{ fontFamily: 'var(--f-ar)', fontSize: 13, color: done ? 'var(--gold)' : 'var(--text-3)', direction: 'rtl', lineHeight: 1.4 }}>{p.ar}</span>
-        <span style={{ fontSize: 16 }}>{p.emoji}</span>
+        <span style={{ color: done ? 'var(--gold)' : 'var(--text-3)', transition: 'color .2s' }}>
+          {p.icon}
+        </span>
       </div>
       <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 15, color: 'var(--text)', marginBottom: 2, letterSpacing: '-.01em' }}>{p.id}</div>
       <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: done ? 'var(--gold)' : 'var(--text-3)', marginBottom: 10 }}>
