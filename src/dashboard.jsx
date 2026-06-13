@@ -112,7 +112,7 @@ export function getLevel(pts) {
 
 // ── Solo Leveling Rank System ────────────────────────────────────────────────
 export const RANK_SYSTEM = [
-  { rank: 'E',   label: 'Mubtadi',    minPts: 0,     color: '#555555', glow: '#333333', border: '#2a2a2a', bg: '#0a0a0f' },
+  { rank: 'E',   label: 'Mubtadi',    minPts: 0,     color: '#386641', glow: 'rgba(56,102,65,.2)',  border: 'rgba(56,102,65,.3)',  bg: '#eef4ee' },
   { rank: 'D',   label: 'Mutaallim', minPts: 100,   color: '#6688cc', glow: '#4466aa', border: '#334488', bg: '#080a14' },
   { rank: 'C',   label: 'Mutawassit',minPts: 300,   color: '#00b4d8', glow: '#0088bb', border: '#006688', bg: '#040e14' },
   { rank: 'B',   label: 'Mutaqaddim',minPts: 600,   color: '#00cfef', glow: '#00aad0', border: '#0088bb', bg: '#030f16' },
@@ -182,9 +182,9 @@ export function SoloLevelingPanel({ totalPoints, streak, freeze, score, prayers,
             Rank {rank.rank} Hunter · {totalPoints} XP
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 10, padding: '7px 10px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'var(--gold-soft)', border: '1px solid var(--gold-line)', borderRadius: 10, padding: '7px 10px', flexShrink: 0 }}>
           <span style={{ fontSize: 14, lineHeight: 1 }}>🛡️</span>
-          <span style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 12, color: '#2ecc8a', lineHeight: 1, marginTop: 2 }}>{freeze}×</span>
+          <span style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 12, color: 'var(--gold)', lineHeight: 1, marginTop: 2 }}>{freeze}×</span>
         </div>
       </div>
 
