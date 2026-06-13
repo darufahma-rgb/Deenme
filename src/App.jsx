@@ -24,12 +24,12 @@ function PageTransition({ viewKey, children }) {
     const t1 = setTimeout(() => {
       setDisplayKey(nextKey.current);
       setCls('sl-pg-enter');
-    }, 185);
+    }, 180);
     const t2 = setTimeout(() => {
       setCls('');
       setFlash(false);
       setLine(false);
-    }, 185 + 340);
+    }, 180 + 320);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [viewKey]);
 

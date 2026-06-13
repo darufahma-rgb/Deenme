@@ -1,0 +1,102 @@
+# DEENME — Smooth Page Transition Upgrade
+
+## Masalah
+Transisi antar halaman saat ini terasa kasar karena:
+- Exit animation terlalu cepat (190ms) dan pakai `filter: brightness()` yang bikin flicker
+- Enter animation ada slight overshoot (`scale(1.1)`) yang kurang elegan
+- Flash hijau & garis animasi terasa terlalu "game-y" / berlebihan
+
+## Target
+Transisi **fluid & premium** — feel-nya seperti app native iOS/macOS:
+- Halaman lama fade+slide keluar dengan halus
+- Halaman baru fade+slide masuk dari arah yang tepat
+- Tidak ada flash atau garis efek
+- Total durasi ~320ms — cukup cepat tapi terasa smooth
+
+---
+
+## Perubahan 1 — `src/deenme-theme.css`
+
+Cari blok `/* ── Solo Leveling page transition ── */` dan ganti seluruhnya (dari `@keyframes sl-pg-exit` sampai `.sl-pg-wrap { ... }`) dengan ini:
+
+```css
+/* ── Page transition — smooth fade-slide ── */
+@keyframes sl-pg-exit {
+  from { opacity: 1;  transform: translateY(0)    scale(1); }
+  to   { opacity: 0;  transform: translateY(-10px) scale(.985); }
+}
+@keyframes sl-pg-enter {
+  from { opacity: 0;  transform: translateY(14px)  scale(.99); }
+  to   { opacity: 1;  transform: translateY(0)     scale(1); }
+}
+.sl-pg-exit {
+  animation: sl-pg-exit .18s cubic-bezier(.4,0,1,1) both;
+  pointer-events: none;
+}
+.sl-pg-enter {
+  animation: sl-pg-enter .32s cubic-bezier(.22,1,.36,1) both;
+}
+.sl-pg-flash { display: none; }
+.sl-pg-line  { display: none; }
+.sl-pg-wrap {
+  flex: 1; min-width: 0; display: flex; overflow: hidden;
+}
+```
+
+---
+
+## Perubahan 2 — `src/App.jsx`
+
+Di fungsi `PageTransition`, update timing di `useEffect` supaya sinkron dengan CSS baru:
+
+```jsx
+// SEBELUM:
+const t1 = setTimeout(() => {
+  setDisplayKey(nextKey.current);
+  setCls('sl-pg-enter');
+}, 185);
+const t2 = setTimeout(() => {
+  setCls('');
+  setFlash(false);
+  setLine(false);
+}, 185 + 340);
+
+// SESUDAH:
+const t1 = setTimeout(() => {
+  setDisplayKey(nextKey.current);
+  setCls('sl-pg-enter');
+}, 180);
+const t2 = setTimeout(() => {
+  setCls('');
+  setFlash(false);
+  setLine(false);
+}, 180 + 320);
+```
+
+---
+
+## Juga update `.fade-in` di CSS (opsional tapi bagus)
+
+Cari baris:
+```css
+.fade-in { animation: fade .35s ease both }
+@keyframes fade { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+```
+
+Ganti dengan:
+```css
+.fade-in { animation: fade .3s cubic-bezier(.22,1,.36,1) both }
+@keyframes fade { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+```
+
+---
+
+## Hasil yang Diharapkan
+- Halaman lama: fade out + naik 10px dalam 180ms — halus, tidak ada flash
+- Halaman baru: fade in + dari bawah 14px dalam 320ms — easing `cubic-bezier(.22,1,.36,1)` = decelerate natural
+- Tidak ada brightness flicker, tidak ada garis hijau, tidak ada flash overlay
+- Total feel: clean, native, premium
+
+## File yang Diubah
+- `src/deenme-theme.css` — ganti keyframes & class transisi
+- `src/App.jsx` — update 2 angka timeout supaya sinkron
