@@ -1660,103 +1660,120 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
 
 export function AmalanDetailPage({ amalan, waktu, onBack }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', display: 'flex', flexDirection: 'column', zIndex: 20, overflowY: 'hidden' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', display: 'flex', flexDirection: 'column', zIndex: 20 }}>
 
-      {/* Sticky header — fixed height */}
+      {/* HEADER */}
       <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-        <button
-          onClick={onBack}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, padding: '6px 10px 6px 0', flexShrink: 0 }}
-        >
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, padding: '6px 10px 6px 0', flexShrink: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           Kembali
         </button>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 15, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.3 }}>{amalan.nameAr}</div>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 17, color: 'var(--text)', letterSpacing: '-.01em' }}>{amalan.name}</div>
-        </div>
         {waktu && <span className="chip" style={{ fontSize: 10, pointerEvents: 'none', flexShrink: 0 }}>{waktu.waktu}</span>}
       </div>
 
-      {/* SCROLLABLE content — takes remaining height */}
-      <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '28px 24px 100px' }}>
-        <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      {/* SCROLLABLE */}
+      <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
 
-        {/* BACAAN & LAFAZ */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)' }}><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            Bacaan & Lafaz
+        {/* HERO */}
+        <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '32px 28px 28px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: -10, right: -10, fontFamily: 'var(--f-ar)', fontSize: 120, color: 'var(--gold)', opacity: .05, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>
+            {amalan.nameAr}
           </div>
+          <div style={{ position: 'relative', maxWidth: 680, margin: '0 auto' }}>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 26, color: 'var(--text)', letterSpacing: '-.02em', marginBottom: 10 }}>
+              {amalan.name}
+            </div>
+            <div style={{ fontFamily: 'var(--f-ar)', fontSize: 22, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.7, textAlign: 'right', opacity: .8 }}>
+              {amalan.nameAr}
+            </div>
+          </div>
+        </div>
+
+        {/* BODY */}
+        <div style={{ padding: '0 24px 100px', maxWidth: 728, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+
+          {/* BACAAN */}
           {amalan.bacaan?.map((b, i) => (
-            <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 22, marginBottom: 12 }}>
-              <span className="chip on" style={{ fontSize: 10, padding: '3px 12px', pointerEvents: 'none', marginBottom: 18, display: 'inline-block' }}>{b.jumlah}</span>
-              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 26, color: 'var(--gold)', direction: 'rtl', lineHeight: 2.2, textAlign: 'right', marginBottom: 18, paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
-                {b.ar}
+            <div key={i} style={{ marginTop: 28 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <div style={{ width: 3, height: 16, borderRadius: 2, background: 'var(--gold)', flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '.12em' }}>Bacaan {amalan.bacaan.length > 1 ? i + 1 : ''}</span>
+                <span className="chip on" style={{ fontSize: 10, padding: '2px 10px', pointerEvents: 'none', marginLeft: 4 }}>{b.jumlah}</span>
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text-2)', fontStyle: 'italic', lineHeight: 1.9, marginBottom: 14 }}>
-                {b.latin}
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '28px 24px 20px', marginBottom: 12, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, transparent, var(--gold), transparent)' }} />
+                <div style={{ fontFamily: 'var(--f-ar)', fontSize: 30, color: 'var(--gold)', direction: 'rtl', lineHeight: 2.2, marginBottom: 20 }}>
+                  {b.ar}
+                </div>
+                <div style={{ width: 40, height: 1, background: 'var(--border)', margin: '0 auto 20px' }} />
+                <div style={{ fontSize: 13, color: 'var(--text-2)', fontStyle: 'italic', lineHeight: 1.9 }}>
+                  {b.latin}
+                </div>
               </div>
-              <div style={{ background: 'var(--elevated)', borderRadius: 'var(--radius-sm)', padding: '14px 16px', borderLeft: '3px solid var(--gold-line)' }}>
-                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Artinya</div>
-                <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.85 }}>"{b.arti}"</div>
+              <div style={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '16px 20px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div style={{ width: 3, background: 'var(--gold)', borderRadius: 2, alignSelf: 'stretch', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 10, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Artinya</div>
+                  <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.85 }}>"{b.arti}"</div>
+                </div>
               </div>
             </div>
           ))}
-        </div>
 
-        {/* CARA MENGAMALKAN */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)' }}><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            Cara Mengamalkan
-          </div>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
-            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.tuntunan}</p>
-          </div>
-        </div>
-
-        {/* KHASIAT & FAEDAH */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)' }}><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
-            Khasiat & Faedah
-          </div>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--radius)', padding: 20 }}>
-            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.khasiat}</p>
-          </div>
-        </div>
-
-        {/* DALIL ANJURAN */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)' }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            Dalil Anjuran
-          </div>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
-            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: '0 0 16px' }}>{amalan.dalil}</p>
-            <div style={{ background: 'var(--elevated)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)', flexShrink: 0 }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-              <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--gold)' }}>{amalan.sumber}</span>
+          {/* INFO GRID — Cara + Khasiat */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 28 }}>
+            <div className="amalan-info-grid-item" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--gold-soft)', border: '1px solid var(--gold-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)' }}><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--text)' }}>Cara Mengamalkan</span>
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.8, margin: 0 }}>{amalan.tuntunan}</p>
+            </div>
+            <div className="amalan-info-grid-item" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--gold-soft)', border: '1px solid var(--gold-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)' }}><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+                </div>
+                <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--text)' }}>Khasiat & Faedah</span>
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.8, margin: 0 }}>{amalan.khasiat}</p>
             </div>
           </div>
-        </div>
 
-        {/* KEUTAMAAN */}
-        <div style={{ marginBottom: 36 }}>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)' }}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            Keutamaan
+          {/* DALIL */}
+          <div style={{ marginTop: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--elevated)', padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--gold-soft)', border: '1px solid var(--gold-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)' }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              </div>
+              <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Dalil Anjuran</span>
+              <span style={{ marginLeft: 'auto', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: 'var(--gold)' }}>{amalan.sumber}</span>
+            </div>
+            <div style={{ padding: 20 }}>
+              <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.dalil}</p>
+            </div>
           </div>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--radius)', padding: 20 }}>
-            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.keutamaan}</p>
-          </div>
-        </div>
 
-        {/* Back button */}
-        <button className="btn gold" style={{ width: '100%', padding: 14, fontSize: 14 }} onClick={onBack}>
-          ← Kembali
-        </button>
+          {/* KEUTAMAAN */}
+          <div style={{ marginTop: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', position: 'relative' }}>
+            <div style={{ height: 3, background: 'linear-gradient(90deg, var(--gold), var(--gold-2, var(--gold)), transparent)' }} />
+            <div style={{ padding: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--gold-soft)', border: '1px solid var(--gold-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)' }}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Keutamaan</span>
+              </div>
+              <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.keutamaan}</p>
+            </div>
+          </div>
+
+          {/* BACK BUTTON */}
+          <button className="btn gold" style={{ width: '100%', padding: 14, fontSize: 14, marginTop: 28 }} onClick={onBack}>
+            ← Kembali ke {waktu?.waktu || 'Amalan'}
+          </button>
 
         </div>
       </div>
