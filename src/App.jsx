@@ -154,6 +154,7 @@ export default function App() {
   const [unlockedBadges, setUnlockedBadges] = useState([]);
   const [misiPopup,      setMisiPopup]     = useState(null);
   const [badgeToast,     setBadgeToast]    = useState(null);
+  const [amalanDone,     setAmalanDone]    = useState({});
 
   const prevAll = useRef(false);
 
@@ -178,6 +179,7 @@ export default function App() {
           if (d.misiDone)  setMisiDone(d.misiDone);
           if (d.dailyPoints !== undefined) setDailyPoints(d.dailyPoints);
         }
+        if (d.amalanDone && !isNewDay) setAmalanDone(d.amalanDone);
         if (d.bookmarks)      setBookmarks(d.bookmarks);
         if (d.userDoa)        setUserDoa(d.userDoa);
         if (d.streak !== undefined)       setStreak(d.streak);
@@ -195,7 +197,7 @@ export default function App() {
     const timeout = setTimeout(async () => {
       const payload = {
         prayers, times, sunnah, bookmarks, userDoa,
-        streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone,
+        streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone,
         lastSaved: new Date().toISOString(),
       };
       await supabase
@@ -203,7 +205,7 @@ export default function App() {
         .upsert({ code_id: codeId, data: payload }, { onConflict: 'code_id' });
     }, 2000);
     return () => clearTimeout(timeout);
-  }, [prayers, times, sunnah, bookmarks, userDoa, streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone]);
+  }, [prayers, times, sunnah, bookmarks, userDoa, streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone]);
 
   // Score
   const score = (PRAYERS.filter((p) => prayers[p.k]).length / 5) * 0.7
@@ -231,7 +233,7 @@ export default function App() {
     setCodeId(null);
     setPrayers({}); setTimes({}); setSunnah({}); setBookmarks({});
     setUserDoa([]); setStreak(0); setFreeze(2); setMisiDone({});
-    setTotalPoints(0); setDailyPoints(0); setUnlockedBadges([]);
+    setTotalPoints(0); setDailyPoints(0); setUnlockedBadges([]); setAmalanDone({});
     setView('landing');
   };
 
@@ -339,7 +341,7 @@ export default function App() {
         {view === 'journal' && <JournalPage go={setView} />}
         {view === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
         {view === 'amalan'  && <AmalanPage />}
-        {view === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} totalPoints={totalPoints} unlockedBadges={unlockedBadges} />}
+        {view === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
       </div>
       <BottomNav page={view} go={setView} />
     </div>

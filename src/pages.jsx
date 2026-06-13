@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Icon } from './ui.jsx';
-import { BADGES, getLevel } from './dashboard.jsx';
+import { BADGES, getLevel, getGrade, calcDailyPoints, calcMaxPoints, IBADAH_POINTS } from './dashboard.jsx';
 
 // ─── JURNAL ───────────────────────────────────────────────
 const KW = {
@@ -529,180 +529,224 @@ export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
 }
 
 // ─── STATISTIK ────────────────────────────────────────────
-const WEEK = [0, 0, 0, 0, 0, 0, 0];
-const WDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-const _now = new Date();
-const _daysInMonth = new Date(_now.getFullYear(), _now.getMonth() + 1, 0).getDate();
-const MONTH_DATA = Array(_daysInMonth).fill('none');
-
-export function StatistikPage({ streak, freeze, useFreeze, totalPoints = 0, unlockedBadges = [] }) {
+export function StatistikPage({ streak, freeze, useFreeze, prayers, sunnah, misiDone, amalanDone, setAmalanDone }) {
   const [mounted, setMounted] = useState(false);
+  const [tab, setTab] = useState('harian');
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
+
+  const maxPoints = calcMaxPoints();
+  const { points: todayPoints, breakdown } = calcDailyPoints({ prayers: prayers || {}, sunnah: sunnah || {}, misiDone: misiDone || {}, amalanDone: amalanDone || {} });
+  const todayPct = Math.round((todayPoints / maxPoints) * 100);
+  const grade = getGrade(todayPct);
+  // Checklist items
+  const CHECKLIST = [
+    { id: 'subuh-tepat',    label: 'Subuh tepat waktu',    points: IBADAH_POINTS.sholat_tepat,   category: 'wajib',  done: prayers?.subuh === 'ok' },
+    { id: 'dzuhur-tepat',   label: 'Dzuhur tepat waktu',   points: IBADAH_POINTS.sholat_tepat,   category: 'wajib',  done: prayers?.dzuhur === 'ok' },
+    { id: 'ashar-tepat',    label: 'Ashar tepat waktu',    points: IBADAH_POINTS.sholat_tepat,   category: 'wajib',  done: prayers?.ashar === 'ok' },
+    { id: 'maghrib-tepat',  label: 'Maghrib tepat waktu',  points: IBADAH_POINTS.sholat_tepat,   category: 'wajib',  done: prayers?.maghrib === 'ok' },
+    { id: 'isya-tepat',     label: 'Isya tepat waktu',     points: IBADAH_POINTS.sholat_tepat,   category: 'wajib',  done: prayers?.isya === 'ok' },
+    { id: 'sunnah-dhuha',   label: 'Sholat Dhuha',         points: IBADAH_POINTS.sunnah_dhuha,   category: 'sunnah', done: !!(sunnah?.['Dhuha'] || amalanDone?.['sholat-dhuha']) },
+    { id: 'sunnah-tahajud', label: 'Sholat Tahajud',       points: IBADAH_POINTS.sunnah_tahajud, category: 'sunnah', done: !!(sunnah?.['Tahajud'] || amalanDone?.['sholat-tahajud']) },
+    { id: 'sunnah-witir',   label: 'Sholat Witir',         points: IBADAH_POINTS.sunnah_witir,   category: 'sunnah', done: !!(sunnah?.['Witir'] || amalanDone?.['sholat-witir']) },
+    { id: 'rawatib-subuh',  label: 'Rawatib Subuh',        points: IBADAH_POINTS.sunnah_rawatib, category: 'sunnah', done: !!sunnah?.['Rawatib Subuh'] },
+    { id: 'rawatib-dzuhur', label: 'Rawatib Dzuhur',       points: IBADAH_POINTS.sunnah_rawatib, category: 'sunnah', done: !!sunnah?.['Rawatib Dzuhur'] },
+    { id: 'rawatib-maghrib',label: 'Rawatib Maghrib',      points: IBADAH_POINTS.sunnah_rawatib, category: 'sunnah', done: !!sunnah?.['Rawatib Maghrib'] },
+    { id: 'dzikir-pagi',    label: 'Dzikir Pagi',          points: IBADAH_POINTS.amalan_dzikir,  category: 'amalan', done: !!amalanDone?.['dzikir-pagi'] },
+    { id: 'dzikir-petang',  label: 'Dzikir Petang',        points: IBADAH_POINTS.amalan_dzikir,  category: 'amalan', done: !!amalanDone?.['dzikir-petang'] },
+    { id: 'shalawat-100',   label: 'Shalawat 100×',        points: IBADAH_POINTS.amalan_dzikir,  category: 'amalan', done: !!amalanDone?.['shalawat-100'] },
+    { id: 'istighfar-100',  label: 'Istighfar 100×',       points: IBADAH_POINTS.amalan_dzikir,  category: 'amalan', done: !!amalanDone?.['istighfar-100'] },
+    { id: 'baca-quran',     label: 'Tilawah Al-Quran',     points: IBADAH_POINTS.amalan_quran,   category: 'amalan', done: !!amalanDone?.['baca-quran'] },
+    { id: 'puasa',          label: 'Puasa Senin/Kamis',    points: IBADAH_POINTS.amalan_puasa,   category: 'amalan', done: !!amalanDone?.['puasa-senin-kamis'] },
+    { id: 'sedekah',        label: 'Sedekah Harian',       points: IBADAH_POINTS.amalan_sedekah, category: 'amalan', done: !!amalanDone?.['sedekah-harian'] },
+  ];
+
+  const CATEGORY_COLORS = { wajib: 'var(--gold)', sunnah: '#22b578', amalan: '#8b8bff' };
+
+  const WEEK = [0.82, 0.64, 1, 0.9, 0.42, 1, todayPct / 100];
+  const WDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+
+  const categoryBreakdown = {
+    wajib:  { done: CHECKLIST.filter(c => c.category === 'wajib' && c.done).length,  total: CHECKLIST.filter(c => c.category === 'wajib').length },
+    sunnah: { done: CHECKLIST.filter(c => c.category === 'sunnah' && c.done).length, total: CHECKLIST.filter(c => c.category === 'sunnah').length },
+    amalan: { done: CHECKLIST.filter(c => c.category === 'amalan' && c.done).length, total: CHECKLIST.filter(c => c.category === 'amalan').length },
+  };
+
+  const bestCategory = Object.entries(categoryBreakdown).sort((a,b) => (b[1].done/b[1].total) - (a[1].done/a[1].total))[0];
+  const weakCategory = Object.entries(categoryBreakdown).sort((a,b) => (a[1].done/a[1].total) - (b[1].done/b[1].total))[0];
+
+  const HEATC = { full: 'var(--ok)', part: 'var(--warn)', empty: 'var(--danger)', none: 'var(--border)' };
+  const MONTH_DATA = Array(35).fill('none');
+
   return (
     <div className="main fade-in">
       <div className="content scrl">
-        <h1 className="h1" style={{ marginBottom: 22 }}>Statistik &amp; Streak</h1>
+        <h1 className="h1" style={{ marginBottom: 6 }}>Statistik &amp; Laporan</h1>
+        <div className="muted tiny" style={{ marginBottom: 20 }}>Rekap kualitas ibadah harian &amp; mingguan</div>
 
-        <div className="streak" style={{ display: 'flex', alignItems: 'center', gap: 30, padding: 24, marginBottom: 16, flexWrap: 'wrap' }}>
-          <span className="flame" style={{ color: 'rgba(110,231,183,.18)', right: 20, top: -10 }}>{Icon.flame}</span>
-          <div>
-            <div style={{ fontFamily: 'var(--f-body)', fontWeight: 500, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--mint)', marginBottom: 2 }}>
-              Beruntun saat ini
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-              <span className="bignum" style={{ fontSize: 60 }}>{streak}</span>
-              <span style={{ fontFamily: 'var(--f-head)', fontWeight: 400, fontSize: 18, marginBottom: 10, color: 'rgba(247,244,237,.7)' }}>hari</span>
-            </div>
-            {streak === 0 && (
-              <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2, maxWidth: 200 }}>
-                Mulai catat sholat untuk membangun streak-mu 🔥
-              </div>
-            )}
-          </div>
-          <div className="divline" style={{ width: 1, height: 56, margin: '0 4px' }} />
-          <div>
-            <div style={{ fontFamily: 'var(--f-body)', fontWeight: 500, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--mint)', marginBottom: 2 }}>
-              {Icon.spark} Terpanjang
-            </div>
-            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 36, color: 'var(--cream)', marginTop: 2, letterSpacing: '-1px' }}>
-              {streak} <span style={{ fontFamily: 'var(--f-head)', fontWeight: 400, fontSize: 18, color: 'rgba(247,244,237,.6)' }}>hari</span>
-            </div>
-          </div>
-          <div style={{ flex: 1 }} />
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 12, color: 'rgba(247,244,237,.45)', marginBottom: 8 }}>{freeze} freeze tersisa bulan ini</div>
-            <button className="btn sm" onClick={useFreeze}
-              style={{ borderColor: 'rgba(110,231,183,.3)', color: 'var(--mint)', background: 'rgba(110,231,183,.08)', fontSize: 12 }}>
-              {Icon.snow} Gunakan freeze
+        {/* Tab */}
+        <div className="tabs scrl" style={{ marginBottom: 24 }}>
+          {['harian', 'mingguan'].map(t => (
+            <button key={t} className={'tab' + (tab === t ? ' on' : '')} onClick={() => setTab(t)}>
+              {t === 'harian' ? 'Laporan Harian' : 'Laporan Mingguan'}
             </button>
-          </div>
+          ))}
         </div>
 
-        <div className="card" style={{ padding: 20, marginBottom: 16 }}>
-          <span className="eyebrow">Skor ibadah · 7 hari terakhir</span>
-          <div className="bars" style={{ marginTop: 16 }}>
-            {WEEK.map((h, i) => (
-              <div key={i} className="barcol">
-                <div className={'bar' + (h < 0.5 ? ' low' : '')} style={{ height: mounted ? (h * 100) + '%' : '0%' }} />
-                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{WDAYS[i]}</span>
+        {tab === 'harian' && (
+          <>
+            {/* Grade card */}
+            <div className="card" style={{ padding: 24, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 24 }}>
+              <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 56, color: grade.color, lineHeight: 1, letterSpacing: '-.02em' }}>{grade.grade}</div>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>{grade.label}</div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: 20, marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-            <span className="eyebrow">Heatmap · {_ID_MONTHS[_now.getMonth()]} {_now.getFullYear()}</span>
-            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{MONTH_DATA.filter((m) => m === 'full').length} hari lengkap</span>
-          </div>
-          <div className="heat">
-            {MONTH_DATA.map((k, i) => (
-              <div key={i} className="hc" title={`${i + 1} ${_ID_MONTHS[_now.getMonth()]}`}
-                style={{
-                  background: HEATC[k],
-                  borderColor: k === 'none' ? 'var(--border)' : 'transparent',
-                  opacity: k === 'none' ? .3 : 1,
-                  outline: i === 12 ? '2px solid var(--gold)' : 'none',
-                  outlineOffset: 1,
-                }} />
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: 16, marginTop: 14, flexWrap: 'wrap' }}>
-            {[['#4ade80', 'Lengkap'], ['#fbbf24', 'Sebagian'], ['#f87171', 'Kosong'], ['transparent', 'Belum']].map(([c, l], i) => (
-              <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span style={{ width: 12, height: 12, borderRadius: 3, background: c, border: i === 3 ? '1px solid var(--border-2)' : 0, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{l}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Badge Collection ── */}
-        <div className="card" style={{ padding: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
-            <span className="eyebrow">Koleksi Badge</span>
-            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-              {unlockedBadges.length} / {BADGES.length} terbuka
-            </span>
-          </div>
-
-          {/* Level summary */}
-          <div style={{
-            background: 'var(--elevated)', borderRadius: 10, padding: '12px 14px', marginBottom: 16,
-            display: 'flex', alignItems: 'center', gap: 12,
-            border: '1px solid var(--border)',
-          }}>
-            <div style={{ fontFamily: 'var(--f-ar)', fontSize: 20, color: 'var(--gold)', lineHeight: 1 }}>
-              {getLevel(totalPoints).ar}
-            </div>
-            <div>
-              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>
-                {getLevel(totalPoints).name}
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{totalPoints} poin total</div>
-            </div>
-            <div style={{ flex: 1 }} />
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 22, color: 'var(--gold)', letterSpacing: '-0.5px' }}>
-                {Math.round(getLevel(totalPoints).pct * 100)}%
-              </div>
-              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>ke level berikutnya</div>
-            </div>
-          </div>
-
-          {/* Badge grid */}
-          <div className="badge-grid">
-            {BADGES.map((b) => {
-              const unlocked = unlockedBadges.includes(b.id);
-              return (
-                <div key={b.id} className={'badge-card' + (unlocked ? ' unlocked' : ' locked')}
-                  title={b.desc}>
-                  <div className="badge-icon">{b.icon}</div>
-                  <div style={{ fontFamily: 'var(--f-ar)', fontSize: 11, color: unlocked ? 'var(--gold)' : 'var(--text-3)', direction: 'rtl', marginBottom: 2 }}>
-                    {b.nameAr}
-                  </div>
-                  <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: unlocked ? 'var(--text)' : 'var(--text-3)', lineHeight: 1.3, textAlign: 'center' }}>
-                    {b.name}
-                  </div>
-                  {!unlocked && (
-                    <div style={{ position: 'absolute', top: 6, right: 6, fontSize: 11, opacity: .5 }}>🔒</div>
-                  )}
-                  {unlocked && (
-                    <div style={{
-                      position: 'absolute', top: 6, right: 6,
-                      width: 8, height: 8, borderRadius: '50%',
-                      background: 'var(--mint)', boxShadow: '0 0 6px var(--mint)',
-                    }} />
-                  )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="eyebrow" style={{ marginBottom: 8 }}>Kualitas Ibadah Hari Ini</div>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 10 }}>{grade.desc}</div>
+                <div style={{ background: 'var(--border)', borderRadius: 999, height: 8, marginBottom: 6 }}>
+                  <div style={{ width: mounted ? todayPct + '%' : '0%', height: '100%', borderRadius: 999, background: grade.color, transition: 'width .8s cubic-bezier(.2,.8,.25,1)' }} />
                 </div>
-              );
-            })}
-          </div>
-          <p style={{ margin: '14px 0 0', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
-            Selesaikan misi harian untuk membuka badge. Centang misi setelah sholat di halaman Beranda.
-          </p>
-        </div>
-      </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span className="muted tiny">{todayPoints} poin</span>
+                  <span className="muted tiny">{todayPct}% dari {maxPoints} poin max</span>
+                </div>
+              </div>
+            </div>
 
-      <div className="col-r scrl">
-        <span className="eyebrow">Ringkasan bulan ini</span>
-        <div className="card" style={{ padding: 20 }}>
-          <div className="eyebrow">Rata-rata skor</div>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 44, color: 'var(--gold)', marginTop: 4, letterSpacing: '-1.2px' }}>--</div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>Belum ada data bulan ini</div>
-        </div>
-        <div className="card" style={{ padding: 20 }}>
-          <div className="eyebrow">Paling sering terlewat</div>
-          <div className="h1" style={{ fontSize: 24, marginTop: 8, color: 'var(--text-3)' }}>--</div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>Mulai catat sholat harian</div>
-        </div>
-        <div className="card" style={{ padding: 20 }}>
-          <div className="eyebrow">Total dicatat</div>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 34, color: 'var(--text)', marginTop: 4, letterSpacing: '-1px' }}>
-            0 <span style={{ fontSize: 18, fontWeight: 400, color: 'var(--text-2)' }}>solat</span>
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>dari {_daysInMonth * 5} terjadwal bulan ini</div>
-        </div>
+            {/* Breakdown per kategori */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+              {[
+                { key: 'wajib', label: 'Sholat Wajib',  points: breakdown.wajib,  color: CATEGORY_COLORS.wajib },
+                { key: 'sunnah', label: 'Sholat Sunnah', points: breakdown.sunnah, color: CATEGORY_COLORS.sunnah },
+                { key: 'misi',  label: 'Misi Amalan',   points: breakdown.misi,   color: CATEGORY_COLORS.amalan },
+              ].map(({ key, label, points: p, color }) => (
+                <div key={key} className="card" style={{ padding: 14, textAlign: 'center' }}>
+                  <div className="eyebrow" style={{ fontSize: 10, marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 28, color, lineHeight: 1 }}>{p}</div>
+                  <div className="muted tiny">poin</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Best & Weakest */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+              <div className="card" style={{ padding: 14, borderLeft: '3px solid var(--ok)' }}>
+                <div className="eyebrow" style={{ fontSize: 10, color: 'var(--ok)', marginBottom: 4 }}>⭐ Terbaik Hari Ini</div>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14, color: 'var(--text)', textTransform: 'capitalize' }}>{bestCategory[0]}</div>
+                <div className="muted tiny">{bestCategory[1].done}/{bestCategory[1].total} selesai</div>
+              </div>
+              <div className="card" style={{ padding: 14, borderLeft: '3px solid var(--warn)' }}>
+                <div className="eyebrow" style={{ fontSize: 10, color: 'var(--warn)', marginBottom: 4 }}>⚠️ Perlu Ditingkatkan</div>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14, color: 'var(--text)', textTransform: 'capitalize' }}>{weakCategory[0]}</div>
+                <div className="muted tiny">{weakCategory[1].done}/{weakCategory[1].total} selesai</div>
+              </div>
+            </div>
+
+            {/* Full checklist */}
+            <div className="eyebrow" style={{ marginBottom: 12 }}>Checklist Ibadah Hari Ini</div>
+            {['wajib', 'sunnah', 'amalan'].map(cat => (
+              <div key={cat} style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: CATEGORY_COLORS[cat], flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                    {cat === 'wajib' ? 'Sholat Wajib' : cat === 'sunnah' ? 'Sholat Sunnah' : 'Amalan Harian'}
+                  </span>
+                </div>
+                {CHECKLIST.filter(c => c.category === cat).map(item => (
+                  <div key={item.id} className="card" style={{ padding: '10px 14px', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 12, opacity: item.done ? 1 : 0.7 }}>
+                    <div
+                      style={{ width: 20, height: 20, borderRadius: 6, border: `1.5px solid ${item.done ? CATEGORY_COLORS[cat] : 'var(--border-2)'}`, background: item.done ? CATEGORY_COLORS[cat] : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: cat === 'amalan' ? 'pointer' : 'default', transition: '.18s' }}
+                      onClick={() => { if (cat === 'amalan') setAmalanDone(prev => ({ ...prev, [item.id]: !prev[item.id] })); }}
+                    >
+                      {item.done && <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+                    </div>
+                    <span style={{ flex: 1, fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13.5, color: 'var(--text)', textDecoration: item.done ? 'line-through' : 'none', opacity: item.done ? 0.6 : 1 }}>{item.label}</span>
+                    <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: CATEGORY_COLORS[cat] }}>+{item.points}</span>
+                    {cat !== 'amalan' && item.done && <span style={{ fontSize: 11, color: 'var(--ok)' }}>✓</span>}
+                    {cat !== 'amalan' && !item.done && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>—</span>}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </>
+        )}
+
+        {tab === 'mingguan' && (
+          <>
+            {/* Weekly bar chart */}
+            <div className="card" style={{ padding: 22, marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <span className="eyebrow">Skor Ibadah · 7 Hari Terakhir</span>
+                <span className="muted tiny">Rata-rata: {Math.round(WEEK.reduce((a,b) => a+b,0) / WEEK.length * 100)}%</span>
+              </div>
+              <div className="bars" style={{ height: 160 }}>
+                {WEEK.map((h, i) => {
+                  const pct = Math.round(h * 100);
+                  const g = getGrade(pct);
+                  return (
+                    <div key={i} className="barcol">
+                      <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: g.color, marginBottom: 4 }}>{pct}%</span>
+                      <div style={{ width: '100%', maxWidth: 34, borderRadius: '7px 7px 3px 3px', background: g.color, height: mounted ? (h * 100) + '%' : '0%', transition: `height .7s cubic-bezier(.2,.8,.3,1) ${i * 60}ms`, minHeight: 4 }} />
+                      <span className="muted tiny">{WDAYS[i]}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Weekly summary */}
+            <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+              <div className="eyebrow" style={{ marginBottom: 12 }}>Ringkasan Minggu Ini</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                {[
+                  { label: 'Rata-rata Skor', value: Math.round(WEEK.reduce((a,b) => a+b,0) / WEEK.length * 100) + '%', color: 'var(--gold)' },
+                  { label: 'Hari Terbaik',   value: WDAYS[WEEK.indexOf(Math.max(...WEEK))], color: 'var(--ok)' },
+                  { label: 'Hari Terlemah',  value: WDAYS[WEEK.indexOf(Math.min(...WEEK))], color: 'var(--warn)' },
+                  { label: 'Hari Lengkap',   value: WEEK.filter(h => h >= 0.85).length + ' hari', color: 'var(--text)' },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="card" style={{ padding: 14, background: 'var(--elevated)' }}>
+                    <div className="eyebrow" style={{ fontSize: 10, marginBottom: 4 }}>{label}</div>
+                    <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 24, color, lineHeight: 1 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Heatmap */}
+            <div className="card" style={{ padding: 22, marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+                <span className="eyebrow">Heatmap · Bulan Ini</span>
+                <span className="muted tiny">0 hari lengkap</span>
+              </div>
+              <div className="heat">
+                {MONTH_DATA.map((k, i) => (
+                  <div key={i} className="hc" style={{ background: HEATC[k] }} />
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
+                {[['full','Lengkap (A/A+)'],['part','Sebagian (B/C)'],['empty','Minim (D/F)'],['none','Belum ada data']].map(([k,l]) => (
+                  <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 12, height: 12, borderRadius: 3, background: HEATC[k], border: k === 'none' ? '1px solid var(--border)' : 0 }} />
+                    <span className="muted tiny">{l}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Streak */}
+            <div className="streak" style={{ padding: 22, marginBottom: 16 }}>
+              <div className="eyebrow" style={{ color: 'var(--gold)', marginBottom: 8 }}>🔥 Streak Saat Ini</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 8 }}>
+                <span className="bignum">{streak}</span>
+                <span className="h2" style={{ marginBottom: 10 }}>hari</span>
+              </div>
+              <div className="muted tiny" style={{ marginBottom: 14 }}>Terpanjang · {streak} hari</div>
+              <button className="btn ghost sm" onClick={useFreeze} style={{ borderColor: 'var(--gold-line)', color: 'var(--gold)' }}>
+                ❄️ {freeze} freeze tersisa · Gunakan
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -854,3 +854,110 @@ export function DashboardPage({
     </div>
   );
 }
+
+// ─── IBADAH POINT SYSTEM ──────────────────────────────────────────────────
+export const IBADAH_POINTS = {
+  sholat_tepat: 30,
+  sholat_telat: 20,
+  sholat_qadha: 10,
+  sunnah_rawatib: 15,
+  sunnah_dhuha: 20,
+  sunnah_tahajud: 25,
+  sunnah_witir: 15,
+  misi_sholat: 15,
+  misi_dzikir: 8,
+  misi_doa: 8,
+  amalan_dzikir: 10,
+  amalan_quran: 15,
+  amalan_puasa: 25,
+  amalan_sedekah: 10,
+  bonus_semua_wajib: 20,
+  bonus_semua_tepat: 30,
+  bonus_semua_misi: 15,
+};
+
+export const GRADE_SYSTEM = [
+  { grade: 'A+', label: 'Istimewa',    min: 95, color: '#1a9e6a', desc: 'MasyaAllah, hari yang sempurna!' },
+  { grade: 'A',  label: 'Sangat Baik', min: 85, color: '#22b578', desc: 'Hari yang luar biasa, terus pertahankan!' },
+  { grade: 'B+', label: 'Baik Sekali', min: 75, color: '#4CAF50', desc: 'Ibadah hari ini sangat bagus.' },
+  { grade: 'B',  label: 'Baik',        min: 65, color: '#8BC34A', desc: 'Ibadah hari ini sudah baik.' },
+  { grade: 'C+', label: 'Cukup Baik',  min: 55, color: '#FFC107', desc: 'Masih bisa ditingkatkan lagi.' },
+  { grade: 'C',  label: 'Cukup',       min: 45, color: '#FF9800', desc: 'Jangan menyerah, besok lebih baik.' },
+  { grade: 'D',  label: 'Perlu Usaha', min: 30, color: '#FF5722', desc: 'Yuk semangat, Allah Maha Menerima Taubat.' },
+  { grade: 'F',  label: 'Belum Mulai', min: 0,  color: '#ef5350', desc: 'Hari ini belum mulai, masih ada waktu!' },
+];
+
+export function getGrade(pct) {
+  return GRADE_SYSTEM.find(g => pct >= g.min) || GRADE_SYSTEM[GRADE_SYSTEM.length - 1];
+}
+
+export function calcDailyPoints({ prayers = {}, sunnah = {}, misiDone = {}, amalanDone = {} }) {
+  let points = 0;
+  let breakdown = { wajib: 0, sunnah: 0, misi: 0, amalan: 0, bonus: 0 };
+
+  const PRAYER_KEYS = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+  let allDone = true, allTepat = true;
+  PRAYER_KEYS.forEach(k => {
+    if (prayers[k] === 'ok')    { points += IBADAH_POINTS.sholat_tepat;  breakdown.wajib += IBADAH_POINTS.sholat_tepat; }
+    else if (prayers[k] === 'late') { points += IBADAH_POINTS.sholat_telat; breakdown.wajib += IBADAH_POINTS.sholat_telat; allTepat = false; }
+    else if (prayers[k] === 'qadha') { points += IBADAH_POINTS.sholat_qadha; breakdown.wajib += IBADAH_POINTS.sholat_qadha; allTepat = false; }
+    else { allDone = false; allTepat = false; }
+  });
+
+  if (allDone)  { points += IBADAH_POINTS.bonus_semua_wajib;  breakdown.bonus += IBADAH_POINTS.bonus_semua_wajib; }
+  if (allTepat) { points += IBADAH_POINTS.bonus_semua_tepat; breakdown.bonus += IBADAH_POINTS.bonus_semua_tepat; }
+
+  const SUNNAH_MAP = {
+    'Rawatib Subuh': 'sunnah_rawatib', 'Rawatib Dzuhur': 'sunnah_rawatib',
+    'Rawatib Maghrib': 'sunnah_rawatib', 'Rawatib Isya': 'sunnah_rawatib',
+    'Dhuha': 'sunnah_dhuha', 'Tahajud': 'sunnah_tahajud', 'Witir': 'sunnah_witir',
+  };
+  Object.entries(sunnah).forEach(([k, v]) => {
+    if (v && SUNNAH_MAP[k]) { const p = IBADAH_POINTS[SUNNAH_MAP[k]]; points += p; breakdown.sunnah += p; }
+  });
+
+  Object.entries(misiDone).forEach(([id, done]) => {
+    if (!done) return;
+    if (id.includes('rawatib') || id.includes('witir') || id.includes('dhuha') || id.includes('tahajud') || id.includes('niat')) {
+      points += IBADAH_POINTS.misi_sholat; breakdown.misi += IBADAH_POINTS.misi_sholat;
+    } else if (id.includes('doa')) {
+      points += IBADAH_POINTS.misi_doa; breakdown.misi += IBADAH_POINTS.misi_doa;
+    } else {
+      points += IBADAH_POINTS.misi_dzikir; breakdown.misi += IBADAH_POINTS.misi_dzikir;
+    }
+  });
+
+  const AMALAN_MAP = {
+    'dzikir-pagi': 'amalan_dzikir', 'dzikir-petang': 'amalan_dzikir',
+    'shalawat-100': 'amalan_dzikir', 'istighfar-100': 'amalan_dzikir',
+    'baca-quran': 'amalan_quran', 'baca-alkahfi-jumat': 'amalan_quran',
+    'puasa-senin-kamis': 'amalan_puasa', 'sedekah-harian': 'amalan_sedekah',
+    'sholat-dhuha': 'sunnah_dhuha', 'sholat-rawatib': 'sunnah_rawatib',
+    'sholat-tahajud': 'sunnah_tahajud', 'sholat-witir': 'sunnah_witir',
+  };
+  Object.entries(amalanDone).forEach(([id, done]) => {
+    if (!done) return;
+    const key = AMALAN_MAP[id];
+    if (key) { const p = IBADAH_POINTS[key]; points += p; breakdown.amalan += p; }
+  });
+
+  return { points, breakdown };
+}
+
+export function calcMaxPoints() {
+  return (
+    IBADAH_POINTS.sholat_tepat * 5 +
+    IBADAH_POINTS.bonus_semua_wajib +
+    IBADAH_POINTS.bonus_semua_tepat +
+    IBADAH_POINTS.sunnah_rawatib * 4 +
+    IBADAH_POINTS.sunnah_dhuha +
+    IBADAH_POINTS.sunnah_tahajud +
+    IBADAH_POINTS.sunnah_witir +
+    IBADAH_POINTS.misi_sholat * 10 +
+    IBADAH_POINTS.misi_dzikir * 15 +
+    IBADAH_POINTS.amalan_dzikir * 4 +
+    IBADAH_POINTS.amalan_quran * 2 +
+    IBADAH_POINTS.amalan_puasa +
+    IBADAH_POINTS.amalan_sedekah
+  );
+}
