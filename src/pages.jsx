@@ -1611,21 +1611,19 @@ export function PrayerAmalanPage({ card, misiDone, toggleMisi, onBack }) {
 
 export function AmalanPage({ amalanDone, setAmalanDone }) {
   const [activeTab, setActiveTab] = useState('subuh');
-  const [selectedAmalan, setSelectedAmalan] = useState(null);
+  const [drawerAmalan, setDrawerAmalan] = useState(null);
 
   const currentWaktu = AMALAN_PER_WAKTU.find(w => w.id === activeTab);
   const doneInTab = currentWaktu?.amalan.filter(a => amalanDone?.[a.id]).length || 0;
   const totalInTab = currentWaktu?.amalan.length || 0;
 
-  if (selectedAmalan) {
-    return (
-      <AmalanDetailPage
-        amalan={selectedAmalan.amalan}
-        waktu={selectedAmalan.waktu}
-        onBack={() => setSelectedAmalan(null)}
-      />
-    );
-  }
+  const closeDrawer = () => setDrawerAmalan(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') closeDrawer(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   return (
     <div className="main fade-in">
@@ -1648,10 +1646,10 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
             <button
               key={w.id}
               className={'tab' + (activeTab === w.id ? ' on' : '')}
-              onClick={() => setActiveTab(w.id)}
+              onClick={() => { setActiveTab(w.id); setDrawerAmalan(null); }}
               style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
             >
-              <span style={{ opacity: activeTab === w.id ? 1 : 0.6 }}>{WAKTU_ICONS[w.id]}</span>
+              {WAKTU_ICONS[w.id]}
               <span>{w.waktu}</span>
             </button>
           ))}
@@ -1660,9 +1658,7 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
         {/* Waktu header */}
         {currentWaktu && (
           <div className="card" style={{ padding: '14px 18px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ color: 'var(--gold)', flexShrink: 0 }}>
-              {WAKTU_BIG_ICONS[currentWaktu.id]}
-            </div>
+            <div style={{ color: 'var(--gold)' }}>{WAKTU_BIG_ICONS[currentWaktu.id]}</div>
             <div>
               <div style={{ fontFamily: 'var(--f-ar)', fontSize: 18, color: 'var(--gold)', direction: 'rtl', marginBottom: 2 }}>{currentWaktu.waktuAr}</div>
               <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{currentWaktu.waktu}</div>
@@ -1671,15 +1667,27 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
           </div>
         )}
 
-        {/* Amalan list — clean cards, no accordion */}
+        {/* Amalan list */}
         {currentWaktu?.amalan.map((amalan) => {
           const done = !!amalanDone?.[amalan.id];
+          const isActive = drawerAmalan?.id === amalan.id;
           return (
             <div
               key={amalan.id}
               className="card"
-              style={{ marginBottom: 10, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', opacity: done ? .6 : 1, transition: 'opacity .2s, border-color .15s, transform .1s' }}
-              onClick={() => setSelectedAmalan({ amalan, waktu: currentWaktu })}
+              style={{
+                marginBottom: 8,
+                padding: '14px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                cursor: 'pointer',
+                opacity: done ? .65 : 1,
+                borderColor: isActive ? 'var(--gold-line)' : undefined,
+                background: isActive ? 'var(--gold-soft)' : undefined,
+                transition: 'opacity .2s, border-color .15s, background .15s',
+              }}
+              onClick={() => setDrawerAmalan(isActive ? null : amalan)}
             >
               {/* Checkbox */}
               <div
@@ -1689,7 +1697,7 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
                 {done && <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
               </div>
 
-              {/* Content — Latin kiri, Arabic kanan */}
+              {/* Content sejajar */}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, color: done ? 'var(--text-3)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none', flex: 1, minWidth: 0 }}>
                   {amalan.name}
@@ -1699,12 +1707,128 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
                 </span>
               </div>
 
-              {/* Arrow */}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)', flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
+              {/* Arrow indicator */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                style={{ color: isActive ? 'var(--gold)' : 'var(--text-3)', flexShrink: 0, transform: isActive ? 'rotate(180deg)' : 'none', transition: 'transform .2s, color .15s' }}>
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
             </div>
           );
         })}
       </div>
+
+      {/* ── DRAWER ── */}
+      {drawerAmalan && (
+        <>
+          <div className="amalan-drawer-overlay" onClick={closeDrawer} />
+          <div className="amalan-drawer">
+
+            {/* Drawer header */}
+            <div className="amalan-drawer-header">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--f-ar)', fontSize: 20, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.6, textAlign: 'right', marginBottom: 4 }}>
+                  {drawerAmalan.nameAr}
+                </div>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: 'var(--text)', letterSpacing: '-.01em' }}>
+                  {drawerAmalan.name}
+                </div>
+                <div className="muted tiny" style={{ marginTop: 4 }}>{currentWaktu?.waktu} · {currentWaktu?.waktuDesc}</div>
+              </div>
+              <button
+                onClick={closeDrawer}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 20, flexShrink: 0, padding: '0 0 0 8px', lineHeight: 1 }}
+                aria-label="Tutup"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Drawer body */}
+            <div className="amalan-drawer-body">
+
+              {/* Bacaan */}
+              {drawerAmalan.bacaan?.map((b, i) => (
+                <div key={i} style={{ marginBottom: 20 }}>
+                  <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 3, height: 14, background: 'var(--gold)', borderRadius: 2, flexShrink: 0 }} />
+                    Bacaan {drawerAmalan.bacaan.length > 1 ? i + 1 : ''} · {b.jumlah}
+                  </div>
+                  <div style={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '20px 18px 16px', marginBottom: 10 }}>
+                    <div style={{ fontFamily: 'var(--f-ar)', fontSize: 24, color: 'var(--gold)', direction: 'rtl', lineHeight: 2, textAlign: 'right', marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
+                      {b.ar}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-2)', fontStyle: 'italic', lineHeight: 1.8, marginBottom: 12 }}>
+                      {b.latin}
+                    </div>
+                    <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', borderLeft: '3px solid var(--gold-line)' }}>
+                      <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Artinya</div>
+                      <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.8 }}>"{b.arti}"</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Cara Mengamalkan */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 3, height: 14, background: 'var(--gold)', borderRadius: 2 }} />
+                  Cara Mengamalkan
+                </div>
+                <div style={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
+                  <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.85, margin: 0 }}>{drawerAmalan.tuntunan}</p>
+                </div>
+              </div>
+
+              {/* Khasiat */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 3, height: 14, background: 'var(--gold)', borderRadius: 2 }} />
+                  Khasiat &amp; Faedah
+                </div>
+                <div style={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--radius)', padding: 16 }}>
+                  <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.85, margin: 0 }}>{drawerAmalan.khasiat}</p>
+                </div>
+              </div>
+
+              {/* Dalil */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 3, height: 14, background: 'var(--gold)', borderRadius: 2 }} />
+                  Dalil Anjuran
+                </div>
+                <div style={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
+                  <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.85, margin: '0 0 12px' }}>{drawerAmalan.dalil}</p>
+                  <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)', flexShrink: 0 }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--gold)' }}>{drawerAmalan.sumber}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Keutamaan */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 3, height: 14, background: 'var(--gold)', borderRadius: 2 }} />
+                  Keutamaan
+                </div>
+                <div style={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--radius)', padding: 16 }}>
+                  <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.85, margin: 0 }}>{drawerAmalan.keutamaan}</p>
+                </div>
+              </div>
+
+              {/* Done button */}
+              <button
+                className={'btn' + (amalanDone?.[drawerAmalan.id] ? '' : ' gold')}
+                style={{ width: '100%', padding: 13, fontSize: 13 }}
+                onClick={() => setAmalanDone(prev => ({ ...prev, [drawerAmalan.id]: !prev[drawerAmalan.id] }))}
+              >
+                {amalanDone?.[drawerAmalan.id] ? '✓ Sudah Selesai — Batalkan' : '✓ Tandai Selesai'}
+              </button>
+
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
