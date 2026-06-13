@@ -362,7 +362,7 @@ function MisiPopup({ prayerKey, misiDone, onToggle, onClose, onBadgeUnlock }) {
         </div>
 
         {/* Mission list */}
-        <div style={{ padding: '6px 0 16px' }}>
+        <div style={{ padding: '6px 22px 16px' }}>
           {data.misi.map((m) => (
             <MisiItem key={m.id} misi={m} done={!!misiDone[m.id]} onToggle={() => handleToggle(m.id, data.misi)} />
           ))}
