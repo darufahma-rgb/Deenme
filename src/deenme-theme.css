@@ -888,47 +888,110 @@ body {
   }
 }
 
-/* Mission item */
+/* ── mission item compact ── */
 .misi-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px 0;
+  padding: 12px 0;
   border-bottom: 1px solid var(--border);
-  transition: background 250ms, border-color 250ms;
-  position: relative;
   width: 100%;
+  box-sizing: border-box;
 }
-.misi-item .chip {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.misi-item-name {
-  white-space: normal;
-  word-break: break-word;
-  flex: 1;
-  min-width: 0;
-}
-.misi-item:last-child { border-bottom: 0 }
-.misi-item.done {
-  background: rgba(212,117,58,.06);
-  border-left: 3px solid var(--gold-line);
-}
-.misi-item:not(.done):hover { background: var(--elevated) }
+.misi-item:last-child { border-bottom: none; }
+.misi-item.done { opacity: 0.6; }
 
-/* Misi checkbox */
-.misi-check {
-  width: 22px; height: 22px;
-  border: 1.5px solid var(--border-2);
+.misi-item-checkbox {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
   border-radius: 6px;
+  border: 1.5px solid var(--border-2);
   background: transparent;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
   margin-top: 2px;
-  transition: border-color 200ms, background 200ms;
+  transition: .18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.misi-check:hover { border-color: var(--gold) }
+.misi-item-checkbox.checked {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.misi-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.misi-item-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.misi-item-name {
+  font-family: var(--f-head);
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.3;
+  word-break: break-word;
+}
+.misi-item-name.checked {
+  color: var(--text-2);
+  text-decoration: line-through;
+}
+.misi-item-ar {
+  font-family: var(--f-ar);
+  font-size: 11px;
+  color: var(--gold);
+  direction: rtl;
+  line-height: 1.4;
+}
+.misi-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.misi-item .chip {
+  padding: 2px 8px;
+  font-size: 10.5px;
+  border-radius: 999px;
+  height: auto;
+  line-height: 1.6;
+}
+.misi-item-count {
+  font-size: 11px;
+  color: var(--text-2);
+  font-family: var(--f-head);
+  font-weight: 600;
+}
+.misi-item-detail {
+  font-size: 11.5px;
+  color: var(--text-3);
+  line-height: 1.5;
+  margin-top: 2px;
+  padding-left: 2px;
+}
+.misi-item-toggle {
+  font-size: 11px;
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: var(--f-head);
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+.misi-item-toggle:hover { color: var(--gold); }
 
 /* Timbangan Amal bar */
 .timbang-amal {

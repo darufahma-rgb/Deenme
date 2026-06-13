@@ -215,64 +215,46 @@ const PRAYER_AR  = { subuh: 'الفجر', dzuhur: 'الظهر', ashar: 'العص
 // ── Mission Item ─────────────────────────────────────────────────────────────
 function MisiItem({ misi, done, onToggle }) {
   const [open, setOpen] = useState(false);
-  const color = TYPE_COLOR[misi.type] || 'var(--gold)';
-  const bg    = TYPE_BG[misi.type]    || 'var(--gold-soft)';
   return (
     <div className={'misi-item' + (done ? ' done' : '')}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        {/* Checkbox */}
-        <button onClick={onToggle} className="misi-check" style={{
-          borderColor: done ? color : 'var(--border-2)',
-          background: done ? bg : 'transparent',
-        }} aria-label={done ? 'Tandai belum selesai' : 'Tandai selesai'}>
-          {done && (
-            <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 7.4 5.7 10 11 4.2"/>
-            </svg>
-          )}
-        </button>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Arabic name */}
-          <div style={{ fontFamily: 'var(--f-ar)', direction: 'rtl', fontSize: 14, color: done ? color : 'var(--gold)', lineHeight: 1.5, marginBottom: 1 }}>
-            {misi.nameAr}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, color: done ? 'var(--text-2)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none' }}>
-              {misi.name}
-            </span>
-            <span style={{
-              fontSize: 10, fontWeight: 600, letterSpacing: '.05em', padding: '1px 7px',
-              borderRadius: 9999, border: `1px solid ${color}40`,
-              color, background: bg,
-            }}>{TYPE_LABEL[misi.type]}</span>
-            {(misi.rakaat || misi.count) && (
-              <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 500 }}>
-                {misi.rakaat ? misi.rakaat + ' rakaat' : misi.count}
-              </span>
-            )}
-          </div>
-
-          {/* Expandable desc */}
-          <button onClick={() => setOpen((o) => !o)} style={{
-            marginTop: 4, background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 11, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4, padding: 0,
+      <div
+        className={'misi-item-checkbox' + (done ? ' checked' : '')}
+        onClick={() => onToggle(misi.id)}
+      >
+        {done && <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="var(--bg)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+      </div>
+      <div className="misi-item-body">
+        <div className="misi-item-ar">{misi.nameAr}</div>
+        <div className="misi-item-top">
+          <span className={'misi-item-name' + (done ? ' checked' : '')}>{misi.name}</span>
+        </div>
+        <div className="misi-item-meta">
+          <span className="chip" style={{
+            background: misi.type === 'sholat' ? 'color-mix(in srgb, var(--ok) 15%, transparent)' :
+                        misi.type === 'dzikir' ? 'color-mix(in srgb, var(--gold) 15%, transparent)' :
+                        'color-mix(in srgb, #8b8bff 15%, transparent)',
+            color: misi.type === 'sholat' ? 'var(--ok)' :
+                   misi.type === 'dzikir' ? 'var(--gold)' : '#a0a0ff',
+            borderColor: 'transparent',
+            pointerEvents: 'none',
           }}>
-            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-              style={{ transition: 'transform .2s', transform: open ? 'rotate(90deg)' : 'none' }}>
-              <path d="M6 3l5 5-5 5"/>
-            </svg>
-            {open ? 'Tutup' : 'Keterangan'}
-          </button>
-          {open && (
-            <div style={{
-              marginTop: 6, fontSize: 12, color: 'var(--text-2)', lineHeight: 1.55,
-              background: 'var(--elevated)', borderRadius: 7, padding: '8px 10px',
-              borderLeft: `2px solid ${color}50`,
-              animation: 'detailIn .2s ease both',
-            }}>{misi.desc}</div>
+            {misi.type === 'sholat' ? 'Sholat' : misi.type === 'dzikir' ? 'Dzikir' : 'Doa'}
+          </span>
+          {(misi.count || misi.rakaat) && (
+            <span className="misi-item-count">
+              {misi.rakaat ? `${misi.rakaat} rakaat` : misi.count}
+            </span>
           )}
         </div>
+        {misi.desc && (
+          <>
+            <button className="misi-item-toggle" onClick={() => setOpen((o) => !o)}>
+              <span>{open ? '▾' : '›'}</span>
+              <span>{open ? 'Sembunyikan' : 'Keterangan'}</span>
+            </button>
+            {open && <div className="misi-item-detail">{misi.desc}</div>}
+          </>
+        )}
       </div>
     </div>
   );
