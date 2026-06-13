@@ -1,39 +1,39 @@
-/* Deenme — Muslim Pro Dark Mode Aesthetic. */
+/* Deenme — White + Green Light Mode */
 
 :root {
-  /* Muslim Pro dark — deep teal-black base */
-  --bg:       #0a0e14;
-  --bg-warm:  #0a0e14;
-  --surface:  #111820;
-  --elevated: #1a2332;
-  --elev-2:   #1e2a3a;
+  /* Base — clean white */
+  --bg:       #f5f7f5;
+  --bg-warm:  #f5f7f5;
+  --surface:  #ffffff;
+  --elevated: #f0f4f1;
+  --elev-2:   #e8ede9;
 
-  /* Muslim Pro signature teal-green accent */
-  --gold:      #3db98a;
-  --gold-2:    #4ecfa0;
-  --gold-soft: color-mix(in srgb, #3db98a 12%, transparent);
-  --gold-line: color-mix(in srgb, #3db98a 30%, transparent);
+  /* Primary — Emerald green */
+  --gold:      #1a9e6a;
+  --gold-2:    #22b578;
+  --gold-soft: color-mix(in srgb, #1a9e6a 10%, transparent);
+  --gold-line: color-mix(in srgb, #1a9e6a 25%, transparent);
 
-  /* ── signature extras (updated to teal palette) ── */
-  --forest: #0d2a20;
-  --mint:   #4ecfa0;
-  --cream:  #e8edf2;
-  --peach:  #f0a500;
-  --mustard: #f0a500;
+  /* ── signature extras ── */
+  --forest: #e8f7f0;
+  --mint:   #22b578;
+  --cream:  #0d1f14;
+  --peach:  #d97706;
+  --mustard: #d97706;
 
   /* Text */
-  --text:   #e8edf2;
-  --text-2: #7a8a9a;
-  --text-3: #4a5a6a;
+  --text:   #0d1f14;
+  --text-2: #5a7a65;
+  --text-3: #9ab5a0;
 
   /* Status */
-  --ok:     #3db98a;
-  --warn:   #f0a500;
-  --danger: #e05555;
+  --ok:     #1a9e6a;
+  --warn:   #d97706;
+  --danger: #dc2626;
 
   /* Borders */
-  --border:   #1e2a3a;
-  --border-2: #263040;
+  --border:   #e2ebe4;
+  --border-2: #d0ddd3;
 
   /* Radius & spacing */
   --radius:    16px;
@@ -50,14 +50,12 @@
   /* animation */
   --ring-dur: .55s;
 
-  /* shadows */
-  --shadow-inset: rgba(255,255,255,0.04) 0px 0.5px 0px 0px inset,
-                  rgba(0,0,0,0.50) 0px 0px 0px 0.5px inset,
-                  rgba(0,0,0,0.25) 0px 1px 2px 0px;
-  --shadow-focus: rgba(0,0,0,0.40) 0px 4px 12px;
-  --shadow-gold:  rgba(61,185,138,0.18) 0px 0.5px 0px 0px inset,
-                  rgba(0,0,0,0.40) 0px 0px 0px 0.5px inset,
-                  rgba(0,0,0,0.20) 0px 1px 2px 0px;
+  /* shadows — light mode */
+  --shadow-inset: rgba(0,0,0,0.04) 0px 0.5px 0px 0px inset,
+                  rgba(0,0,0,0.06) 0px 0px 0px 0.5px inset,
+                  rgba(0,0,0,0.04) 0px 1px 2px 0px;
+  --shadow-focus: rgba(0,0,0,0.08) 0px 4px 12px;
+  --shadow-gold:  rgba(26,158,106,0.15) 0px 2px 8px 0px;
 }
 
 * { box-sizing: border-box }
@@ -1241,6 +1239,207 @@ body {
   /* Stat strip heading compact */
   .dashboard-header { padding: 12px 16px 8px; }
 }
+
+/* ═══════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   (neutralise all hardcoded dark values)
+═══════════════════════════════════════ */
+
+/* Top gradient bar */
+.deenme-root::before {
+  background: linear-gradient(90deg, #1a9e6a 0%, #22b578 40%, #34d399 70%, #6ee7b7 100%);
+}
+
+/* Selection */
+::selection { background: color-mix(in srgb, #1a9e6a 20%, transparent); color: var(--text); }
+
+/* Scrollbar */
+.scrl { scrollbar-color: var(--border-2) transparent; }
+.scrl::-webkit-scrollbar-thumb { background: var(--border-2); }
+.scrl::-webkit-scrollbar-thumb:hover { background: var(--border); }
+
+/* Rail brand */
+.rail {
+  background: #ffffff;
+  border-right: 1px solid var(--border);
+  box-shadow: 2px 0 8px rgba(0,0,0,.04);
+}
+.rail .brand { box-shadow: none; }
+
+/* Cards */
+.card { box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+
+/* Prayer cards */
+.pcard {
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+.pcard:hover {
+  border-color: var(--gold-line);
+  box-shadow: 0 4px 12px rgba(26,158,106,.1);
+}
+.pcard.done {
+  background: linear-gradient(100deg, color-mix(in srgb, #1a9e6a 6%, #ffffff), #ffffff 60%);
+  border-color: var(--gold-line);
+  box-shadow: 0 2px 12px rgba(26,158,106,.12);
+}
+.pcard.qadha {
+  background: linear-gradient(100deg, color-mix(in srgb, #dc2626 6%, #ffffff), #ffffff 60%);
+  border-color: color-mix(in srgb, #dc2626 25%, transparent);
+}
+
+/* Streak */
+.streak {
+  background: linear-gradient(135deg, #e8f7f0, #f0faf5);
+  border: 1px solid var(--gold-line);
+  box-shadow: 0 2px 12px rgba(26,158,106,.08);
+  color: var(--text);
+}
+.bignum { color: var(--gold); }
+
+/* Buttons */
+.btn {
+  background: var(--elevated);
+  border: 1px solid var(--border-2);
+  color: var(--text);
+  box-shadow: none;
+}
+.btn:hover { background: var(--elev-2); border-color: var(--gold-line); }
+.btn.gold {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(26,158,106,.3);
+}
+.btn.gold:hover { background: var(--gold-2); border-color: var(--gold-2); }
+
+/* Icon buttons */
+.iconbtn { background: var(--surface); border: 1px solid var(--border-2); color: var(--text-2); box-shadow: none; }
+.iconbtn:hover { color: var(--text); border-color: var(--gold-line); background: var(--elevated); }
+
+/* FAB */
+.fab {
+  background: var(--gold);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(26,158,106,.35);
+}
+.fab:hover { background: var(--gold-2); box-shadow: 0 10px 28px rgba(26,158,106,.4); }
+
+/* Auth */
+.authcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0,0,0,.08);
+}
+.authlogo {
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold);
+  box-shadow: none;
+}
+.pincell {
+  background: var(--elevated);
+  border: 1px solid var(--border-2);
+  color: var(--gold);
+  box-shadow: none;
+}
+.pincell.fill { border-color: var(--gold-line); background: var(--gold-soft); }
+.pincell.active { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+
+/* Doa cards */
+.doacard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.doacard:hover { border-color: var(--gold-line); box-shadow: 0 4px 16px rgba(26,158,106,.1); }
+
+/* Bookmark */
+.bm { background: var(--elevated); border: 1px solid var(--border-2); box-shadow: none; }
+
+/* Accordion */
+.pchev { background: var(--elevated); box-shadow: none; }
+
+/* Editor */
+.editor { background: var(--surface); border: 1px solid var(--border); }
+.etools { background: var(--elevated); border-bottom: 1px solid var(--border); }
+.etb { background: transparent; border: 1px solid var(--border-2); color: var(--text-2); box-shadow: none; }
+.etb:hover { color: var(--text); border-color: var(--gold-line); background: var(--elevated); }
+
+/* Col panels */
+.col-r { background: #fafcfb; border-left: 1px solid var(--border); }
+.col-l { background: #fafcfb; border-right: 1px solid var(--border); }
+
+/* Misi popup */
+.misi-popup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 -8px 40px rgba(0,0,0,.12);
+}
+
+/* Amal bar fill */
+.amal-bar-fill { background: linear-gradient(90deg, #22b578, #1a9e6a); }
+
+/* Bar chart */
+.bar { background: linear-gradient(var(--gold-2), var(--gold)); }
+.bar.low { background: var(--border-2); border: 1px solid var(--border); }
+
+/* Badge */
+.badge-card { background: var(--elevated); box-shadow: none; }
+.badge-card.unlocked {
+  background: linear-gradient(145deg, var(--surface), color-mix(in srgb, #1a9e6a 5%, transparent));
+  box-shadow: 0 0 0 1px var(--gold-line);
+}
+.badge-card.unlocked:hover {
+  box-shadow: 0 4px 20px rgba(26,158,106,.15), 0 0 0 1px var(--gold-line);
+}
+.badge-toast {
+  background: var(--surface);
+  border: 1px solid var(--gold-line);
+  box-shadow: 0 8px 32px rgba(0,0,0,.1);
+}
+
+/* Bottom nav (mobile) */
+@media (max-width: 767px) {
+  .bottom-nav {
+    background: rgba(255,255,255,.95);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+  }
+  .bnav-btn { color: var(--text-3); }
+  .bnav-btn.on { color: var(--gold); }
+  .bnav-btn.on svg { filter: none; }
+
+  .bottom-sheet {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -8px 32px rgba(0,0,0,.08);
+  }
+  .bottom-sheet-handle { background: var(--border-2); }
+  .bottom-sheet-overlay { background: rgba(0,0,0,.3); }
+}
+
+/* Animations — light mode tones */
+@keyframes badgeUnlock {
+  0%   { transform: scale(0); opacity: 0; box-shadow: none }
+  70%  { transform: scale(1.15) }
+  100% { transform: scale(1); opacity: 1; box-shadow: 0 0 20px rgba(26,158,106,.4) }
+}
+@keyframes timbangPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(26,158,106,0) }
+  50%       { box-shadow: 0 0 0 6px rgba(26,158,106,.15) }
+}
+
+/* Mission popup header sticky bg */
+.misi-popup .sticky-header { background: var(--surface); }
+
+/* psub-hint */
+.psub-hint { color: var(--text-3); font-style: italic; }
+
+/* Spin */
+.spin { border: 2.5px solid var(--border-2); border-top-color: var(--text-2); }
+
+/* Divline */
+.divline { background: var(--border); }
 
 /* ═══════════════════════════════════════
    LANDING PAGE
