@@ -1462,126 +1462,6 @@ const PRAYER_WAKTU_MAP = {
   maghrib: 'maghrib', isya: 'isya',
 };
 
-function AmalanDetailPage({ amalan, waktu, onBack }) {
-  const [openSections, setOpenSections] = useState({});
-  const toggleSec = (sec) => setOpenSections(p => ({ ...p, [sec]: !p[sec] }));
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  return (
-    <div style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 16, position: 'sticky', top: 0, zIndex: 10 }}>
-        <button
-          onClick={onBack}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, padding: '6px 10px 6px 0', flexShrink: 0 }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          Kembali
-        </button>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 15, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.4 }}>{amalan.nameAr}</div>
-          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 17, color: 'var(--text)', letterSpacing: '-.01em' }}>{amalan.name}</div>
-        </div>
-      </div>
-
-      {waktu && (
-        <div style={{ padding: '10px 24px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span className="chip" style={{ fontSize: 11, pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ color: 'var(--gold)' }}>{WAKTU_ICONS[waktu.id]}</span>
-            {waktu.waktu}
-          </span>
-          <span className="muted tiny">{waktu.waktuDesc}</span>
-        </div>
-      )}
-
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 60px' }}>
-        {amalan.bacaan?.length > 0 && (
-          <div className="card" style={{ marginBottom: 12, overflow: 'hidden' }}>
-            <button className="amalan-section-toggle" onClick={() => toggleSec('bacaan')}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                Bacaan &amp; Lafaz
-              </span>
-              <span>{openSections.bacaan ? '▾' : '›'}</span>
-            </button>
-            {openSections.bacaan && (
-              <div style={{ padding: '4px 18px 14px' }}>
-                {amalan.bacaan.map((b, i) => (
-                  <div key={i} style={{ background: 'var(--elevated)', borderRadius: 10, padding: 14, marginBottom: 10 }}>
-                    <span className="chip" style={{ fontSize: 10, padding: '2px 8px', pointerEvents: 'none', marginBottom: 10, display: 'inline-block' }}>{b.jumlah}</span>
-                    <div style={{ fontFamily: 'var(--f-ar)', fontSize: 22, color: 'var(--gold)', direction: 'rtl', lineHeight: 2, marginBottom: 10 }}>{b.ar}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-2)', fontStyle: 'italic', marginBottom: 6, lineHeight: 1.6 }}>{b.latin}</div>
-                    <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.7 }}>"{b.arti}"</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {amalan.tuntunan && (
-          <div className="card" style={{ marginBottom: 12, overflow: 'hidden' }}>
-            <button className="amalan-section-toggle" onClick={() => toggleSec('tuntunan')}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Cara Mengamalkan
-              </span>
-              <span>{openSections.tuntunan ? '▾' : '›'}</span>
-            </button>
-            {openSections.tuntunan && <div style={{ padding: '4px 18px 14px' }}><p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.tuntunan}</p></div>}
-          </div>
-        )}
-
-        {amalan.khasiat && (
-          <div className="card" style={{ marginBottom: 12, overflow: 'hidden' }}>
-            <button className="amalan-section-toggle" onClick={() => toggleSec('khasiat')}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                Khasiat &amp; Faedah
-              </span>
-              <span>{openSections.khasiat ? '▾' : '›'}</span>
-            </button>
-            {openSections.khasiat && <div style={{ padding: '4px 18px 14px' }}><p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.khasiat}</p></div>}
-          </div>
-        )}
-
-        {amalan.dalil && (
-          <div className="card" style={{ marginBottom: 12, overflow: 'hidden' }}>
-            <button className="amalan-section-toggle" onClick={() => toggleSec('dalil')}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                Dalil Anjuran
-              </span>
-              <span>{openSections.dalil ? '▾' : '›'}</span>
-            </button>
-            {openSections.dalil && (
-              <div style={{ padding: '4px 18px 14px' }}>
-                <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: '0 0 8px' }}>{amalan.dalil}</p>
-                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: 'var(--gold)', letterSpacing: '.04em' }}>{amalan.sumber}</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {amalan.keutamaan && (
-          <div className="card" style={{ marginBottom: 12, overflow: 'hidden' }}>
-            <button className="amalan-section-toggle" onClick={() => toggleSec('keutamaan')}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-                Keutamaan
-              </span>
-              <span>{openSections.keutamaan ? '▾' : '›'}</span>
-            </button>
-            {openSections.keutamaan && <div style={{ padding: '4px 18px 14px' }}><p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.keutamaan}</p></div>}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export function PrayerAmalanPage({ card, misiDone, toggleMisi, onBack }) {
   const waktuData = AMALAN_PER_WAKTU.find(w => w.id === (PRAYER_WAKTU_MAP[card.k] || card.k));
   const [selectedAmalan, setSelectedAmalan] = useState(null);
@@ -1680,23 +1560,21 @@ export function PrayerAmalanPage({ card, misiDone, toggleMisi, onBack }) {
 
 export function AmalanPage({ amalanDone, setAmalanDone }) {
   const [activeTab, setActiveTab] = useState('subuh');
-  const [openSections, setOpenSections] = useState({});
-  const [openAmalan, setOpenAmalan] = useState({});
+  const [selectedAmalan, setSelectedAmalan] = useState(null);
 
   const currentWaktu = AMALAN_PER_WAKTU.find(w => w.id === activeTab);
   const doneInTab = currentWaktu?.amalan.filter(a => amalanDone?.[a.id]).length || 0;
   const totalInTab = currentWaktu?.amalan.length || 0;
 
-  const toggleSection = (amalanId, section) => {
-    const key = `${amalanId}-${section}`;
-    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const toggleAmalan = (id) => {
-    setOpenAmalan(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const isOpen = (amalanId, section) => openSections[`${amalanId}-${section}`];
+  if (selectedAmalan) {
+    return (
+      <AmalanDetailPage
+        amalan={selectedAmalan.amalan}
+        waktu={selectedAmalan.waktu}
+        onBack={() => setSelectedAmalan(null)}
+      />
+    );
+  }
 
   return (
     <div className="main fade-in">
@@ -1713,7 +1591,7 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
           </div>
         </div>
 
-        {/* Tabs — scrollable */}
+        {/* Tabs */}
         <div className="tabs scrl" style={{ marginBottom: 20, gap: 6 }}>
           {AMALAN_PER_WAKTU.map(w => (
             <button
@@ -1742,120 +1620,146 @@ export function AmalanPage({ amalanDone, setAmalanDone }) {
           </div>
         )}
 
-        {/* Amalan list */}
-        {currentWaktu?.amalan.map(amalan => {
+        {/* Amalan list — clean cards, no accordion */}
+        {currentWaktu?.amalan.map((amalan) => {
           const done = !!amalanDone?.[amalan.id];
-          const expanded = !!openAmalan[amalan.id];
           return (
-            <div key={amalan.id} className="card" style={{ marginBottom: 10, overflow: 'hidden', opacity: done ? .7 : 1, transition: 'opacity .2s' }}>
-              {/* Amalan header */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '16px 18px' }}>
-                <div
-                  style={{ width: 22, height: 22, borderRadius: 7, border: `1.5px solid ${done ? 'var(--gold)' : 'var(--border-2)'}`, background: done ? 'var(--gold)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: '.18s', marginTop: 2 }}
-                  onClick={() => setAmalanDone(prev => ({ ...prev, [amalan.id]: !prev[amalan.id] }))}
-                >
-                  {done && <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="#020d10" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
-                </div>
-                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 15, color: done ? 'var(--text-2)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none', flex: 1, minWidth: 0 }}>
-                    {amalan.name}
-                  </span>
-                  <span style={{ fontFamily: 'var(--f-ar)', fontSize: 16, color: 'var(--gold)', direction: 'rtl', flexShrink: 0, lineHeight: 1.5 }}>
-                    {amalan.nameAr}
-                  </span>
-                </div>
-                <button
-                  onClick={() => toggleAmalan(amalan.id)}
-                  style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 18, padding: '0 4px', flexShrink: 0 }}
-                >
-                  {expanded ? '▾' : '›'}
-                </button>
+            <div
+              key={amalan.id}
+              className="card"
+              style={{ marginBottom: 10, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', opacity: done ? .6 : 1, transition: 'opacity .2s, border-color .15s, transform .1s' }}
+              onClick={() => setSelectedAmalan({ amalan, waktu: currentWaktu })}
+            >
+              {/* Checkbox */}
+              <div
+                style={{ width: 22, height: 22, borderRadius: 7, border: `1.5px solid ${done ? 'var(--gold)' : 'var(--border-2)'}`, background: done ? 'var(--gold)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: '.18s' }}
+                onClick={(e) => { e.stopPropagation(); setAmalanDone(prev => ({ ...prev, [amalan.id]: !prev[amalan.id] })); }}
+              >
+                {done && <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
               </div>
 
-              {/* Expandable detail */}
-              {expanded && (
-                <div style={{ borderTop: '1px solid var(--border)', padding: '4px 18px 8px' }}>
+              {/* Content — Latin kiri, Arabic kanan */}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, color: done ? 'var(--text-3)' : 'var(--text)', textDecoration: done ? 'line-through' : 'none', flex: 1, minWidth: 0 }}>
+                  {amalan.name}
+                </span>
+                <span style={{ fontFamily: 'var(--f-ar)', fontSize: 14, color: 'var(--gold)', direction: 'rtl', flexShrink: 0, lineHeight: 1.5 }}>
+                  {amalan.nameAr}
+                </span>
+              </div>
 
-                  {/* Bacaan */}
-                  <div style={{ borderBottom: '1px solid var(--border)' }}>
-                    <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'bacaan')}>
-                      <span>📿 Bacaan & Lafaz</span>
-                      <span>{isOpen(amalan.id, 'bacaan') ? '▾' : '›'}</span>
-                    </button>
-                    {isOpen(amalan.id, 'bacaan') && (
-                      <div style={{ paddingBottom: 14 }}>
-                        {amalan.bacaan.map((b, i) => (
-                          <div key={i} className="amalan-bacaan-item" style={{ marginBottom: 8 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                              <span className="chip" style={{ fontSize: 10, padding: '2px 8px', pointerEvents: 'none' }}>{b.jumlah}</span>
-                            </div>
-                            <div style={{ fontFamily: 'var(--f-ar)', fontSize: 22, color: 'var(--gold)', direction: 'rtl', lineHeight: 2, marginBottom: 10 }}>{b.ar}</div>
-                            <div style={{ fontSize: 12, color: 'var(--text-2)', fontStyle: 'italic', marginBottom: 6, lineHeight: 1.6 }}>{b.latin}</div>
-                            <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.7 }}>"{b.arti}"</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Tuntunan */}
-                  <div style={{ borderBottom: '1px solid var(--border)' }}>
-                    <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'tuntunan')}>
-                      <span>📋 Cara Mengamalkan</span>
-                      <span>{isOpen(amalan.id, 'tuntunan') ? '▾' : '›'}</span>
-                    </button>
-                    {isOpen(amalan.id, 'tuntunan') && (
-                      <div style={{ paddingBottom: 14 }}>
-                        <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.tuntunan}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Khasiat */}
-                  <div style={{ borderBottom: '1px solid var(--border)' }}>
-                    <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'khasiat')}>
-                      <span>✨ Khasiat & Faedah</span>
-                      <span>{isOpen(amalan.id, 'khasiat') ? '▾' : '›'}</span>
-                    </button>
-                    {isOpen(amalan.id, 'khasiat') && (
-                      <div style={{ paddingBottom: 14 }}>
-                        <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.khasiat}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Dalil */}
-                  <div style={{ borderBottom: '1px solid var(--border)' }}>
-                    <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'dalil')}>
-                      <span>📖 Dalil Anjuran</span>
-                      <span>{isOpen(amalan.id, 'dalil') ? '▾' : '›'}</span>
-                    </button>
-                    {isOpen(amalan.id, 'dalil') && (
-                      <div style={{ paddingBottom: 14 }}>
-                        <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: '0 0 8px' }}>{amalan.dalil}</p>
-                        <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: 'var(--gold)', letterSpacing: '.04em' }}>{amalan.sumber}</div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Keutamaan */}
-                  <div>
-                    <button className="amalan-section-toggle" onClick={() => toggleSection(amalan.id, 'keutamaan')} style={{ borderBottom: 'none' }}>
-                      <span>⭐ Keutamaan</span>
-                      <span>{isOpen(amalan.id, 'keutamaan') ? '▾' : '›'}</span>
-                    </button>
-                    {isOpen(amalan.id, 'keutamaan') && (
-                      <div style={{ paddingBottom: 14 }}>
-                        <p style={{ fontSize: 13.5, color: 'var(--text)', lineHeight: 1.7, margin: 0 }}>{amalan.keutamaan}</p>
-                      </div>
-                    )}
-                  </div>
-
-                </div>
-              )}
+              {/* Arrow */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)', flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+export function AmalanDetailPage({ amalan, waktu, onBack }) {
+  return (
+    <div className="main fade-in" style={{ overflowY: 'auto' }}>
+      <div className="content scrl" style={{ maxWidth: 680, paddingBottom: 80 }}>
+
+        {/* Back */}
+        <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, padding: '0 0 24px', marginLeft: -4 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Kembali ke {waktu?.waktu}
+        </button>
+
+        {/* Header */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 30, color: 'var(--gold)', direction: 'rtl', lineHeight: 1.8, marginBottom: 10, textAlign: 'right' }}>
+            {amalan.nameAr}
+          </div>
+          <h1 style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 24, color: 'var(--text)', margin: '0 0 8px', letterSpacing: '-.02em' }}>
+            {amalan.name}
+          </h1>
+          {waktu && (
+            <span className="chip" style={{ fontSize: 11, pointerEvents: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              {waktu.waktu} · {waktu.waktuDesc}
+            </span>
+          )}
+        </div>
+
+        {/* Bacaan */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Bacaan & Lafaz
+          </div>
+          {amalan.bacaan?.map((b, i) => (
+            <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20, marginBottom: 12 }}>
+              <span className="chip on" style={{ fontSize: 10, padding: '3px 10px', pointerEvents: 'none', marginBottom: 14, display: 'inline-block' }}>{b.jumlah}</span>
+              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 24, color: 'var(--gold)', direction: 'rtl', lineHeight: 2.2, textAlign: 'right', marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
+                {b.ar}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-2)', fontStyle: 'italic', lineHeight: 1.8, marginBottom: 12 }}>
+                {b.latin}
+              </div>
+              <div style={{ background: 'var(--elevated)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', borderLeft: '3px solid var(--gold-line)' }}>
+                <div className="eyebrow" style={{ fontSize: 9, marginBottom: 6 }}>ARTINYA</div>
+                <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.8 }}>"{b.arti}"</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Cara Mengamalkan */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Cara Mengamalkan
+          </div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.tuntunan}</p>
+          </div>
+        </div>
+
+        {/* Khasiat */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+            Khasiat & Faedah
+          </div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.khasiat}</p>
+          </div>
+        </div>
+
+        {/* Dalil */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Dalil Anjuran
+          </div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: '0 0 14px' }}>{amalan.dalil}</p>
+            <div style={{ background: 'var(--elevated)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--gold)', letterSpacing: '.03em' }}>{amalan.sumber}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Keutamaan */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Keutamaan
+          </div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--radius)', padding: 20 }}>
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.9, margin: 0 }}>{amalan.keutamaan}</p>
+          </div>
+        </div>
+
+        {/* Back button bottom */}
+        <button className="btn gold" style={{ width: '100%', padding: 14, fontSize: 14 }} onClick={onBack}>
+          ← Kembali ke {waktu?.waktu}
+        </button>
+
       </div>
     </div>
   );
