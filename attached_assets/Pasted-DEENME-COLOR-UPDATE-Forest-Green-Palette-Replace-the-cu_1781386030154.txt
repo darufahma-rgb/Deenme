@@ -1,0 +1,233 @@
+DEENME — COLOR UPDATE: Forest Green Palette
+Replace the current color system with this 5-color forest green palette.
+Replace :root in src/deenme-theme.css:
+css:root {
+  /* Base — dark forest */
+  --bg: #0a120a;
+  --bg-warm: #0a120a;
+  --surface: #132a13;
+  --elevated: #1e3d1e;
+  --elevated-2: #31572c;
+
+  /* Primary accent — Fern green */
+  --gold: #4f772d;
+  --gold-2: #90a955;
+  --gold-soft: color-mix(in srgb, #4f772d 15%, transparent);
+  --gold-line: color-mix(in srgb, #4f772d 30%, transparent);
+
+  /* Highlight — Lime Cream (untuk teks penting & CTA) */
+  --lime: #ecf39e;
+  --lime-soft: color-mix(in srgb, #ecf39e 12%, transparent);
+
+  /* Text */
+  --text: #ecf39e;
+  --text-2: #90a955;
+  --text-3: #4f772d;
+
+  /* Status */
+  --ok: #90a955;
+  --warn: #d4a017;
+  --danger: #c0392b;
+
+  /* Borders */
+  --border: #1e3d1e;
+  --border-2: #31572c;
+
+  /* Radius & spacing */
+  --radius: 14px;
+  --radius-sm: 10px;
+  --pad: 24px;
+  --gap: 10px;
+  --rowpad: 16px;
+
+  --f-head: 'Bricolage Grotesque', system-ui, sans-serif;
+  --f-body: 'Bricolage Grotesque', system-ui, sans-serif;
+  --f-ar: 'IBM Plex Sans Arabic', 'Tajawal', serif;
+  --ring-dur: .55s;
+}
+
+body { background: var(--bg); color: var(--text); }
+
+.candle { display: block; }
+.candle::before {
+  background: radial-gradient(closest-side, color-mix(in srgb, #4f772d 8%, transparent), transparent 70%);
+}
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--border); box-shadow: none; }
+
+/* Prayer cards */
+.pcard { background: var(--surface); border: 1px solid var(--border); transition: border-color .2s, box-shadow .2s; }
+.pcard:hover { border-color: var(--gold-line); }
+.pcard.done {
+  background: linear-gradient(120deg, color-mix(in srgb, #90a955 8%, var(--surface)), var(--surface) 55%);
+  border-color: color-mix(in srgb, #90a955 30%, transparent);
+  box-shadow: 0 0 16px -8px #4f772d;
+}
+.pcard.qadha {
+  background: linear-gradient(120deg, color-mix(in srgb, var(--danger) 8%, var(--surface)), var(--surface) 55%);
+  border-color: color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+/* Sidebar */
+.rail { background: #0a120a; border-right: 1px solid var(--border); }
+.rail .brand { background: var(--gold-soft); border: 1px solid var(--gold-line); color: #ecf39e; }
+
+/* Nav */
+.navbtn { color: var(--text-3); }
+.navbtn:hover { background: var(--elevated); color: var(--text-2); }
+.navbtn.on { color: #ecf39e; background: var(--gold-soft); }
+.navbtn.on::before { background: #90a955; }
+
+/* Bottom nav */
+.bottom-nav { background: rgba(10,18,10,.97); border-top: 1px solid var(--border); backdrop-filter: blur(24px); }
+.bnav-btn { color: var(--text-3); }
+.bnav-btn.on { color: #ecf39e; }
+
+/* Streak */
+.streak {
+  background: linear-gradient(135deg, #0d1f0d, color-mix(in srgb, #4f772d 15%, var(--elevated)));
+  border: 1px solid var(--gold-line);
+}
+.bignum { color: #ecf39e; }
+
+/* Buttons */
+.btn { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text-2); }
+.btn:hover { border-color: var(--gold-line); color: var(--text); }
+.btn.gold {
+  background: #4f772d;
+  border-color: #4f772d;
+  color: #ecf39e;
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(79,119,45,.3);
+}
+.btn.gold:hover { background: #90a955; border-color: #90a955; color: #132a13; }
+.btn.ghost { background: transparent; }
+
+/* Icon buttons */
+.iconbtn { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text-2); }
+.iconbtn:hover { color: var(--text); border-color: var(--gold-line); }
+
+/* Chips */
+.chip { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text-2); }
+.chip:hover { border-color: var(--gold-line); color: var(--text); }
+.chip.on { color: #ecf39e; border-color: color-mix(in srgb, #90a955 40%, transparent); background: color-mix(in srgb, #4f772d 20%, transparent); }
+
+/* Tabs */
+.tab { color: var(--text-3); background: transparent; border: 1px solid transparent; }
+.tab:hover { color: var(--text-2); }
+.tab.on { color: #ecf39e; background: color-mix(in srgb, #4f772d 20%, transparent); border-color: color-mix(in srgb, #90a955 35%, transparent); }
+
+/* Arabic */
+.ar { color: #90a955; }
+.doacard .dar { color: #90a955; }
+.misi-item-ar { color: #90a955; }
+.prow .pname .pa { color: #90a955; }
+
+/* Doa cards */
+.doacard { background: var(--surface); border: 1px solid var(--border); }
+.doacard:hover { border-color: var(--gold-line); transform: translateY(-1px); }
+
+/* Bookmark */
+.bm { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text-3); }
+.bm:hover { color: #ecf39e; border-color: var(--gold-line); }
+.bm.on { color: #ecf39e; background: var(--gold-soft); border-color: var(--gold-line); }
+
+/* FAB */
+.fab { background: #4f772d; color: #ecf39e; box-shadow: 0 6px 20px rgba(79,119,45,.35); }
+.fab:hover { background: #90a955; color: #132a13; }
+
+/* Login */
+.login { background: var(--bg); }
+.authcard { background: var(--surface); border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.authlogo { background: var(--gold-soft); border: 1px solid var(--gold-line); color: #ecf39e; }
+.pincell { background: var(--elevated); border: 1px solid var(--border-2); color: #ecf39e; }
+.pincell.fill { border-color: var(--gold-line); background: var(--gold-soft); }
+.pincell.active { border-color: #90a955; box-shadow: 0 0 0 3px var(--gold-soft); }
+
+/* Status segments */
+.segbtn { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text-2); }
+.segbtn:hover { color: var(--text); }
+.segbtn.on.ok { color: #ecf39e; border-color: color-mix(in srgb, #90a955 40%, transparent); background: color-mix(in srgb, #4f772d 15%, transparent); }
+.segbtn.on.late { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); background: color-mix(in srgb, var(--warn) 10%, transparent); }
+.segbtn.on.qadha { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); background: color-mix(in srgb, var(--danger) 10%, transparent); }
+
+/* Time input */
+.tinput { background: var(--elevated); border: 1px solid var(--border-2); color: var(--text); }
+.tinput:focus { border-color: var(--gold-line); }
+
+/* Next prayer tag */
+.next-tag { color: #ecf39e !important; background: var(--gold-soft) !important; border-color: var(--gold-line) !important; }
+
+/* Bar chart */
+.bar { background: linear-gradient(#ecf39e, #90a955); }
+.bar.low { background: var(--border-2); }
+
+/* Amal bar */
+.amal-bar-fill { background: linear-gradient(90deg, #31572c, #90a955); }
+
+/* Editor */
+.editor { background: var(--surface); border: 1px solid var(--border); }
+.etools { border-bottom: 1px solid var(--border); }
+.etb { background: transparent; border: 1px solid var(--border-2); color: var(--text-2); }
+.etb:hover { color: var(--text); border-color: var(--gold-line); }
+
+/* Panels */
+.col-r { background: #0a120a; border-left: 1px solid var(--border); }
+.col-l { background: #0a120a; border-right: 1px solid var(--border); }
+
+/* Bottom sheet */
+.bottom-sheet { background: var(--surface); border-top: 1px solid var(--border); }
+.bottom-sheet-handle { background: var(--border-2); }
+.bottom-sheet-overlay { background: rgba(0,0,0,.65); }
+
+/* Scrollbar */
+.scrl { scrollbar-color: var(--border-2) transparent; }
+.scrl::-webkit-scrollbar-thumb { background: var(--border-2); }
+
+/* Mission items */
+.misi-item { border-bottom: 1px solid var(--border); }
+.misi-item-name { color: var(--text); }
+.misi-item-name.checked { color: var(--text-3); }
+.misi-item-checkbox { border: 1.5px solid var(--border-2); background: transparent; }
+.misi-item-checkbox.checked { background: #90a955; border-color: #90a955; box-shadow: 0 0 8px rgba(144,169,85,.4); }
+
+/* Amalan */
+.amalan-card { background: var(--surface); border: 1px solid var(--border); }
+.amalan-section { border-bottom: 1px solid var(--border); }
+.amalan-section-toggle { color: var(--text-2); }
+.amalan-section-toggle:hover { color: #ecf39e; }
+.amalan-bacaan-item { background: var(--elevated); }
+
+/* Solo Leveling */
+.sl-hunter-card { background: #0d1f0d; border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; position: relative; overflow: hidden; }
+.sl-hunter-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, #90a955 40%, transparent), transparent); }
+.sl-xp-track { background: #0a120a; border: 1px solid var(--border); border-radius: 999px; height: 5px; overflow: hidden; margin-top: 8px; }
+.sl-xp-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #31572c, #90a955, #ecf39e); box-shadow: 0 0 6px #4f772d; transition: width .8s cubic-bezier(.2,.8,.25,1); }
+.sl-stats-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+.sl-stat { background: #0d1f0d; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.sl-stat-val { font-family: var(--f-head); font-weight: 800; font-size: 24px; color: #ecf39e; line-height: 1; letter-spacing: -.02em; }
+.sl-stat-lbl { font-family: var(--f-head); font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; margin-top: 4px; }
+.sl-arise-btn { width: 100%; padding: 13px 16px; background: transparent; border: 1px solid color-mix(in srgb, #90a955 35%, transparent); border-radius: var(--radius-sm); color: #ecf39e; font-family: var(--f-head); font-weight: 700; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: border-color .2s, background .2s; animation: ariseGlow 3s ease-in-out infinite; }
+.sl-arise-btn:hover { background: var(--gold-soft); border-color: #90a955; }
+@keyframes ariseGlow { 0%, 100% { box-shadow: 0 0 8px rgba(79,119,45,.2); } 50% { box-shadow: 0 0 20px rgba(79,119,45,.4), 0 0 0 1px color-mix(in srgb, #90a955 30%, transparent); } }
+.sl-rank-badge { width: 52px; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: var(--f-head); font-weight: 900; font-size: 20px; flex-shrink: 0; animation: rankPulse 3s ease-in-out infinite; }
+@keyframes rankPulse { 0%, 100% { box-shadow: 0 0 10px var(--rank-glow), 0 0 0 1px var(--rank-border); } 50% { box-shadow: 0 0 24px var(--rank-glow), 0 0 0 1.5px var(--rank-color); } }
+.sl-particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.sl-particle { position: absolute; border-radius: 50%; animation: slFloat var(--dur) ease-in-out infinite var(--delay); opacity: 0; }
+@keyframes slFloat { 0% { opacity: 0; transform: translateY(0) scale(0); } 20% { opacity: .5; transform: translateY(-30px) scale(1); } 80% { opacity: .15; transform: translateY(-100px) scale(.5); } 100% { opacity: 0; transform: translateY(-140px) scale(0); } }
+
+/* General */
+.h1, .h2 { color: var(--text); }
+.eyebrow { color: var(--text-3); }
+.muted { color: var(--text-2); }
+.dsrc { color: var(--text-3); }
+.summary-num { color: var(--text); }
+Also update particle colors in SLParticles component in src/App.jsx:
+jsconst colors = ['#4f772d', '#90a955', '#ecf39e', '#31572c'];
+IMPORTANT:
+
+Only modify src/deenme-theme.css and particle colors in App.jsx
+Do NOT touch any JavaScript, JSX, or logic
+Landing page .lp-* classes untouched
+Palette: Evergreen #132a13 (bg surface), Hunter Green #31572c (elevated), Fern #4f772d (accent), Palm Leaf #90a955 (secondary), Lime Cream #ecf39e (text/highlight)
