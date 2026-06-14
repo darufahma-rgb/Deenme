@@ -2090,10 +2090,19 @@ label, .label, .caption {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 80px;
-  padding: 60px 48px;
+  padding: 80px 48px;
   position: relative;
   overflow: hidden;
+}
+.lp-hero-center {
+  flex-direction: column;
+  text-align: center;
+}
+.lp-hero-content-center {
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .lp-hero::before {
   content: '';
@@ -2380,6 +2389,73 @@ label, .label, .caption {
   font-size: 12px; color: var(--lp-text-3); font-family: var(--f-head);
 }
 
+/* ── Talqeeh Section ── */
+.lp-talqeeh {
+  padding: 100px 48px;
+  text-align: center;
+  position: relative;
+  background: linear-gradient(180deg, var(--lp-bg) 0%, #0b1a0e 50%, var(--lp-bg) 100%);
+  border-top: 1px solid rgba(167,201,87,.1);
+  border-bottom: 1px solid rgba(167,201,87,.1);
+  overflow: hidden;
+}
+.lp-talqeeh::before {
+  content: '';
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse, color-mix(in srgb, #a7c957 8%, transparent), transparent 65%);
+  filter: blur(40px); pointer-events: none;
+}
+.lp-talqeeh-thanks {
+  max-width: 560px;
+  margin: 0 auto;
+  position: relative;
+}
+.lp-talqeeh-title {
+  font-family: var(--f-head);
+  font-weight: 800;
+  font-size: clamp(26px, 3.5vw, 40px);
+  letter-spacing: -.02em;
+  color: var(--lp-text);
+  line-height: 1.2;
+  margin: 0 0 20px;
+}
+.lp-talqeeh-sub {
+  font-size: 15px;
+  color: var(--lp-text-2);
+  line-height: 1.8;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.lp-talqeeh-cta-wrap {
+  position: relative;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.lp-talqeeh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #a7c957;
+  border: 1.5px solid rgba(167,201,87,.5);
+  font-family: var(--f-head);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .2s, border-color .2s, transform .15s, box-shadow .2s;
+}
+.lp-talqeeh-btn:hover {
+  background: color-mix(in srgb, #a7c957 12%, transparent);
+  border-color: #a7c957;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px -8px rgba(167,201,87,.3);
+}
+
 /* ── Mobile ── */
 @media (max-width: 767px) {
   .lp-hero {
@@ -2393,6 +2469,8 @@ label, .label, .caption {
   .lp-features-grid { grid-template-columns: 1fr; gap: 12px; }
   .lp-quote { padding: 60px 24px; }
   .lp-final-cta { padding: 80px 24px; }
+  .lp-hero-center { padding: 60px 24px 40px; }
+  .lp-talqeeh { padding: 60px 24px; }
   .lp-footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px; }
 }
 

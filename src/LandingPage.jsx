@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 export function LandingPage({ onEnter }) {
   const [visible, setVisible] = useState(false);
@@ -8,13 +8,12 @@ export function LandingPage({ onEnter }) {
     <div className="landing-root">
 
       {/* ── HERO ── */}
-      <section className="lp-hero">
-        <div className={'lp-hero-content' + (visible ? ' lp-visible' : '')}>
+      <section className="lp-hero lp-hero-center">
+        <div className={'lp-hero-content lp-hero-content-center' + (visible ? ' lp-visible' : '')}>
 
           <div className="lp-bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
 
-          {/* Logo */}
-          <div className="lp-logo-wrap">
+          <div className="lp-logo-wrap" style={{ justifyContent: 'center' }}>
             <div className="lp-logo-icon">
               <img src="./assets/Deenme_logo.png" alt="Deenme"
                 style={{ width: 28, height: 'auto', filter: 'brightness(0) saturate(100%) invert(40%) sepia(40%) saturate(400%) hue-rotate(90deg)' }} />
@@ -22,76 +21,41 @@ export function LandingPage({ onEnter }) {
             <span className="lp-logo-text">Deenme</span>
           </div>
 
-          <h1 className="lp-headline">
+          <h1 className="lp-headline" style={{ textAlign: 'center' }}>
             Jaga Ibadahmu.<br/>
             <span className="lp-headline-accent">Setiap Hari.</span>
           </h1>
-          <p className="lp-sub">
-            Tracker solat, dzikir, dan amalan harian yang dirancang untuk membantu kamu istiqomah — dengan sistem misi, streak, dan doa personal.
+
+          <p className="lp-sub" style={{ textAlign: 'center', margin: '20px auto 36px' }}>
+            Tracker solat, dzikir, dan amalan harian yang dirancang untuk membantu kamu istiqomah —
+            dengan sistem misi, streak, dan doa personal.
           </p>
 
-          <button className="lp-cta" onClick={onEnter}>
-            Mulai Sekarang
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </button>
-          <p className="lp-cta-sub">Butuh kode undangan untuk masuk</p>
-        </div>
-
-        {/* Phone mockup */}
-        <div className={'lp-phone-wrap' + (visible ? ' lp-visible' : '')}>
-          <div className="lp-phone">
-            <div className="lp-phone-screen">
-              <div className="lp-mock-header">
-                <div className="lp-mock-date">الأحد، ١٤ يونيو ٢٠٢٦</div>
-                <div className="lp-mock-title">Minggu, 14 Juni 2026</div>
-              </div>
-
-              {/* Timbangan Amal — sama seperti dashboard */}
-              <div className="lp-mock-timbangan">
-                <div className="lp-mock-timb-label">⚖️ TIMBANGAN AMAL</div>
-                <div className="lp-mock-timb-bar">
-                  <div className="lp-mock-timb-fill" style={{ width: '62%' }} />
-                </div>
-                <div className="lp-mock-timb-rank">مُتَقَدِّم Mutaqaddim</div>
-              </div>
-
-              {/* Stat chips — sama seperti dashboard */}
-              <div className="lp-mock-stats">
-                <div className="lp-mock-stat">
-                  <div className="lp-mock-stat-num">12</div>
-                  <div className="lp-mock-stat-label">streak</div>
-                </div>
-                <div className="lp-mock-stat">
-                  <div className="lp-mock-stat-num">84%</div>
-                  <div className="lp-mock-stat-label">skor</div>
-                </div>
-                <div className="lp-mock-stat">
-                  <div className="lp-mock-stat-num">4/5</div>
-                  <div className="lp-mock-stat-label">solat</div>
-                </div>
-              </div>
-
-              {/* Prayer cards */}
-              <div className="lp-mock-section-label">WAKTU SHOLAT</div>
-              {[
-                { name: 'Subuh',   time: '04:37', done: true  },
-                { name: 'Dzuhur',  time: '11:54', done: true  },
-                { name: 'Ashar',   time: '15:16', done: true  },
-                { name: 'Maghrib', time: '17:47', done: false },
-                { name: 'Isya',    time: '19:02', done: false },
-              ].map((s) => (
-                <div key={s.name} className={'lp-mock-prayer' + (s.done ? ' done' : '')}>
-                  <div className="lp-mock-ring">{s.name[0]}</div>
-                  <div>
-                    <div className="lp-mock-prayer-name">{s.name}</div>
-                    <div className="lp-mock-prayer-time">{s.time}</div>
-                  </div>
-                  <span className="lp-mock-status">{s.done ? '✓' : '○'}</span>
-                </div>
-              ))}
-            </div>
+          {/* Badge Talqeeh — eksklusif */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: 'color-mix(in srgb, #a7c957 12%, transparent)',
+            border: '1px solid color-mix(in srgb, #a7c957 35%, transparent)',
+            borderRadius: 100, padding: '8px 18px',
+            marginBottom: 28,
+          }}>
+            <span style={{ fontSize: 14 }}>🎁</span>
+            <span style={{
+              fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12,
+              color: '#a7c957', letterSpacing: '.04em',
+            }}>
+              Hadiah eksklusif untuk member Talqeeh
+            </span>
           </div>
-          <div className="lp-phone-glow" />
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <button className="lp-cta" onClick={onEnter}>
+              Mulai Sekarang
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            <p className="lp-cta-sub">Masukkan kode undangan dari Talqeeh untuk masuk</p>
+          </div>
+
         </div>
       </section>
 
@@ -124,14 +88,90 @@ export function LandingPage({ onEnter }) {
         <div className="lp-quote-src">QS. Al-Baqarah: 43</div>
       </section>
 
-      {/* ── FINAL CTA ── */}
-      <section className="lp-final-cta">
-        <h2 className="lp-final-title">Siap mulai istiqomah?</h2>
-        <p className="lp-final-sub">Deenme hanya untuk mereka yang diundang.<br/>Hubungi admin untuk mendapatkan kode akses.</p>
-        <button className="lp-cta" onClick={onEnter}>
-          Masuk ke Deenme
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
+      {/* ── TALQEEH SECTION ── */}
+      <section className="lp-talqeeh">
+
+        {/* Garis dekoratif atas */}
+        <div style={{
+          width: 60, height: 3,
+          background: 'linear-gradient(90deg, transparent, #a7c957, transparent)',
+          borderRadius: 2, margin: '0 auto 40px',
+        }} />
+
+        {/* Ucapan terima kasih */}
+        <div className="lp-talqeeh-thanks">
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🤲</div>
+          <div style={{
+            fontFamily: 'var(--f-ar)', fontSize: 22, color: '#a7c957',
+            direction: 'rtl', marginBottom: 20, opacity: .85,
+          }}>
+            جَزَاكُمُ اللهُ خَيْرًا
+          </div>
+          <h2 className="lp-talqeeh-title">
+            Terima kasih, member Talqeeh
+          </h2>
+          <p className="lp-talqeeh-sub">
+            Deenme lahir sebagai hadiah kecil untuk kalian yang telah memilih belajar dan bertumbuh bersama Talqeeh.
+            Semoga setiap solat yang tercatat, setiap dzikir yang dihitung, dan setiap amalan yang dijaga
+            menjadi pemberat timbangan kebaikan kita di hari yang paling penting.
+          </p>
+          <p className="lp-talqeeh-sub" style={{ marginTop: 12 }}>
+            Barakallahu fiikum. 🌿
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div style={{
+          width: '100%', maxWidth: 480,
+          height: 1, background: 'rgba(167,201,87,.15)',
+          margin: '40px auto',
+        }} />
+
+        {/* CTA ke Talqeeh */}
+        <div className="lp-talqeeh-cta-wrap">
+          <div style={{
+            fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11,
+            color: '#a7c957', textTransform: 'uppercase', letterSpacing: '.14em',
+            marginBottom: 16,
+          }}>
+            Belum kenal Talqeeh?
+          </div>
+          <h3 style={{
+            fontFamily: 'var(--f-head)', fontWeight: 800,
+            fontSize: 'clamp(22px, 3vw, 32px)', color: '#e8ede9',
+            letterSpacing: '-.02em', lineHeight: 1.2, margin: '0 0 14px',
+          }}>
+            Tempat belajar Islam<br/>yang menyenangkan
+          </h3>
+          <p style={{
+            fontSize: 15, color: '#7a8f7e', lineHeight: 1.7,
+            maxWidth: 420, margin: '0 auto 32px',
+          }}>
+            Talqeeh adalah komunitas belajar Islam online dengan konten berkualitas,
+            kajian rutin, dan lingkungan yang supportif untuk tumbuh bersama.
+          </p>
+
+          <a
+            href="https://talqeeh.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="lp-talqeeh-btn"
+          >
+            Kunjungi Talqeeh
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>
+        </div>
+
+        {/* Garis dekoratif bawah */}
+        <div style={{
+          width: 60, height: 3,
+          background: 'linear-gradient(90deg, transparent, #a7c957, transparent)',
+          borderRadius: 2, margin: '40px auto 0',
+        }} />
       </section>
 
       {/* ── FOOTER ── */}
@@ -141,7 +181,7 @@ export function LandingPage({ onEnter }) {
             style={{ width: 20, height: 'auto', filter: 'brightness(0) invert(.7) sepia(.3)', opacity: .7 }} />
           Deenme
         </div>
-        <div className="lp-footer-sub">Dibuat dengan ❤️ oleh Dar Dev · Cairo, 2026</div>
+        <div className="lp-footer-sub">Hadiah kecil dari Dar Dev untuk keluarga Talqeeh · 2026</div>
       </footer>
 
     </div>
