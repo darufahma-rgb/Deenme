@@ -929,6 +929,15 @@ export const DOA = [
 
 const DOA_TABS = ['Semua', 'Per Waktu Solat', 'Ujian', 'Galau', 'Syukur', 'Safar', 'Sakit', 'Rezeki', 'Tobat', 'Istiqamah'];
 
+const WAKTU_SOLAT_LIST = [
+  { key: 'Semua',   label: 'Semua',   ar: null,         emoji: '🕌' },
+  { key: 'Subuh',   label: 'Subuh',   ar: 'الفَجْر',    emoji: '🌅' },
+  { key: 'Dzuhur',  label: 'Dzuhur',  ar: 'الظُّهْر',   emoji: '☀️' },
+  { key: 'Ashar',   label: 'Ashar',   ar: 'العَصْر',    emoji: '🌤️' },
+  { key: 'Maghrib', label: 'Maghrib', ar: 'المَغْرِب',  emoji: '🌆' },
+  { key: 'Isya',    label: 'Isya',    ar: 'العِشَاء',   emoji: '🌙' },
+];
+
 function AddDoaModal({ onClose, onAdd }) {
   const [ar, setAr] = useState(''); const [tr, setTr] = useState(''); const [note, setNote] = useState('');
   return (
@@ -1410,13 +1419,96 @@ function DoaSituasional({ allDoa, onSelect }) {
   );
 }
 
-export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
-  const [tab, setTab]           = useState('Semua');
-  const [modal, setModal]       = useState(false);
-  const [selected, setSelected] = useState(null);
+function DoaListCard({ doa, bookmarked, onToggleBookmark, onSelect }) {
+  return (
+    <div
+      onClick={onSelect}
+      style={{
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius)', padding: '14px 16px',
+        cursor: 'pointer', transition: 'border-color .15s, transform .1s',
+        display: 'flex', alignItems: 'center', gap: 14,
+      }}
+      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold-line)'}
+      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {doa.name && (
+          <div style={{
+            fontFamily: 'var(--f-head)', fontWeight: 700,
+            fontSize: 13, color: 'var(--text)', marginBottom: 4,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {doa.name}
+          </div>
+        )}
+        <div style={{
+          fontFamily: 'var(--f-ar)', direction: 'rtl',
+          fontSize: 17, color: 'var(--gold)', lineHeight: 1.6,
+          overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+          marginBottom: 4,
+        }}>
+          {doa.ar}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'var(--f-head)', fontSize: 10, color: 'var(--text-3)', fontWeight: 500 }}>
+            {doa.src}
+          </span>
+          {(doa.waktu || doa.cat) && (
+            <>
+              <span style={{ color: 'var(--border-2)', fontSize: 10 }}>·</span>
+              <span className="chip" style={{ padding: '1px 8px', fontSize: 10, pointerEvents: 'none' }}>
+                {doa.waktu || doa.cat}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <button
+          className={'bm' + (bookmarked ? ' on' : '')}
+          onClick={(e) => { e.stopPropagation(); onToggleBookmark(); }}
+          aria-label="Simpan"
+          style={{ padding: 4 }}
+        >
+          {Icon.bookmark(bookmarked)}
+        </button>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          style={{ color: 'var(--text-3)', flexShrink: 0 }}>
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
 
-  const all  = [...userDoa, ...DOA];
-  const list = all.filter((d) => tab === 'Semua' || d.cat === tab);
+export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
+  const [tab, setTab]               = useState('Semua');
+  const [waktuFilter, setWaktuFilter] = useState('Semua');
+  const [modal, setModal]           = useState(false);
+  const [selected, setSelected]     = useState(null);
+
+  const all = [...userDoa, ...DOA];
+
+  const byTab = all.filter((d) => tab === 'Semua' || d.cat === tab);
+
+  const list = (tab === 'Per Waktu Solat' && waktuFilter !== 'Semua')
+    ? byTab.filter(d => d.waktu === waktuFilter)
+    : byTab;
+
+  const showGrouped = tab === 'Per Waktu Solat' && waktuFilter === 'Semua';
+  const grouped = showGrouped
+    ? WAKTU_SOLAT_LIST.filter(w => w.key !== 'Semua').map(w => ({
+        ...w,
+        items: list.filter(d => d.waktu === w.key),
+      })).filter(g => g.items.length > 0)
+    : null;
+
+  const handleTabChange = (t) => {
+    setTab(t);
+    setWaktuFilter('Semua');
+  };
 
   return (
     <div className="main fade-in">
@@ -1431,99 +1523,110 @@ export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
         </div>
 
         {/* Doa Situasional */}
-        <DoaSituasional
-          allDoa={all}
-          onSelect={(doa) => setSelected(doa)}
-        />
+        <DoaSituasional allDoa={all} onSelect={(doa) => setSelected(doa)} />
 
-        {/* Tabs */}
-        <div className="tabs scrl" style={{ marginBottom: 20 }}>
+        {/* Tabs utama */}
+        <div className="tabs scrl" style={{ marginBottom: tab === 'Per Waktu Solat' ? 10 : 20 }}>
           {DOA_TABS.map((t) => (
-            <button key={t} className={'tab' + (tab === t ? ' on' : '')} onClick={() => setTab(t)}>{t}</button>
+            <button key={t} className={'tab' + (tab === t ? ' on' : '')} onClick={() => handleTabChange(t)}>
+              {t}
+            </button>
           ))}
         </div>
 
-        {/* Doa List — 1 kolom collapsed cards */}
-        <div className="dm-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {list.map((d, idx) => {
-            const key        = d.ar + (d.src || '');
-            const isBookmarked = !!bookmarks[key];
-            return (
-              <div
-                key={key + idx}
-                onClick={() => setSelected(d)}
+        {/* Sub-filter waktu — hanya tampil kalau tab Per Waktu Solat */}
+        {tab === 'Per Waktu Solat' && (
+          <div className="tabs scrl" style={{ marginBottom: 20, gap: 6 }}>
+            {WAKTU_SOLAT_LIST.map(({ key, label, emoji }) => (
+              <button
+                key={key}
+                onClick={() => setWaktuFilter(key)}
                 style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)',
-                  padding: '14px 16px',
-                  cursor: 'pointer',
-                  transition: 'border-color .15s, transform .1s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 14,
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '6px 14px', borderRadius: 20,
+                  border: `1.5px solid ${waktuFilter === key ? 'var(--gold)' : 'var(--border-2)'}`,
+                  background: waktuFilter === key ? 'var(--gold-soft)' : 'transparent',
+                  fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12,
+                  color: waktuFilter === key ? 'var(--gold)' : 'var(--text-3)',
+                  cursor: 'pointer', flexShrink: 0,
+                  transition: 'all .15s ease',
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold-line)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
               >
-                {/* Left: text content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {d.name && (
-                    <div style={{
-                      fontFamily: 'var(--f-head)', fontWeight: 700,
-                      fontSize: 13, color: 'var(--text)', marginBottom: 4,
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    }}>
-                      {d.name}
-                    </div>
-                  )}
-                  <div style={{
-                    fontFamily: 'var(--f-ar)', direction: 'rtl',
-                    fontSize: 17, color: 'var(--gold)', lineHeight: 1.6,
-                    overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-                    marginBottom: 4,
-                  }}>
-                    {d.ar}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                    <span style={{
-                      fontFamily: 'var(--f-head)', fontSize: 10,
-                      color: 'var(--text-3)', fontWeight: 500,
-                    }}>
-                      {d.src}
-                    </span>
-                    <span style={{ color: 'var(--border-2)', fontSize: 10 }}>·</span>
-                    <span className="chip" style={{ padding: '1px 8px', fontSize: 10, pointerEvents: 'none' }}>
-                      {d.waktu || d.cat}
-                    </span>
-                  </div>
-                </div>
+                <span style={{ fontSize: 13 }}>{emoji}</span>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
-                {/* Right: bookmark + chevron */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  <button
-                    className={'bm' + (isBookmarked ? ' on' : '')}
-                    onClick={(e) => { e.stopPropagation(); toggleBookmark(key); }}
-                    aria-label="Simpan"
-                    style={{ padding: 4 }}
-                  >
-                    {Icon.bookmark(isBookmarked)}
-                  </button>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ color: 'var(--text-3)', flexShrink: 0 }}>
-                    <path d="M9 18l6-6-6-6"/>
-                  </svg>
+        {/* Doa list */}
+        {showGrouped ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {grouped.map(({ key, label, ar, emoji, items }) => (
+              <div key={key}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  marginBottom: 10, paddingBottom: 8,
+                  borderBottom: '1px solid var(--border)',
+                }}>
+                  <span style={{ fontSize: 18 }}>{emoji}</span>
+                  <div>
+                    <div style={{
+                      fontFamily: 'var(--f-head)', fontWeight: 800,
+                      fontSize: 15, color: 'var(--text)', lineHeight: 1,
+                    }}>{label}</div>
+                    {ar && (
+                      <div style={{
+                        fontFamily: 'var(--f-ar)', fontSize: 13,
+                        color: 'var(--gold)', direction: 'rtl', marginTop: 2, opacity: .8,
+                      }}>{ar}</div>
+                    )}
+                  </div>
+                  <span style={{
+                    marginLeft: 'auto', fontFamily: 'var(--f-head)', fontWeight: 600,
+                    fontSize: 11, color: 'var(--text-3)',
+                  }}>
+                    {items.length} doa
+                  </span>
+                </div>
+                <div className="dm-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {items.map((d, idx) => (
+                    <DoaListCard
+                      key={d.ar + idx}
+                      doa={d}
+                      bookmarked={!!bookmarks[d.ar + (d.src || '')]}
+                      onToggleBookmark={() => toggleBookmark(d.ar + (d.src || ''))}
+                      onSelect={() => setSelected(d)}
+                    />
+                  ))}
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="dm-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {list.length === 0 ? (
+              <div style={{
+                textAlign: 'center', padding: '40px 0',
+                color: 'var(--text-3)', fontFamily: 'var(--f-head)', fontSize: 13,
+              }}>
+                Belum ada doa untuk waktu ini
+              </div>
+            ) : list.map((d, idx) => (
+              <DoaListCard
+                key={d.ar + idx}
+                doa={d}
+                bookmarked={!!bookmarks[d.ar + (d.src || '')]}
+                onToggleBookmark={() => toggleBookmark(d.ar + (d.src || ''))}
+                onSelect={() => setSelected(d)}
+              />
+            ))}
+          </div>
+        )}
 
         <button className="fab" onClick={() => setModal(true)} aria-label="Tambah Doa">+</button>
       </div>
 
-      {/* Detail Drawer */}
       {selected && (
         <DoaDetailDrawer
           doa={selected}
