@@ -78,7 +78,41 @@ const RAIL_ITEMS = [
   ['stats',     'stats',  'Statistik'],
 ];
 
-export function Rail({ page, go, onLogout }) {
+function TimezonePicker({ timezone, onChange, options }) {
+  return (
+    <div style={{ padding: '10px 8px', borderTop: '1px solid var(--border)' }}>
+      <div className="eyebrow" style={{ marginBottom: 6, paddingLeft: 4, fontSize: 9 }}>Zona Waktu</div>
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+            padding: '7px 8px', borderRadius: 'var(--radius-sm)',
+            border: `1px solid ${timezone === opt.value ? 'var(--gold-line)' : 'transparent'}`,
+            background: timezone === opt.value ? 'var(--gold-soft)' : 'transparent',
+            cursor: 'pointer', marginBottom: 3, transition: '.15s',
+          }}
+        >
+          <span style={{ fontSize: 14 }}>{opt.flag}</span>
+          <div style={{ textAlign: 'left', flex: 1 }}>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: timezone === opt.value ? 'var(--gold)' : 'var(--text)', lineHeight: 1.2 }}>
+              {opt.label}
+            </div>
+            <div style={{ fontFamily: 'var(--f-head)', fontSize: 9, color: 'var(--text-3)' }}>{opt.offset}</div>
+          </div>
+          {timezone === opt.value && (
+            <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)', flexShrink: 0 }}>
+              <path d="M3 7.4 5.7 10 11 4.2"/>
+            </svg>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function Rail({ page, go, onLogout, timezone, changeTimezone, timezoneOptions }) {
   return (
     <div className="rail">
       <div className="brand">
@@ -91,6 +125,9 @@ export function Rail({ page, go, onLogout }) {
         </button>
       ))}
       <div style={{ flex: 1 }} />
+      {timezone && timezoneOptions && (
+        <TimezonePicker timezone={timezone} onChange={changeTimezone} options={timezoneOptions} />
+      )}
       <button className="navbtn" onClick={onLogout} aria-label="Keluar">
         {Icon.logout}<span className="tip">Keluar</span>
       </button>

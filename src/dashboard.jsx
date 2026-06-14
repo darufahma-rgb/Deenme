@@ -775,8 +775,14 @@ function DetailPanel({ pKey }) {
   );
 }
 
+// ── Prayer Config per timezone ───────────────────────────────────────────────
+const PRAYER_CONFIG = {
+  'Asia/Jakarta': { lat: -6.1701, lng: 106.6400, method: 11, city: 'Jakarta',  country: 'Indonesia' },
+  'Africa/Cairo': { lat: 30.0444, lng: 31.2357,  method: 5,  city: 'Cairo',    country: 'Egypt'     },
+};
+
 // ── Prayer Times Hook ────────────────────────────────────────────────────────
-function usePrayerTimes() {
+function usePrayerTimes(timezone = 'Asia/Jakarta') {
   const [schedules, setSchedules] = useState({});
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState(false);
@@ -784,16 +790,17 @@ function usePrayerTimes() {
   const load = () => {
     setError(false);
     setLoading(true);
-    const today = new Date();
-    const dd    = String(today.getDate()).padStart(2, '0');
-    const mm    = String(today.getMonth() + 1).padStart(2, '0');
-    const date  = `${dd}-${mm}-${today.getFullYear()}`;
-    const cacheKey = `deenme-sched-${date}`;
-    const cached = localStorage.getItem(cacheKey);
+    const config = PRAYER_CONFIG[timezone] || PRAYER_CONFIG['Asia/Jakarta'];
+    const today  = new Date().toLocaleDateString('en-CA', { timeZone: timezone });
+    const [year, month, day] = today.split('-');
+    const date = `${day}-${month}-${year}`;
+    const tzSlug   = timezone.split('/')[1];
+    const cacheKey = `deenme-sched-${date}-${tzSlug}`;
+    const cached   = localStorage.getItem(cacheKey);
     if (cached) {
       try { setSchedules(JSON.parse(cached)); setLoading(false); return; } catch {}
     }
-    const url = `https://api.aladhan.com/v1/timingsByCity/${date}?city=Jakarta&country=Indonesia&method=11`;
+    const url = `https://api.aladhan.com/v1/timings/${date}?latitude=${config.lat}&longitude=${config.lng}&method=${config.method}`;
     fetch(url)
       .then((r) => r.json())
       .then((data) => {
@@ -806,18 +813,18 @@ function usePrayerTimes() {
       .catch(() => { setError(true); setLoading(false); });
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [timezone]);
   return { schedules, loading, error, retry: load };
 }
 
-function _wibNow() {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+function _tzNow(tz = 'Asia/Jakarta') {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
 }
 
-function getTimeRemaining(schedStr) {
+function getTimeRemaining(schedStr, tz = 'Asia/Jakarta') {
   if (!schedStr || schedStr === '--:--') return null;
   const [h, m] = schedStr.split(':').map(Number);
-  const now    = _wibNow();
+  const now    = _tzNow(tz);
   const target = new Date(now);
   target.setHours(h, m, 0, 0);
   if (target <= now) target.setDate(target.getDate() + 1);
@@ -827,8 +834,8 @@ function getTimeRemaining(schedStr) {
   return hours > 0 ? `dalam ${hours}j ${mins}m` : `dalam ${mins}m`;
 }
 
-function getNextPrayerKey(schedules) {
-  const now    = _wibNow();
+function getNextPrayerKey(schedules, tz = 'Asia/Jakarta') {
+  const now    = _tzNow(tz);
   const nowMin = now.getHours() * 60 + now.getMinutes();
   for (const p of PRAYERS) {
     const s = schedules[p.k];
@@ -1054,6 +1061,7 @@ export function DashboardPage({
   score, ring, streak, freeze, useFreeze, pulse, go,
   misiDone = {}, onMisiToggle, toggleMisi, dailyPoints = 0, totalPoints = 0, badgeToast, clearBadgeToast,
   userName = 'Akhi', onPrayerCardClick,
+  timezone = 'Asia/Jakarta', changeTimezone, timezoneOptions = [],
 }) {
   const misiToggleFn = toggleMisi || onMisiToggle;
   const doneCount = PRAYERS.filter((p) => prayers[p.k]).length;
@@ -1061,36 +1069,39 @@ export function DashboardPage({
   const level = getLevel(totalPoints);
 
   // Live prayer times from Aladhan API
-  const { schedules, loading: schedLoading, error: schedError, retry } = usePrayerTimes();
+  const { schedules, loading: schedLoading, error: schedError, retry } = usePrayerTimes(timezone);
 
-  // Next prayer key based on real WIB clock
+  // Next prayer key based on real clock
   const nextK = Object.keys(schedules).length > 0
-    ? getNextPrayerKey(schedules)
+    ? getNextPrayerKey(schedules, timezone)
     : PRAYERS.find((p) => !prayers[p.k])?.k;
+
+  // Timezone label
+  const tzLabel = timezone === 'Africa/Cairo' ? 'EET' : 'WIB';
 
   // Live clock — updates every second
   const [clock, setClock] = useState(() =>
-    _wibNow().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    _tzNow(timezone).toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit' })
   );
   useEffect(() => {
     const tid = setInterval(() => {
-      setClock(_wibNow().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setClock(_tzNow(timezone).toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }, 1000);
     return () => clearInterval(tid);
-  }, []);
+  }, [timezone]);
 
   // Time-remaining label — updates every minute
   const [remaining, setRemaining] = useState({});
   useEffect(() => {
     const update = () => {
       const r = {};
-      PRAYERS.forEach((p) => { r[p.k] = getTimeRemaining(schedules[p.k]); });
+      PRAYERS.forEach((p) => { r[p.k] = getTimeRemaining(schedules[p.k], timezone); });
       setRemaining(r);
     };
     update();
     const tid = setInterval(update, 60000);
     return () => clearInterval(tid);
-  }, [schedules]);
+  }, [schedules, timezone]);
 
   // Panel shows: last prayed prayer, or next if none prayed
   const lastPrayed = [...PRAYERS].reverse().find((p) => prayers[p.k] === 'ok' || prayers[p.k] === 'late');
@@ -1114,8 +1125,24 @@ export function DashboardPage({
             <h1 className="h1">{_idDate()}</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 5 }}>
               <span style={{ fontFamily: 'var(--f-head)', fontSize: 13, color: 'var(--text-2)', letterSpacing: '.04em' }}>
-                {clock} <span style={{ color: 'var(--text-3)', fontSize: 11 }}>WIB</span>
+                {clock} <span style={{ color: 'var(--text-3)', fontSize: 11 }}>{tzLabel}</span>
               </span>
+              {changeTimezone && timezoneOptions.length > 0 && (
+                <button
+                  onClick={() => {
+                    const next = timezoneOptions.find(o => o.value !== timezone);
+                    if (next) changeTimezone(next.value);
+                  }}
+                  style={{
+                    fontFamily: 'var(--f-head)', fontSize: 11, fontWeight: 600,
+                    color: 'var(--text-3)', background: 'none',
+                    border: '1px solid var(--border-2)', borderRadius: 999,
+                    padding: '2px 8px', cursor: 'pointer',
+                  }}
+                >
+                  {timezone === 'Africa/Cairo' ? '🇪🇬 Cairo' : '🇮🇩 WIB'}
+                </button>
+              )}
               {schedError && (
                 <button onClick={retry} style={{ background: 'none', border: 'none', color: 'var(--gold)', cursor: 'pointer', fontSize: 12, padding: '2px 6px', borderRadius: 6, borderLeft: '1px solid var(--border)' }}>
                   ⟳ Muat ulang jadwal
@@ -1190,7 +1217,7 @@ export function DashboardPage({
               time={times[p.k]}
               isNext={p.k === nextK}
               onStatus={setStatus}
-              onSetTime={(k) => setTime(k, _wibNow().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }))}
+              onSetTime={(k) => setTime(k, _tzNow(timezone).toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false }))}
               onClick={() => onPrayerCardClick && onPrayerCardClick(p)}
               schedules={schedules}
               schedLoading={schedLoading}

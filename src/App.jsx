@@ -224,6 +224,12 @@ function LoginPage({ onEnter }) {
   );
 }
 
+// ── Timezone Options ─────────────────────────────────────────────────────────
+const TIMEZONE_OPTIONS = [
+  { value: 'Asia/Jakarta', label: 'Jakarta / WIB', flag: '🇮🇩', offset: 'UTC+7' },
+  { value: 'Africa/Cairo', label: 'Cairo / EET',   flag: '🇪🇬', offset: 'UTC+2' },
+];
+
 // ── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [codeId,   setCodeId]   = useState(() => localStorage.getItem('deenme-code-id') || null);
@@ -253,6 +259,13 @@ export default function App() {
     try { return JSON.parse(localStorage.getItem('deenme-qadha') || '{}'); }
     catch { return {}; }
   });
+  const [timezone, setTimezone] = useState(
+    () => localStorage.getItem('deenme-timezone') || 'Asia/Jakarta'
+  );
+  const changeTimezone = (tz) => {
+    setTimezone(tz);
+    localStorage.setItem('deenme-timezone', tz);
+  };
 
   const prevAll = useRef(false);
 
@@ -361,7 +374,7 @@ export default function App() {
     if (val) {
       const now = new Date();
       const wibTime = now.toLocaleTimeString('id-ID', {
-        timeZone: 'Asia/Jakarta',
+        timeZone: timezone,
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
@@ -468,7 +481,7 @@ export default function App() {
       <SLParticles />
       <div className="candle" />
       <div className="app">
-        <Rail page={view} go={setView} onLogout={onLogout} />
+        <Rail page={view} go={setView} onLogout={onLogout} timezone={timezone} changeTimezone={changeTimezone} timezoneOptions={TIMEZONE_OPTIONS} />
 
         <PageTransition viewKey={view}>
           {(v) => (<>
@@ -483,6 +496,7 @@ export default function App() {
                 badgeToast={badgeToast} clearBadgeToast={() => setBadgeToast(null)}
                 userName={userName}
                 onPrayerCardClick={setActivePrayerCard}
+                timezone={timezone} changeTimezone={changeTimezone} timezoneOptions={TIMEZONE_OPTIONS}
               />}
             {v === 'journal' && <JournalPage go={setView} codeId={codeId} />}
             {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
