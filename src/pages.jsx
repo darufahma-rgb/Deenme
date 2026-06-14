@@ -1049,7 +1049,7 @@ export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
         </div>
 
         {/* Doa List — 1 kolom collapsed cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="dm-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {list.map((d, idx) => {
             const key        = d.ar + (d.src || '');
             const isBookmarked = !!bookmarks[key];
@@ -2082,7 +2082,7 @@ export function PrayerAmalanPage({ card, misiDone, toggleMisi, onBack }) {
             <div className="muted">Amalan untuk waktu ini segera hadir</div>
           </div>
         ) : (
-          <div className="prayer-amalan-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, maxWidth: 960, margin: '0 auto' }}>
+          <div className="prayer-amalan-grid dm-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, maxWidth: 960, margin: '0 auto' }}>
             {waktuData.amalan.map((amalan, idx) => {
               const done = !!misiDone?.[amalan.id];
               return (

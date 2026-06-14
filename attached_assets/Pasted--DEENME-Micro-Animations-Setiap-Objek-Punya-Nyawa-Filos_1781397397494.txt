@@ -1,0 +1,304 @@
+# DEENME — Micro-Animations: Setiap Objek Punya Nyawa
+
+## Filosofi
+Animasi bukan dekorasi — tiap elemen punya karakter:
+- **Cards** → lift saat hover (naik ringan + shadow dalam)
+- **Buttons** → press down saat klik (spring back)
+- **Nav items** → scale + glow saat aktif
+- **Tabs/chips** → slide highlight smooth
+- **Progress bars** → animasi fill dari kiri saat pertama muncul
+- **Angka/stats** → count-up feel
+- **FAB** → pulse idle + scale saat klik
+- **List items** → stagger masuk dari bawah saat halaman load
+- **Prayer cards** → glow hijau saat di-centang
+
+---
+
+## Tambahkan di `src/deenme-theme.css`
+
+Cari baris `/* ── markdown render ── */` dan sisipkan blok berikut SEBELUMNYA:
+
+```css
+/* ══════════════════════════════════════════
+   MICRO-ANIMATIONS
+══════════════════════════════════════════ */
+
+/* ── 1. Keyframes baru ── */
+@keyframes dm-rise {
+  from { opacity: 0; transform: translateY(16px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes dm-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(.94); }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+@keyframes dm-fab-pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(56,102,65,.35); }
+  50%       { box-shadow: 0 4px 32px rgba(56,102,65,.65), 0 0 0 8px rgba(56,102,65,.08); }
+}
+@keyframes dm-glow-check {
+  0%   { box-shadow: 0 0 0 0   rgba(56,102,65,.5); }
+  60%  { box-shadow: 0 0 0 10px rgba(56,102,65,.0); }
+  100% { box-shadow: 0 0 0 0   rgba(56,102,65,.0); }
+}
+@keyframes dm-badge-in {
+  from { opacity: 0; transform: scale(.6) rotate(-8deg); }
+  to   { opacity: 1; transform: scale(1)  rotate(0deg); }
+}
+@keyframes dm-stagger {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dm-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes dm-spin-in {
+  from { opacity: 0; transform: rotate(-90deg) scale(.5); }
+  to   { opacity: 1; transform: rotate(0deg)   scale(1); }
+}
+
+/* ── 2. Cards — lift on hover ── */
+.card {
+  transition: transform .2s cubic-bezier(.22,1,.36,1),
+              box-shadow .2s cubic-bezier(.22,1,.36,1),
+              border-color .15s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(56,102,65,.12);
+  border-color: var(--gold-line);
+}
+
+/* ── 3. Prayer cards — lift + glow on hover ── */
+.pcard {
+  transition: transform .2s cubic-bezier(.22,1,.36,1),
+              box-shadow .2s ease,
+              border-color .15s ease;
+}
+.pcard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56,102,65,.13);
+}
+.pcard.done {
+  animation: dm-glow-check .6s ease forwards;
+}
+
+/* ── 4. Doa cards ── */
+.doacard {
+  transition: transform .2s cubic-bezier(.22,1,.36,1),
+              box-shadow .2s ease,
+              border-color .15s ease;
+}
+.doacard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56,102,65,.12);
+  border-color: var(--gold-line);
+}
+.doacard:active {
+  transform: scale(.985);
+}
+
+/* ── 5. Buttons ── */
+.btn {
+  transition: transform .15s cubic-bezier(.22,1,.36,1),
+              box-shadow .15s ease,
+              background .15s ease,
+              border-color .15s ease,
+              color .15s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: scale(.96) translateY(0);
+  transition-duration: .08s;
+}
+.btn.gold:active {
+  transform: scale(.96);
+}
+
+/* ── 6. Tabs — smooth underline slide ── */
+.tab {
+  transition: background .18s ease,
+              color .18s ease,
+              border-color .18s ease,
+              transform .15s cubic-bezier(.22,1,.36,1);
+}
+.tab:active {
+  transform: scale(.95);
+}
+.tab.on {
+  animation: dm-pop .3s cubic-bezier(.22,1,.36,1);
+}
+
+/* ── 7. Chips ── */
+.chip {
+  transition: background .15s ease, border-color .15s ease,
+              color .15s ease, transform .12s ease;
+}
+.chip:hover { transform: scale(1.04); }
+.chip:active { transform: scale(.95); }
+
+/* ── 8. Sidebar nav buttons ── */
+.navbtn {
+  transition: background .15s ease, color .15s ease,
+              transform .15s cubic-bezier(.22,1,.36,1);
+}
+.navbtn:hover { transform: scale(1.08); }
+.navbtn:active { transform: scale(.93); }
+.navbtn.on { animation: dm-pop .32s cubic-bezier(.22,1,.36,1); }
+
+/* ── 9. Bottom nav buttons ── */
+.bnav-btn {
+  transition: color .15s ease, transform .15s cubic-bezier(.22,1,.36,1);
+}
+.bnav-btn:active { transform: scale(.88); }
+.bnav-btn.on {
+  animation: dm-pop .3s cubic-bezier(.22,1,.36,1);
+}
+.bnav-btn.on svg {
+  filter: drop-shadow(0 0 6px var(--gold));
+  animation: dm-spin-in .3s cubic-bezier(.22,1,.36,1);
+}
+
+/* ── 10. FAB — idle pulse + click ── */
+.fab {
+  animation: dm-fab-pulse 2.8s ease-in-out infinite;
+  transition: transform .15s cubic-bezier(.22,1,.36,1), box-shadow .15s ease;
+}
+.fab:hover {
+  transform: scale(1.1) translateY(-2px);
+  animation: none;
+}
+.fab:active {
+  transform: scale(.9);
+  transition-duration: .08s;
+}
+
+/* ── 11. Bookmark button ── */
+.bm {
+  transition: transform .2s cubic-bezier(.22,1,.36,1), color .15s ease;
+}
+.bm:hover { transform: scale(1.2); }
+.bm.on {
+  animation: dm-pop .35s cubic-bezier(.22,1,.36,1);
+}
+
+/* ── 12. Progress bars — animate fill on load ── */
+/* Wrap progress bar fill div dengan class dm-bar-fill */
+.dm-bar-fill {
+  transition: width .9s cubic-bezier(.2,.8,.25,1);
+  position: relative;
+  overflow: hidden;
+}
+.dm-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.3) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: dm-shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── 13. Stagger list items — pakai nth-child ── */
+.dm-stagger > * {
+  animation: dm-stagger .35s cubic-bezier(.22,1,.36,1) both;
+}
+.dm-stagger > *:nth-child(1) { animation-delay: .03s; }
+.dm-stagger > *:nth-child(2) { animation-delay: .07s; }
+.dm-stagger > *:nth-child(3) { animation-delay: .11s; }
+.dm-stagger > *:nth-child(4) { animation-delay: .15s; }
+.dm-stagger > *:nth-child(5) { animation-delay: .19s; }
+.dm-stagger > *:nth-child(6) { animation-delay: .23s; }
+.dm-stagger > *:nth-child(7) { animation-delay: .27s; }
+.dm-stagger > *:nth-child(8) { animation-delay: .31s; }
+.dm-stagger > *:nth-child(n+9) { animation-delay: .34s; }
+
+/* ── 14. Page sections rise in ── */
+.dm-rise {
+  animation: dm-rise .4s cubic-bezier(.22,1,.36,1) both;
+}
+.dm-rise-1 { animation: dm-rise .4s .05s cubic-bezier(.22,1,.36,1) both; }
+.dm-rise-2 { animation: dm-rise .4s .10s cubic-bezier(.22,1,.36,1) both; }
+.dm-rise-3 { animation: dm-rise .4s .15s cubic-bezier(.22,1,.36,1) both; }
+.dm-rise-4 { animation: dm-rise .4s .20s cubic-bezier(.22,1,.36,1) both; }
+
+/* ── 15. Input focus ── */
+.tinput {
+  transition: border-color .15s ease, box-shadow .15s ease, transform .1s ease;
+}
+.tinput:focus {
+  transform: scale(1.01);
+  box-shadow: 0 0 0 3px rgba(56,102,65,.15);
+}
+
+/* ── 16. Streak bignum — entrance ── */
+.bignum {
+  animation: dm-rise .5s .1s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* ── 17. Auth card entrance ── */
+.authcard {
+  animation: dm-rise .45s cubic-bezier(.22,1,.36,1) both;
+}
+```
+
+---
+
+## Update JSX — Tambah class `dm-stagger` di list container
+
+### `src/pages.jsx` — BankDoaPage list
+
+Cari:
+```jsx
+<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+```
+Ganti:
+```jsx
+<div className="dm-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+```
+
+### `src/pages.jsx` — Prayer Amalan grid
+
+Cari:
+```jsx
+<div className="prayer-amalan-grid" style={{ display: 'grid', ...
+```
+Ganti tambahkan class:
+```jsx
+<div className="prayer-amalan-grid dm-stagger" style={{ display: 'grid', ...
+```
+
+### `src/dashboard.jsx` — Prayer cards grid
+
+Cari container prayer cards (wrapper div yang berisi `.pcard`) dan tambah class `dm-stagger`.
+
+---
+
+## Hasil per Elemen
+
+| Elemen | Animasi |
+|--------|---------|
+| Cards (.card) | Lift 3px + shadow saat hover |
+| Prayer cards | Lift 2px + glow hijau saat done |
+| Doa cards | Lift + scale(.985) saat klik |
+| Tombol | Lift hover, scale(.96) press |
+| Tabs | Pop spring saat aktif |
+| Chips | Scale(1.04) hover |
+| Nav sidebar | Scale(1.08) hover, pop saat aktif |
+| Bottom nav | Scale(.88) tap, spin-in icon aktif |
+| FAB | Idle pulse hijau, scale(1.1) hover |
+| Bookmark | Scale(1.2) hover, pop saat on |
+| Progress bar | Shimmer glide + smooth fill |
+| List items | Stagger masuk dari bawah (tiap 40ms) |
+| Bignum/stats | Rise masuk saat render |
+| Auth card | Rise masuk saat halaman login tampil |
+| Input | Scale(1.01) + glow ring saat focus |
+
+## File yang Diubah
+- `src/deenme-theme.css` — tambah blok animasi sebelum `/* ── markdown render ── */`
+- `src/pages.jsx` — tambah class `dm-stagger` di 2 list container
+- `src/dashboard.jsx` — tambah class `dm-stagger` di prayer cards wrapper

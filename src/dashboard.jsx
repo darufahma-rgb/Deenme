@@ -1039,7 +1039,7 @@ export function DashboardPage({
           <span className="eyebrow">Waktu Sholat</span>
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{doneCount} / 5 dicatat</span>
         </div>
-        <div className="prayer-grid">
+        <div className="prayer-grid dm-stagger">
           {PRAYER_CARDS.map((p) => (
             <PrayerCard
               key={p.k}
