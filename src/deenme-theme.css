@@ -160,7 +160,7 @@ body {
 
 .login { background: var(--bg); }
 .authcard { background: var(--surface); border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,.08); }
-.authlogo { background: var(--gold-soft); border: 1px solid var(--gold-line); color: #386641; }
+.authlogo { background: transparent; border: none; box-shadow: none; }
 .pincell { background: var(--elevated); border: 1px solid var(--border-2); color: #386641; }
 .pincell.fill { border-color: var(--gold-line); background: var(--gold-soft); }
 .pincell.active { border-color: #386641; box-shadow: 0 0 0 3px var(--gold-soft); }
@@ -1020,15 +1020,12 @@ label, .label, .caption {
   box-shadow: 0 40px 120px -40px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.03);
 }
 .authlogo {
-  width: 60px; height: 60px;
-  border-radius: var(--radius);
+  width: 72px; height: 72px;
   display: flex; align-items: center; justify-content: center;
-  background: var(--gold);
-  color: #071510;
-  font-family: var(--f-ar);
-  font-size: 34px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   margin-bottom: 4px;
-  box-shadow: 0 0 28px -6px #2ecc8a;
 }
 .pin { display: flex; gap: 9px; margin: 6px 0 }
 .pincell {
@@ -2138,11 +2135,11 @@ label, .label, .caption {
 
 .lp-logo-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
 .lp-logo-icon {
-  width: 48px; height: 48px; border-radius: 14px;
-  background: color-mix(in srgb, #386641 15%, transparent);
-  border: 1px solid color-mix(in srgb, #386641 35%, transparent);
+  width: 48px; height: 48px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 24px -8px #386641;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 .lp-logo-text {
   font-family: var(--f-head); font-weight: 800;

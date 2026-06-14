@@ -56,8 +56,8 @@ export function LandingPage({ onLogin, onEnter }) {
       {/* ── NAVBAR ── */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(242,232,207,.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #ddd4b0', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: '#386641', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontFamily: 'var(--f-ar)', fontSize: 16, color: '#f2e8cf' }}>د</span>
+          <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 32, height: 'auto', filter: 'brightness(0) saturate(100%) invert(28%) sepia(30%) saturate(800%) hue-rotate(95deg) brightness(85%)' }} />
           </div>
           <span style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-.01em', color: '#1a2e1c' }}>Deenme</span>
         </div>
