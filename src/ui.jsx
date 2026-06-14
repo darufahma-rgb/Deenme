@@ -81,7 +81,9 @@ const RAIL_ITEMS = [
 export function Rail({ page, go, onLogout }) {
   return (
     <div className="rail">
-      <div className="brand">د</div>
+      <div className="brand">
+  <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 26, height: 'auto', filter: 'brightness(0) saturate(100%) invert(35%) sepia(60%) saturate(500%) hue-rotate(90deg) brightness(90%)' }} />
+</div>
       {RAIL_ITEMS.map(([view, icon, label]) => (
         <button key={view} className={'navbtn' + (page === view ? ' on' : '')} onClick={() => go(view)} aria-label={label}>
           {Icon[icon]}
