@@ -1016,7 +1016,24 @@ export function DashboardPage({
         </div>
 
         {/* Timbangan Amal */}
-        <TimbangAmal dailyPoints={dailyPoints} totalPoints={totalPoints} />
+        <div className="card amal-bar-wrap" style={{
+          padding: '14px 18px',
+          marginBottom: 16,
+          position: 'relative',
+          zIndex: 'auto',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span className="eyebrow">⚖ TIMBANGAN AMAL HARI INI</span>
+            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--gold)' }}>{totalPoints || 0} / 200 poin</span>
+          </div>
+          <div style={{ background: 'var(--border)', borderRadius: 999, height: 5 }}>
+            <div className="amal-bar-fill" style={{ width: Math.min(((totalPoints||0)/200)*100, 100) + '%', height: '100%', borderRadius: 999, transition: 'width .6s ease' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+            <span className="muted tiny" style={{ fontFamily: 'var(--f-ar)', direction: 'rtl' }}>مُبْتَدِئ Mubtadi</span>
+            <span className="muted tiny">{totalPoints || 0} poin lagi</span>
+          </div>
+        </div>
 
         {/* Mobile stats strip (hidden on desktop via CSS) */}
         <div className="mobile-stats-strip">
