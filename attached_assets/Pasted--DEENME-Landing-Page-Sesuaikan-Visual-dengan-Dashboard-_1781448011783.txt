@@ -1,0 +1,531 @@
+# DEENME — Landing Page: Sesuaikan Visual dengan Dashboard
+
+## Masalah
+Landing page pakai palet warna berbeda dari dashboard:
+- Landing: `#050a07` bg gelap, `#2ecc8a` hijau neon, `#111a15` card
+- Dashboard: `#f5edda` bg krem hangat, `#386641` hijau tua, `#ede3c4` surface
+
+Hasilnya terasa seperti dua app berbeda. Tujuannya: landing page tetap terasa premium & dark
+tapi **warna, font treatment, dan elemen visual konsisten** dengan dashboard.
+
+---
+
+## Perubahan di `src/LandingPage.jsx`
+
+### Ganti seluruh file dengan ini:
+
+```jsx
+import { useEffect, useState, useRef } from 'react';
+
+export function LandingPage({ onEnter }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => { setTimeout(() => setVisible(true), 100); }, []);
+
+  return (
+    <div className="landing-root">
+
+      {/* ── HERO ── */}
+      <section className="lp-hero">
+        <div className={'lp-hero-content' + (visible ? ' lp-visible' : '')}>
+
+          <div className="lp-bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+
+          {/* Logo */}
+          <div className="lp-logo-wrap">
+            <div className="lp-logo-icon">
+              <img src="./assets/Deenme_logo.png" alt="Deenme"
+                style={{ width: 28, height: 'auto', filter: 'brightness(0) saturate(100%) invert(40%) sepia(40%) saturate(400%) hue-rotate(90deg)' }} />
+            </div>
+            <span className="lp-logo-text">Deenme</span>
+          </div>
+
+          <h1 className="lp-headline">
+            Jaga Ibadahmu.<br/>
+            <span className="lp-headline-accent">Setiap Hari.</span>
+          </h1>
+          <p className="lp-sub">
+            Tracker solat, dzikir, dan amalan harian yang dirancang untuk membantu kamu istiqomah — dengan sistem misi, streak, dan doa personal.
+          </p>
+
+          <button className="lp-cta" onClick={onEnter}>
+            Mulai Sekarang
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <p className="lp-cta-sub">Butuh kode undangan untuk masuk</p>
+        </div>
+
+        {/* Phone mockup */}
+        <div className={'lp-phone-wrap' + (visible ? ' lp-visible' : '')}>
+          <div className="lp-phone">
+            <div className="lp-phone-screen">
+              <div className="lp-mock-header">
+                <div className="lp-mock-date">الأحد، ١٤ يونيو ٢٠٢٦</div>
+                <div className="lp-mock-title">Minggu, 14 Juni 2026</div>
+              </div>
+
+              {/* Timbangan Amal — sama seperti dashboard */}
+              <div className="lp-mock-timbangan">
+                <div className="lp-mock-timb-label">⚖️ TIMBANGAN AMAL</div>
+                <div className="lp-mock-timb-bar">
+                  <div className="lp-mock-timb-fill" style={{ width: '62%' }} />
+                </div>
+                <div className="lp-mock-timb-rank">مُتَقَدِّم Mutaqaddim</div>
+              </div>
+
+              {/* Stat chips — sama seperti dashboard */}
+              <div className="lp-mock-stats">
+                <div className="lp-mock-stat">
+                  <div className="lp-mock-stat-num">12</div>
+                  <div className="lp-mock-stat-label">streak</div>
+                </div>
+                <div className="lp-mock-stat">
+                  <div className="lp-mock-stat-num">84%</div>
+                  <div className="lp-mock-stat-label">skor</div>
+                </div>
+                <div className="lp-mock-stat">
+                  <div className="lp-mock-stat-num">4/5</div>
+                  <div className="lp-mock-stat-label">solat</div>
+                </div>
+              </div>
+
+              {/* Prayer cards */}
+              <div className="lp-mock-section-label">WAKTU SHOLAT</div>
+              {[
+                { name: 'Subuh',   time: '04:37', done: true  },
+                { name: 'Dzuhur',  time: '11:54', done: true  },
+                { name: 'Ashar',   time: '15:16', done: true  },
+                { name: 'Maghrib', time: '17:47', done: false },
+                { name: 'Isya',    time: '19:02', done: false },
+              ].map((s) => (
+                <div key={s.name} className={'lp-mock-prayer' + (s.done ? ' done' : '')}>
+                  <div className="lp-mock-ring">{s.name[0]}</div>
+                  <div>
+                    <div className="lp-mock-prayer-name">{s.name}</div>
+                    <div className="lp-mock-prayer-time">{s.time}</div>
+                  </div>
+                  <span className="lp-mock-status">{s.done ? '✓' : '○'}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="lp-phone-glow" />
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section className="lp-features">
+        <div className="lp-section-label">Apa yang ada di Deenme?</div>
+        <h2 className="lp-section-title">Semua yang kamu butuhkan<br/>untuk istiqomah</h2>
+        <div className="lp-features-grid">
+          {[
+            { icon: '🕌', title: 'Tracker Solat',  desc: 'Catat 5 waktu solat dengan status tepat, telat, atau qadha. Lengkap dengan jam aktual otomatis.' },
+            { icon: '📿', title: 'Misi Amalan',    desc: 'Setiap selesai sholat, muncul misi dzikir, rawatib, dan doa yang dianjurkan. Gamifikasi yang bermakna.' },
+            { icon: '🔥', title: 'Streak & Level', desc: 'Bangun streak harian, kumpulkan poin amal, dan naik level dari Mubtadi hingga Muttaqi.' },
+            { icon: '📖', title: 'Jurnal Harian',  desc: 'Tulis refleksi harianmu secara bebas. AI membantu merapikan dengan format yang indah.' },
+            { icon: '🤲', title: 'Bank Doa',       desc: 'Koleksi doa dari Al-Quran dan hadits shahih, terorganisir per situasi dan waktu sholat.' },
+            { icon: '📊', title: 'Statistik',      desc: 'Lihat progress ibadahmu lewat grafik mingguan, heatmap bulanan, dan ringkasan streak.' },
+          ].map(({ icon, title, desc }) => (
+            <div key={title} className="lp-feature-card">
+              <div className="lp-feature-icon">{icon}</div>
+              <h3 className="lp-feature-title">{title}</h3>
+              <p className="lp-feature-desc">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── QUOTE ── */}
+      <section className="lp-quote">
+        <div className="lp-quote-ar">وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَارْكَعُوا مَعَ الرَّاكِعِينَ</div>
+        <div className="lp-quote-tr">"Dan dirikanlah sholat, tunaikanlah zakat, dan rukuklah beserta orang-orang yang rukuk."</div>
+        <div className="lp-quote-src">QS. Al-Baqarah: 43</div>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section className="lp-final-cta">
+        <h2 className="lp-final-title">Siap mulai istiqomah?</h2>
+        <p className="lp-final-sub">Deenme hanya untuk mereka yang diundang.<br/>Hubungi admin untuk mendapatkan kode akses.</p>
+        <button className="lp-cta" onClick={onEnter}>
+          Masuk ke Deenme
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="lp-footer">
+        <div className="lp-footer-logo" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img src="./assets/Deenme_logo.png" alt="Deenme"
+            style={{ width: 20, height: 'auto', filter: 'brightness(0) invert(.7) sepia(.3)', opacity: .7 }} />
+          Deenme
+        </div>
+        <div className="lp-footer-sub">Dibuat dengan ❤️ oleh Dar Dev · Cairo, 2026</div>
+      </footer>
+
+    </div>
+  );
+}
+```
+
+---
+
+## Perubahan di `src/deenme-theme.css`
+
+Cari blok `.landing-root {` sampai akhir `/* ── Mobile responsive ── */` dan **ganti seluruhnya** dengan:
+
+```css
+/* ══════════════════════════════════════
+   LANDING PAGE — visual aligned with dashboard
+══════════════════════════════════════ */
+
+/* Palet konsisten: bg gelap hangat (bukan pure black), aksen #386641 */
+:root {
+  --lp-bg:        #0e1510;
+  --lp-surface:   #14201a;
+  --lp-border:    rgba(56,102,65,.22);
+  --lp-gold:      #386641;
+  --lp-gold-2:    #6a994e;
+  --lp-lime:      #a7c957;
+  --lp-text:      #e8ede9;
+  --lp-text-2:    #7a8f7e;
+  --lp-text-3:    #3d5242;
+}
+
+.landing-root {
+  min-height: 100dvh;
+  background: var(--lp-bg);
+  color: var(--lp-text);
+  overflow-x: hidden;
+  font-family: var(--f-body);
+}
+
+/* ── Hero ── */
+.lp-hero {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 80px;
+  padding: 60px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.lp-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(56,102,65,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,102,65,.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+.lp-hero::after {
+  content: '';
+  position: absolute; top: -20%; left: 50%;
+  transform: translateX(-50%);
+  width: 900px; height: 600px;
+  background: radial-gradient(ellipse, color-mix(in srgb, #386641 16%, transparent), transparent 65%);
+  pointer-events: none; filter: blur(50px);
+}
+
+.lp-hero-content {
+  flex: 1; max-width: 560px;
+  position: relative; z-index: 1;
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .8s ease, transform .8s ease;
+}
+.lp-hero-content.lp-visible { opacity: 1; transform: translateY(0); }
+
+.lp-bismillah {
+  font-family: var(--f-ar); font-size: 22px;
+  color: var(--lp-lime); direction: rtl;
+  margin-bottom: 28px; opacity: .75;
+}
+
+.lp-logo-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.lp-logo-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: color-mix(in srgb, #386641 15%, transparent);
+  border: 1px solid color-mix(in srgb, #386641 35%, transparent);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 24px -8px #386641;
+}
+.lp-logo-text {
+  font-family: var(--f-head); font-weight: 800;
+  font-size: 22px; color: var(--lp-text); letter-spacing: -.02em;
+}
+
+.lp-headline {
+  font-family: var(--f-head); font-weight: 800;
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1.1; letter-spacing: -.03em;
+  color: var(--lp-text); margin: 0 0 8px;
+}
+.lp-headline-accent { color: var(--lp-lime); }
+
+.lp-sub {
+  font-size: 17px; color: var(--lp-text-2);
+  line-height: 1.7; margin: 20px 0 36px; max-width: 460px;
+}
+
+/* CTA button — sama style dengan .btn.gold di dashboard tapi disesuaikan */
+.lp-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--lp-gold);
+  color: #e8ede9;
+  font-family: var(--f-head); font-weight: 700; font-size: 16px;
+  padding: 16px 32px; border-radius: 12px; border: 0; cursor: pointer;
+  box-shadow: 0 8px 32px -8px rgba(56,102,65,.6);
+  transition: transform .15s, box-shadow .2s, background .15s;
+}
+.lp-cta:hover {
+  background: var(--lp-gold-2);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px -8px rgba(56,102,65,.7);
+}
+.lp-cta:active { transform: scale(.98); }
+
+.lp-cta-sub {
+  font-size: 12px; color: var(--lp-text-3);
+  margin-top: 12px; font-family: var(--f-head);
+}
+
+/* ── Phone mockup ── */
+.lp-phone-wrap {
+  flex: 0 0 auto; position: relative; z-index: 1;
+  opacity: 0; transform: translateY(40px) rotate(2deg);
+  transition: opacity 1s ease .3s, transform 1s ease .3s;
+}
+.lp-phone-wrap.lp-visible { opacity: 1; transform: translateY(0) rotate(2deg); }
+
+.lp-phone {
+  width: 260px;
+  background: #111d14;
+  border-radius: 36px;
+  border: 1px solid rgba(56,102,65,.25);
+  padding: 20px 16px;
+  box-shadow: 0 40px 80px -20px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.lp-phone-glow {
+  position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%);
+  width: 200px; height: 80px;
+  background: radial-gradient(ellipse, color-mix(in srgb, #386641 35%, transparent), transparent 70%);
+  filter: blur(20px); pointer-events: none;
+}
+.lp-phone-screen { display: flex; flex-direction: column; gap: 7px; }
+
+.lp-mock-header { margin-bottom: 2px; }
+.lp-mock-date { font-family: var(--f-ar); font-size: 10px; color: var(--lp-lime); direction: rtl; }
+.lp-mock-title { font-family: var(--f-head); font-weight: 700; font-size: 13px; color: var(--lp-text); }
+
+/* Timbangan Amal mock */
+.lp-mock-timbangan {
+  background: color-mix(in srgb, #386641 10%, #111d14);
+  border: 1px solid rgba(56,102,65,.28);
+  border-radius: 10px; padding: 10px 12px;
+}
+.lp-mock-timb-label {
+  font-family: var(--f-head); font-weight: 700; font-size: 9px;
+  letter-spacing: .1em; color: var(--lp-lime); margin-bottom: 7px;
+  text-transform: uppercase;
+}
+.lp-mock-timb-bar {
+  height: 4px; background: rgba(56,102,65,.2);
+  border-radius: 2px; margin-bottom: 7px; overflow: hidden;
+}
+.lp-mock-timb-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #386641, #a7c957);
+  border-radius: 2px;
+}
+.lp-mock-timb-rank {
+  font-family: var(--f-head); font-size: 10px;
+  color: rgba(232,237,233,.6);
+}
+
+/* Stats row */
+.lp-mock-stats {
+  display: flex; gap: 6px;
+}
+.lp-mock-stat {
+  flex: 1; background: #0e1a11;
+  border: 1px solid rgba(56,102,65,.18);
+  border-radius: 8px; padding: 8px 6px;
+  text-align: center;
+}
+.lp-mock-stat-num {
+  font-family: var(--f-head); font-weight: 800;
+  font-size: 15px; color: var(--lp-lime); line-height: 1;
+  margin-bottom: 3px;
+}
+.lp-mock-stat-label {
+  font-size: 8px; color: var(--lp-text-2);
+  font-family: var(--f-head); text-transform: uppercase; letter-spacing: .06em;
+}
+
+.lp-mock-section-label {
+  font-family: var(--f-head); font-weight: 700; font-size: 8px;
+  letter-spacing: .12em; color: var(--lp-lime); text-transform: uppercase;
+  padding: 2px 0 1px;
+}
+
+/* Prayer cards — mirror pcard dari dashboard */
+.lp-mock-prayer {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 9px;
+  background: #0e1a11;
+  border: 1px solid rgba(56,102,65,.18);
+  font-family: var(--f-head); font-size: 12px;
+  color: var(--lp-text-2);
+  transition: border-color .2s;
+}
+.lp-mock-prayer.done {
+  background: color-mix(in srgb, #386641 10%, #111d14);
+  border-color: rgba(56,102,65,.35);
+  color: var(--lp-text);
+}
+.lp-mock-ring {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid rgba(56,102,65,.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: var(--lp-lime);
+  flex-shrink: 0;
+}
+.lp-mock-prayer.done .lp-mock-ring {
+  background: color-mix(in srgb, #386641 20%, transparent);
+  border-color: #386641;
+}
+.lp-mock-prayer-name { font-weight: 600; font-size: 11px; }
+.lp-mock-prayer-time { font-size: 9px; color: var(--lp-lime); margin-top: 1px; }
+.lp-mock-status { margin-left: auto; color: var(--lp-lime); font-size: 11px; }
+
+/* ── Features ── */
+.lp-features {
+  padding: 100px 48px; max-width: 1100px;
+  margin: 0 auto; text-align: center;
+}
+.lp-section-label {
+  font-family: var(--f-head); font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--lp-lime); margin-bottom: 16px;
+}
+.lp-section-title {
+  font-family: var(--f-head); font-weight: 800;
+  font-size: clamp(28px, 3.5vw, 44px); letter-spacing: -.02em;
+  color: var(--lp-text); line-height: 1.2; margin: 0 0 60px;
+}
+.lp-features-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.lp-feature-card {
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  border-radius: 16px; padding: 28px 24px; text-align: left;
+  transition: border-color .2s, transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s;
+}
+.lp-feature-card:hover {
+  border-color: rgba(56,102,65,.5);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px -16px rgba(56,102,65,.25);
+}
+.lp-feature-icon { font-size: 30px; margin-bottom: 14px; display: block; }
+.lp-feature-title {
+  font-family: var(--f-head); font-weight: 700;
+  font-size: 15px; color: var(--lp-text); margin: 0 0 8px;
+}
+.lp-feature-desc { font-size: 13px; color: var(--lp-text-2); line-height: 1.65; margin: 0; }
+
+/* ── Quote ── */
+.lp-quote {
+  padding: 80px 48px; text-align: center;
+  background: #0b1610;
+  border-top: 1px solid var(--lp-border);
+  border-bottom: 1px solid var(--lp-border);
+  position: relative; overflow: hidden;
+}
+.lp-quote::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, #386641 7%, transparent), transparent 65%);
+  pointer-events: none;
+}
+.lp-quote-ar {
+  font-family: var(--f-ar); font-size: clamp(22px, 3vw, 34px);
+  color: var(--lp-lime); direction: rtl; line-height: 1.8;
+  margin-bottom: 20px; position: relative;
+}
+.lp-quote-tr {
+  font-size: 16px; color: var(--lp-text-2); font-style: italic;
+  max-width: 600px; margin: 0 auto 12px; line-height: 1.7; position: relative;
+}
+.lp-quote-src {
+  font-family: var(--f-head); font-size: 12px; font-weight: 600;
+  color: var(--lp-text-3); letter-spacing: .06em; position: relative;
+}
+
+/* ── Final CTA ── */
+.lp-final-cta {
+  padding: 120px 48px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.lp-final-cta::before {
+  content: ''; position: absolute; bottom: 0; left: 50%;
+  transform: translateX(-50%); width: 800px; height: 400px;
+  background: radial-gradient(ellipse, color-mix(in srgb, #386641 12%, transparent), transparent 65%);
+  filter: blur(40px); pointer-events: none;
+}
+.lp-final-title {
+  font-family: var(--f-head); font-weight: 800;
+  font-size: clamp(32px, 4vw, 52px); letter-spacing: -.02em;
+  color: var(--lp-text); margin: 0 0 16px; position: relative;
+}
+.lp-final-sub {
+  font-size: 16px; color: var(--lp-text-2); line-height: 1.7;
+  margin: 0 0 40px; position: relative;
+}
+
+/* ── Footer ── */
+.lp-footer {
+  padding: 32px 48px; border-top: 1px solid var(--lp-border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.lp-footer-logo {
+  font-family: var(--f-head); font-weight: 800;
+  font-size: 18px; color: var(--lp-text); letter-spacing: -.02em;
+}
+.lp-footer-sub {
+  font-size: 12px; color: var(--lp-text-3); font-family: var(--f-head);
+}
+
+/* ── Mobile ── */
+@media (max-width: 767px) {
+  .lp-hero {
+    flex-direction: column; padding: 60px 24px 40px;
+    gap: 48px; text-align: center; min-height: 100dvh;
+  }
+  .lp-logo-wrap { justify-content: center; }
+  .lp-sub { margin-left: auto; margin-right: auto; }
+  .lp-phone-wrap { transform: none !important; }
+  .lp-features { padding: 60px 24px; }
+  .lp-features-grid { grid-template-columns: 1fr; gap: 12px; }
+  .lp-quote { padding: 60px 24px; }
+  .lp-final-cta { padding: 80px 24px; }
+  .lp-footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px; }
+}
+```
+
+---
+
+## Ringkasan Perubahan Visual
+
+| Elemen | Sebelum | Sesudah |
+|--------|---------|---------|
+| Background | `#050a07` pure black | `#0e1510` hijau gelap hangat |
+| Aksen utama | `#2ecc8a` neon mint | `#386641` + `#a7c957` = sama dengan dashboard |
+| CTA button | Mint neon `#2ecc8a` | Hijau tua `#386641` — sama dengan `.btn.gold` |
+| Phone mockup | Hanya daftar prayer | + Timbangan Amal + Stats chips — persis seperti dashboard |
+| Prayer cards | Sederhana | Mirror `.pcard` dari dashboard (border, bg, done state) |
+| Border | `#1e2a20` | `rgba(56,102,65,.22)` — sama dengan `--gold-line` |
+| Font | Sama | Tetap `Bricolage Grotesque` + `IBM Plex Sans Arabic` |
+
+## File yang Diubah
+- `src/LandingPage.jsx` — konten + mockup lebih lengkap  
+- `src/deenme-theme.css` — seluruh blok landing page CSS diganti
