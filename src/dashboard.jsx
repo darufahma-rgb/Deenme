@@ -944,13 +944,16 @@ function PrayerCard({ p, status, time, isNext, onStatus, onSetTime, onClick, sch
         {time && done && <span style={{ color: 'var(--text-2)', marginLeft: 4 }}>· {time}</span>}
       </div>
       <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
-        {[['ok', '✓', 'Tepat'], ['late', '!', 'Telat'], ['qadha', '○', 'Qadha']].map(([s, icon, lbl]) => (
+        {[['ok', 'Tepat'], ['late', 'Telat'], ['qadha', 'Qadha']].map(([s, lbl]) => (
           <button
             key={s}
             className={'prayer-status-btn ' + s + (status === s ? ' on' : '')}
-            onClick={(e) => { e.stopPropagation(); onStatus(p.k, status === s ? null : s); }}
-            title={lbl}
-          >{icon}</button>
+            onClick={(e) => {
+              e.stopPropagation();
+              onStatus(p.k, status === s ? null : s);
+              if ((s === 'ok' || s === 'late') && status !== s) onSetTime(p.k);
+            }}
+          >{lbl}</button>
         ))}
       </div>
       {isNext && (
