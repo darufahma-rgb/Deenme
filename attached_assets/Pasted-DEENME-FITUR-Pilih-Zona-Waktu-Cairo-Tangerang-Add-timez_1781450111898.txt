@@ -1,0 +1,170 @@
+DEENME — FITUR: Pilih Zona Waktu (Cairo / Tangerang)
+
+Add timezone selector so user can switch between Cairo (EET) and Tangerang (WIB). Affects live clock, prayer times display, and time logging.
+
+STEP 1 — Add timezone state to src/App.jsx:
+
+js
+// State
+const [timezone, setTimezone] = useState(
+  localStorage.getItem('deenme-timezone') || 'Asia/Jakarta'
+);
+
+// Save to localStorage when changed
+const changeTimezone = (tz) => {
+  setTimezone(tz);
+  localStorage.setItem('deenme-timezone', tz);
+};
+
+// Timezone config
+const TIMEZONE_OPTIONS = [
+  { value: 'Asia/Jakarta', label: 'Tangerang / WIB', flag: '🇮🇩', offset: 'UTC+7' },
+  { value: 'Africa/Cairo', label: 'Cairo / EET', flag: '🇪🇬', offset: 'UTC+2' },
+];
+Pass timezone, changeTimezone, TIMEZONE_OPTIONS ke DashboardPage dan semua komponen yang pakai waktu.
+
+STEP 2 — Update live clock di DashboardPage (src/dashboard.jsx):
+
+jsx
+// Ganti semua hardcoded 'Asia/Jakarta' dengan prop timezone
+// Live clock:
+const [clock, setClock] = useState('');
+useEffect(() => {
+  const tick = () => {
+    setClock(new Date().toLocaleTimeString('id-ID', {
+      timeZone: timezone,
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false
+    }));
+  };
+  tick();
+  const id = setInterval(tick, 1000);
+  return () => clearInterval(id);
+}, [timezone]);
+
+// Label zona waktu di clock:
+const tzLabel = timezone === 'Africa/Cairo' ? 'CAT' : 'WIB';
+// Tampilkan: {clock} {tzLabel}
+STEP 3 — Update prayer time fetch di DashboardPage:
+
+js
+// Aladhan API — koordinat dan method berdasarkan timezone
+const PRAYER_CONFIG = {
+  'Asia/Jakarta': {
+    lat: -6.1701,
+    lng: 106.6400,
+    method: 11, // KEMENAG
+    city: 'Tangerang',
+  },
+  'Africa/Cairo': {
+    lat: 30.0444,
+    lng: 31.2357,
+    method: 5, // Egyptian General Authority of Survey
+    city: 'Cairo',
+  },
+};
+
+useEffect(() => {
+  const config = PRAYER_CONFIG[timezone] || PRAYER_CONFIG['Asia/Jakarta'];
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: timezone });
+  const [year, month, day] = today.split('-');
+
+  fetch(`https://api.aladhan.com/v1/timings/${day}-${month}-${year}?latitude=${config.lat}&longitude=${config.lng}&method=${config.method}`)
+    .then(r => r.json())
+    .then(data => {
+      const t = data.data.timings;
+      setSchedules({
+        tahajud: '03:00',
+        subuh: t.Fajr,
+        dzuhur: t.Dhuhr,
+        ashar: t.Asr,
+        maghrib: t.Maghrib,
+        isya: t.Isha,
+      });
+    })
+    .catch(() => {});
+}, [timezone]); // re-fetch when timezone changes
+STEP 4 — Update timestamp saat centang sholat di src/App.jsx:
+
+js
+const setTime = (k, _) => {
+  const now = new Date().toLocaleTimeString('id-ID', {
+    timeZone: timezone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  setTimes(prev => ({ ...prev, [k]: now }));
+};
+STEP 5 — Add timezone selector UI di Settings / sidebar:
+
+Tambahkan tombol timezone di bagian bawah sidebar (src/ui.jsx) atau di header dashboard:
+
+jsx
+// Di bagian bawah rail (sidebar), sebelum logout button:
+function TimezonePicker({ timezone, onChange, options }) {
+  return (
+    <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border)' }}>
+      <div className="eyebrow" style={{ marginBottom: 8, paddingLeft: 4 }}>Zona Waktu</div>
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '8px 10px',
+            borderRadius: 'var(--radius-sm)',
+            border: `1px solid ${timezone === opt.value ? 'var(--gold-line)' : 'transparent'}`,
+            background: timezone === opt.value ? 'var(--gold-soft)' : 'transparent',
+            cursor: 'pointer',
+            marginBottom: 4,
+            transition: '.15s',
+          }}
+        >
+          <span style={{ fontSize: 16 }}>{opt.flag}</span>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12, color: timezone === opt.value ? 'var(--gold)' : 'var(--text)' }}>
+              {opt.label}
+            </div>
+            <div style={{ fontFamily: 'var(--f-head)', fontSize: 10, color: 'var(--text-3)' }}>{opt.offset}</div>
+          </div>
+          {timezone === opt.value && (
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)', marginLeft: 'auto' }}>
+              <path d="M3 7.4 5.7 10 11 4.2"/>
+            </svg>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+Render di dalam .rail sebelum logout:
+
+jsx
+<TimezonePicker
+  timezone={timezone}
+  onChange={changeTimezone}
+  options={TIMEZONE_OPTIONS}
+/>
+Di mobile (bottom nav), tambahkan timezone toggle di header dashboard — kecil, di sebelah jam:
+
+jsx
+// Di sebelah clock display:
+<button
+  onClick={() => changeTimezone(timezone === 'Asia/Jakarta' ? 'Africa/Cairo' : 'Asia/Jakarta')}
+  style={{ fontFamily: 'var(--f-head)', fontSize: 11, fontWeight: 600, color: 'var(--text-3)', background: 'none', border: '1px solid var(--border-2)', borderRadius: 999, padding: '2px 8px', cursor: 'pointer' }}
+>
+  {timezone === 'Africa/Cairo' ? '🇪🇬 Cairo' : '🇮🇩 WIB'}
+</button>
+IMPORTANT:
+
+timezone state disimpan di localStorage — persist setelah refresh
+Prayer times di-fetch ulang otomatis saat timezone berubah
+Cairo pakai method 5 (Egyptian General Authority), Tangerang pakai method 11 (KEMENAG)
+Semua 'Asia/Jakarta' hardcoded di seluruh codebase harus diganti dengan timezone prop
+Timestamp sholat (waktu dicatat) menyesuaikan timezone yang aktif
+Label jam: WIB untuk Jakarta, CAT untuk Cairo
+Do not break existing prayer time fetch logic
