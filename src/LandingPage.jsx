@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 export function LandingPage({ onEnter }) {
   const [scrolled, setScrolled] = useState(false);
   const [mounted,  setMounted]  = useState(false);
+  const [visibleSections, setVisibleSections] = useState(new Set());
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 80);
@@ -10,6 +11,25 @@ export function LandingPage({ onEnter }) {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setVisibleSections(prev => new Set([...prev, entry.target.dataset.section]));
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    setTimeout(() => {
+      document.querySelectorAll('[data-section]').forEach(el => observer.observe(el));
+    }, 100);
+    return () => observer.disconnect();
+  }, []);
+
+  const isVisible = (section) => visibleSections.has(section);
 
   const C = {
     bg:      '#0f1710',
@@ -89,19 +109,20 @@ export function LandingPage({ onEnter }) {
         padding: 'clamp(100px, 15vh, 140px) clamp(20px, 5vw, 48px) clamp(60px, 8vh, 80px)',
         textAlign: 'center', position: 'relative', overflow: 'hidden',
       }}>
-        {/* Grid BG */}
+        {/* Dot matrix BG — animated */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          backgroundImage: `linear-gradient(${C.border} 1px, transparent 1px), linear-gradient(90deg, ${C.border} 1px, transparent 1px)`,
-          backgroundSize: '64px 64px',
-          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%)',
+          backgroundImage: `radial-gradient(circle, rgba(62,207,142,.18) 1px, transparent 1px)`,
+          backgroundSize: '32px 32px',
+          animation: 'dotDrift 20s linear infinite',
+          maskImage: 'radial-gradient(ellipse 85% 70% at 50% 40%, black 30%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 85% 70% at 50% 40%, black 30%, transparent 100%)',
         }} />
 
-        {/* Glow orbs */}
-        <div style={{ position: 'absolute', top: '5%', left: '50%', transform: 'translateX(-50%)', width: 800, height: 600, background: `radial-gradient(ellipse, ${C.green}14 0%, transparent 65%)`, filter: 'blur(40px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '30%', left: '20%', width: 400, height: 400, background: `radial-gradient(ellipse, ${C.lime}08 0%, transparent 65%)`, filter: 'blur(60px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '20%', right: '15%', width: 350, height: 350, background: `radial-gradient(ellipse, rgba(56,102,65,.1) 0%, transparent 65%)`, filter: 'blur(50px)', pointerEvents: 'none' }} />
+        {/* Glow orbs — animated */}
+        <div style={{ position: 'absolute', top: '5%', left: '50%', width: 800, height: 600, background: `radial-gradient(ellipse, ${C.green}16 0%, transparent 65%)`, filter: 'blur(40px)', pointerEvents: 'none', animation: 'orbFloat 12s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', top: '30%', left: '18%', width: 360, height: 360, background: `radial-gradient(ellipse, rgba(167,201,87,.07) 0%, transparent 65%)`, filter: 'blur(60px)', pointerEvents: 'none', animation: 'orbFloat 16s ease-in-out infinite reverse' }} />
+        <div style={{ position: 'absolute', top: '20%', right: '12%', width: 300, height: 300, background: `radial-gradient(ellipse, rgba(56,102,65,.12) 0%, transparent 65%)`, filter: 'blur(50px)', pointerEvents: 'none', animation: 'orbPulse 8s ease-in-out infinite' }} />
 
         <div style={{ position: 'relative', maxWidth: 760, zIndex: 1 }}>
           {/* Logo mark */}
@@ -210,7 +231,7 @@ export function LandingPage({ onEnter }) {
       </section>
 
       {/* ══════════ STATS STRIP ══════════ */}
-      <div style={{ borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: '20px clamp(20px,5vw,48px)' }}>
+      <div data-section="stats" style={{ borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: '24px clamp(20px,5vw,48px)', background: 'rgba(62,207,142,.03)' }}>
         <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '12px 40px' }}>
           {[
             { val: '50+', label: 'Doa & Dzikir Shahih' },
@@ -227,7 +248,7 @@ export function LandingPage({ onEnter }) {
       </div>
 
       {/* ══════════ BENTO FEATURES ══════════ */}
-      <section id="fitur" style={{ padding: 'clamp(64px,8vw,96px) clamp(20px,5vw,48px)', maxWidth: 1100, margin: '0 auto' }}>
+      <section id="fitur" data-section="features" style={{ padding: 'clamp(64px,8vw,96px) clamp(20px,5vw,48px)', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div style={{ fontWeight: 700, fontSize: 11, color: C.green, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 12 }}>Fitur Unggulan</div>
           <h2 style={{ fontWeight: 800, fontSize: 'clamp(24px,3.5vw,38px)', color: C.text, letterSpacing: '-.03em', lineHeight: 1.15, margin: 0 }}>
@@ -292,12 +313,14 @@ export function LandingPage({ onEnter }) {
             { icon: '🤲', title: 'Bank Doa',      ar: 'بَنْكُ الأَدْعِيَة',        desc: '50+ doa dari Al-Quran & hadits shahih. Lengkap kisah latar belakang dan faedah.' },
             { icon: '📖', title: 'Jurnal Harian', ar: 'يَوْمِيَّاتٌ شَخْصِيَّة',   desc: 'Tulis refleksi harian. Rapikan AI dan Tafsir Mimpi berbasis kecerdasan buatan.' },
             { icon: '📊', title: 'Statistik',     ar: 'إِحْصَائِيَّاتٌ يَوْمِيَّة', desc: 'Laporan dengan grade A–F, heatmap kalender, bar chart, dan rekap qadha otomatis.' },
-          ].map((f) => (
+          ].map((f, i) => (
             <div key={f.title} style={{
               background: C.surface, border: `1px solid ${C.border}`,
               borderRadius: 18, padding: '24px 22px',
               position: 'relative', overflow: 'hidden',
-              transition: 'border-color .2s, transform .2s cubic-bezier(.22,1,.36,1)',
+              opacity: isVisible('features') ? 1 : 0,
+              transform: isVisible('features') ? 'translateY(0)' : 'translateY(24px)',
+              transition: `opacity .5s ${i * 80}ms, transform .5s ${i * 80}ms cubic-bezier(.22,1,.36,1), border-color .2s`,
             }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = `rgba(62,207,142,.35)`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -313,8 +336,8 @@ export function LandingPage({ onEnter }) {
       </section>
 
       {/* ══════════ DARK HIGHLIGHT — RANK SYSTEM ══════════ */}
-      <section id="rank" style={{
-        background: '#070d08', borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
+      <section id="rank" data-section="rank" style={{
+        background: 'rgba(0,0,0,.25)', borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
         padding: 'clamp(64px,8vw,96px) clamp(20px,5vw,48px)', textAlign: 'center', position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: `linear-gradient(rgba(62,207,142,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(62,207,142,.04) 1px, transparent 1px)`, backgroundSize: '40px 40px', pointerEvents: 'none' }} />
@@ -333,9 +356,9 @@ export function LandingPage({ onEnter }) {
             {RANKS.map((r, i) => (
               <div key={r.rank} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                opacity: mounted ? 1 : 0,
-                transform: mounted ? 'translateY(0)' : 'translateY(20px)',
-                transition: `opacity .4s ${i * 60}ms, transform .4s ${i * 60}ms cubic-bezier(.22,1,.36,1)`,
+                opacity: isVisible('rank') ? 1 : 0,
+                transform: isVisible('rank') ? 'translateY(0) scale(1)' : 'translateY(20px) scale(.8)',
+                transition: `opacity .4s ${i * 60}ms, transform .4s ${i * 60}ms cubic-bezier(.34,1.56,.64,1)`,
               }}>
                 <div style={{
                   width: 60, height: 60, borderRadius: 16,
@@ -360,25 +383,41 @@ export function LandingPage({ onEnter }) {
       </section>
 
       {/* ══════════ TALQEEH CTA ══════════ */}
-      <section id="talqeeh" style={{
+      <section id="talqeeh" data-section="talqeeh" style={{
         padding: 'clamp(72px,9vw,100px) clamp(20px,5vw,48px)', textAlign: 'center',
         position: 'relative', overflow: 'hidden',
-        background: `linear-gradient(160deg, ${C.greenDk}dd 0%, #1a3d1e 100%)`,
+        background: `linear-gradient(160deg, rgba(56,102,65,.4) 0%, rgba(45,90,39,.3) 100%)`,
+        borderTop: `1px solid rgba(62,207,142,.15)`,
       }}>
         <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 700, height: 500, background: `radial-gradient(ellipse, ${C.lime}18, transparent 65%)`, filter: 'blur(40px)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', top: 16, right: 48, fontFamily: 'var(--f-ar)', fontSize: 140, color: 'rgba(255,255,255,.04)', userSelect: 'none', pointerEvents: 'none', lineHeight: 1 }}>الله</div>
 
         <div style={{ position: 'relative', maxWidth: 580, margin: '0 auto' }}>
           <div style={{ fontWeight: 700, fontSize: 10, color: C.lime, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 16 }}>Dari kami, untuk Talqeeh</div>
-          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 'clamp(20px,3vw,28px)', color: '#ecf39e', direction: 'rtl', marginBottom: 18, lineHeight: 1.7 }}>جَزَاكُمُ اللهُ خَيْرًا</div>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,4vw,38px)', color: C.cream, letterSpacing: '-.03em', lineHeight: 1.2, marginBottom: 16 }}>
+          <div style={{
+            fontFamily: 'var(--f-ar)', fontSize: 'clamp(20px,3vw,28px)', color: '#ecf39e', direction: 'rtl', marginBottom: 18, lineHeight: 1.7,
+            opacity: isVisible('talqeeh') ? .9 : 0,
+            transform: isVisible('talqeeh') ? 'translateY(0)' : 'translateY(16px)',
+            transition: 'opacity .6s .1s, transform .6s .1s',
+          }}>جَزَاكُمُ اللهُ خَيْرًا</div>
+          <h2 style={{
+            fontWeight: 800, fontSize: 'clamp(22px,4vw,38px)', color: C.cream, letterSpacing: '-.03em', lineHeight: 1.2, marginBottom: 16,
+            opacity: isVisible('talqeeh') ? 1 : 0,
+            transform: isVisible('talqeeh') ? 'translateY(0)' : 'translateY(16px)',
+            transition: 'opacity .6s .2s, transform .6s .2s',
+          }}>
             Terima kasih sudah menjadi<br />bagian dari keluarga Talqeeh
           </h2>
           <p style={{ fontSize: 15, color: 'rgba(245,237,218,.7)', lineHeight: 1.85, marginBottom: 10 }}>
             Deenme adalah wujud syukur kami. Semoga setiap amalan yang tercatat menjadi saksi kebaikan di hari yang paling kita harapkan.
           </p>
           <p style={{ fontSize: 14, color: 'rgba(245,237,218,.45)', marginBottom: 36, fontStyle: 'italic' }}>Barakallahu fiikum. 🌿</p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{
+            display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap',
+            opacity: isVisible('talqeeh') ? 1 : 0,
+            transform: isVisible('talqeeh') ? 'translateY(0)' : 'translateY(16px)',
+            transition: 'opacity .6s .4s, transform .6s .4s',
+          }}>
             <button onClick={onEnter} style={{
               background: C.cream, color: '#1a2e1c', border: 'none', borderRadius: 10, padding: '14px 32px',
               fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 15, cursor: 'pointer',
@@ -407,7 +446,7 @@ export function LandingPage({ onEnter }) {
       </section>
 
       {/* ══════════ FOOTER ══════════ */}
-      <footer style={{ background: '#070d08', borderTop: `1px solid ${C.border}`, padding: 'clamp(40px,5vw,64px) clamp(20px,5vw,48px) 32px' }}>
+      <footer style={{ background: 'rgba(0,0,0,.3)', borderTop: `1px solid ${C.border}`, padding: 'clamp(40px,5vw,64px) clamp(20px,5vw,48px) 32px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1.5fr repeat(3, 1fr)', gap: 40, marginBottom: 48 }}>
             <div>

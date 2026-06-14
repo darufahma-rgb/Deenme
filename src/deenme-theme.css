@@ -2928,3 +2928,20 @@ label, .label, .caption {
     animation: slideInRight .28s cubic-bezier(.2,.8,.25,1);
   }
 }
+
+/* ── Landing page animations ── */
+@keyframes dotDrift {
+  0%   { background-position: 0 0; }
+  100% { background-position: 32px 32px; }
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0px) scale(1); }
+  33%       { transform: translateX(-50%) translateY(-18px) scale(1.04); }
+  66%       { transform: translateX(-50%) translateY(8px) scale(.97); }
+}
+
+@keyframes orbPulse {
+  0%, 100% { opacity: .8; transform: scale(1); }
+  50%       { opacity: 1; transform: scale(1.08); }
+}
