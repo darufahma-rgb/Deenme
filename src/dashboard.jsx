@@ -793,7 +793,7 @@ function usePrayerTimes() {
     if (cached) {
       try { setSchedules(JSON.parse(cached)); setLoading(false); return; } catch {}
     }
-    const url = `https://api.aladhan.com/v1/timingsByCity/${date}?city=Tangerang&country=Indonesia&method=11`;
+    const url = `https://api.aladhan.com/v1/timingsByCity/${date}?city=Jakarta&country=Indonesia&method=11`;
     fetch(url)
       .then((r) => r.json())
       .then((data) => {
