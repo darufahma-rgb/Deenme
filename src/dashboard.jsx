@@ -1086,11 +1086,11 @@ export function DashboardPage({
 
   // Live clock — updates every second
   const [clock, setClock] = useState(() =>
-    _tzNow(timezone).toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    new Date().toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit' })
   );
   useEffect(() => {
     const tid = setInterval(() => {
-      setClock(_tzNow(timezone).toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setClock(new Date().toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }, 1000);
     return () => clearInterval(tid);
   }, [timezone]);
