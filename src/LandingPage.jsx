@@ -69,11 +69,7 @@ export function LandingPage({ onEnter }) {
         padding: '0 clamp(20px, 5vw, 48px)',
         justifyContent: 'space-between',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src="./assets/Deenme_logo.png" alt="Deenme" style={{
-            width: 30, height: 30,
-            filter: 'brightness(0) saturate(100%) invert(70%) sepia(30%) saturate(400%) hue-rotate(95deg)',
-          }} />
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ fontWeight: 800, fontSize: 16, color: C.text, letterSpacing: '-.02em' }}>Deenme</span>
         </div>
 
