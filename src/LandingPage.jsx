@@ -115,7 +115,7 @@ export function LandingPage({ onEnter }) {
               alt="Deenme"
               style={{
                 width: 80,
-                filter: 'brightness(0) saturate(100%) invert(85%) sepia(40%) saturate(600%) hue-rotate(95deg) drop-shadow(0 0 18px #3ecf8e) drop-shadow(0 0 36px #3ecf8eaa)',
+                filter: 'brightness(0) saturate(100%) invert(85%) sepia(60%) saturate(700%) hue-rotate(50deg) drop-shadow(0 0 18px #a7c957) drop-shadow(0 0 36px #a7c957bb)',
               }}
             />
           </div>

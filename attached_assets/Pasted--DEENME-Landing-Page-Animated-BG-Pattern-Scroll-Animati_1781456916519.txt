@@ -1,0 +1,261 @@
+# DEENME — Landing Page: Animated BG Pattern + Scroll Animations + Seamless Colors
+
+## Yang perlu diubah di `src/LandingPage.jsx`
+
+### 1. Ganti grid pattern di hero dengan dot matrix yang bergerak
+
+Cari div grid pattern ini di hero section:
+```jsx
+{/* Grid BG — Supabase signature */}
+<div style={{
+  position: 'absolute', inset: 0, pointerEvents: 'none',
+  backgroundImage: `linear-gradient(${C.border} 1px, transparent 1px), linear-gradient(90deg, ${C.border} 1px, transparent 1px)`,
+  backgroundSize: '64px 64px',
+  ...
+}} />
+```
+
+**Ganti dengan dot matrix animasi:**
+```jsx
+{/* Dot matrix BG — animated */}
+<div style={{
+  position: 'absolute', inset: 0, pointerEvents: 'none',
+  backgroundImage: `radial-gradient(circle, rgba(62,207,142,.18) 1px, transparent 1px)`,
+  backgroundSize: '32px 32px',
+  animation: 'dotDrift 20s linear infinite',
+  maskImage: 'radial-gradient(ellipse 85% 70% at 50% 40%, black 30%, transparent 100%)',
+  WebkitMaskImage: 'radial-gradient(ellipse 85% 70% at 50% 40%, black 30%, transparent 100%)',
+}} />
+```
+
+### 2. Selaraskan warna background semua section
+
+Semua section harus pakai background dari C.bg yang sama (`#0f1710`), dibedakan hanya dengan border atau subtle gradient. Tidak ada loncatan warna yang mendadak.
+
+Cari bagian `/* ══════════ STATS STRIP ══════════ */` dan update:
+```jsx
+{/* ══════════ STATS STRIP ══════════ */}
+<div style={{
+  borderTop: `1px solid ${C.border}`,
+  borderBottom: `1px solid ${C.border}`,
+  padding: '24px clamp(20px,5vw,48px)',
+  background: 'rgba(62,207,142,.03)',  // subtle tint, bukan warna berbeda
+}}>
+```
+
+Cari `/* ══════════ DARK HIGHLIGHT — RANK SYSTEM ══════════ */` dan update background:
+```jsx
+<section id="rank" style={{
+  background: 'rgba(0,0,0,.25)',  // gelap sedikit dari bg, bukan hitam penuh
+  borderTop: `1px solid ${C.border}`,
+  borderBottom: `1px solid ${C.border}`,
+  ...
+}}>
+```
+
+Cari section Talqeeh CTA dan update:
+```jsx
+<section id="talqeeh" style={{
+  padding: 'clamp(72px,9vw,100px) clamp(20px,5vw,48px)',
+  textAlign: 'center',
+  position: 'relative', overflow: 'hidden',
+  background: `linear-gradient(160deg, rgba(56,102,65,.4) 0%, rgba(45,90,39,.3) 100%)`,
+  borderTop: `1px solid rgba(62,207,142,.15)`,
+}}>
+```
+
+Cari footer dan update:
+```jsx
+<footer style={{
+  background: 'rgba(0,0,0,.3)',
+  borderTop: `1px solid ${C.border}`,
+  ...
+}}>
+```
+
+### 3. Tambah scroll-triggered animations dengan IntersectionObserver
+
+Tambah hook ini setelah baris `const [mounted, setMounted] = useState(false);`:
+
+```jsx
+const [visibleSections, setVisibleSections] = useState(new Set());
+
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setVisibleSections(prev => new Set([...prev, entry.target.dataset.section]));
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+  // observe setelah mount
+  setTimeout(() => {
+    document.querySelectorAll('[data-section]').forEach(el => observer.observe(el));
+  }, 100);
+  return () => observer.disconnect();
+}, []);
+
+const isVisible = (section) => visibleSections.has(section);
+```
+
+### 4. Tambah `data-section` ke setiap section JSX
+
+Stats strip — tambah `data-section="stats"`:
+```jsx
+<div data-section="stats" style={{ ... }}>
+```
+
+Features section wrapper div — tambah `data-section="features"`:
+```jsx
+<section id="fitur" data-section="features" style={{ ... }}>
+```
+
+Rank section — tambah `data-section="rank"`:
+```jsx
+<section id="rank" data-section="rank" style={{ ... }}>
+```
+
+Talqeeh section — tambah `data-section="talqeeh"`:
+```jsx
+<section id="talqeeh" data-section="talqeeh" style={{ ... }}>
+```
+
+### 5. Tambah animasi masuk ke setiap elemen di section features
+
+Pada map feature cards, ganti style-nya:
+```jsx
+{FEATURES.map((f, i) => (
+  <div key={f.title} style={{
+    ...cardStyle,
+    opacity: isVisible('features') ? 1 : 0,
+    transform: isVisible('features') ? 'translateY(0)' : 'translateY(24px)',
+    transition: `opacity .5s ${i * 80}ms, transform .5s ${i * 80}ms cubic-bezier(.22,1,.36,1)`,
+  }}>
+```
+
+### 6. Tambah animasi ke rank badges
+
+```jsx
+{RANKS.map((r, i) => (
+  <div key={r.rank} style={{
+    ...rankStyle,
+    opacity: isVisible('rank') ? 1 : 0,
+    transform: isVisible('rank') ? 'translateY(0) scale(1)' : 'translateY(20px) scale(.8)',
+    transition: `opacity .4s ${i * 60}ms, transform .4s ${i * 60}ms cubic-bezier(.34,1.56,.64,1)`,
+  }}>
+```
+
+### 7. Tambah animasi ke Talqeeh section
+
+Pada heading dan sub di section Talqeeh:
+```jsx
+<div style={{
+  fontFamily: 'var(--f-ar)', ...
+  opacity: isVisible('talqeeh') ? .9 : 0,
+  transform: isVisible('talqeeh') ? 'translateY(0)' : 'translateY(16px)',
+  transition: 'opacity .6s .1s, transform .6s .1s',
+}}>
+```
+
+```jsx
+<h2 style={{
+  ...
+  opacity: isVisible('talqeeh') ? 1 : 0,
+  transform: isVisible('talqeeh') ? 'translateY(0)' : 'translateY(16px)',
+  transition: 'opacity .6s .2s, transform .6s .2s',
+}}>
+```
+
+```jsx
+<div style={{
+  display: 'flex', gap: 12, justifyContent: 'center', ...
+  opacity: isVisible('talqeeh') ? 1 : 0,
+  transform: isVisible('talqeeh') ? 'translateY(0)' : 'translateY(16px)',
+  transition: 'opacity .6s .4s, transform .6s .4s',
+}}>
+```
+
+---
+
+## Perubahan di `src/deenme-theme.css`
+
+Tambahkan keyframes berikut di bagian bawah file (sebelum closing atau di akhir landing page CSS block):
+
+```css
+/* ── Landing page animations ── */
+@keyframes dotDrift {
+  0%   { background-position: 0 0; }
+  100% { background-position: 32px 32px; }
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0px) scale(1); }
+  33%       { transform: translateX(-50%) translateY(-18px) scale(1.04); }
+  66%       { transform: translateX(-50%) translateY(8px) scale(.97); }
+}
+
+@keyframes orbPulse {
+  0%, 100% { opacity: .8; transform: scale(1); }
+  50%       { opacity: 1; transform: scale(1.08); }
+}
+```
+
+### Update glow orb di hero — pakai animasi float
+
+Cari glow orb pertama di hero:
+```jsx
+<div style={{
+  position: 'absolute', top: '5%', left: '50%', transform: 'translateX(-50%)',
+  width: 800, height: 600,
+  background: `radial-gradient(ellipse, ${C.green}14 0%, transparent 65%)`,
+  filter: 'blur(40px)', pointerEvents: 'none'
+}} />
+```
+
+**Ganti dengan:**
+```jsx
+<div style={{
+  position: 'absolute', top: '5%', left: '50%',
+  width: 800, height: 600,
+  background: `radial-gradient(ellipse, ${C.green}16 0%, transparent 65%)`,
+  filter: 'blur(40px)', pointerEvents: 'none',
+  animation: 'orbFloat 12s ease-in-out infinite',
+}} />
+<div style={{
+  position: 'absolute', top: '30%', left: '18%',
+  width: 360, height: 360,
+  background: `radial-gradient(ellipse, rgba(167,201,87,.07) 0%, transparent 65%)`,
+  filter: 'blur(60px)', pointerEvents: 'none',
+  animation: 'orbFloat 16s ease-in-out infinite reverse',
+}} />
+<div style={{
+  position: 'absolute', top: '20%', right: '12%',
+  width: 300, height: 300,
+  background: `radial-gradient(ellipse, rgba(56,102,65,.12) 0%, transparent 65%)`,
+  filter: 'blur(50px)', pointerEvents: 'none',
+  animation: 'orbPulse 8s ease-in-out infinite',
+}} />
+```
+
+---
+
+## Ringkasan semua perubahan
+
+| Elemen | Sebelum | Sesudah |
+|--------|---------|---------|
+| BG pattern | Grid garis statis | Dot matrix gerak diagonal 20s loop |
+| Glow orb hero | Static | Float naik turun 12s + pulse 8s |
+| Stats strip | Solid berbeda warna | Tinted sama transparansi dari bg |
+| Rank section | `#070d08` hitam penuh | `rgba(0,0,0,.25)` gradual gelap |
+| Talqeeh section | Gradient hijau solid | Semi-transparent di atas bg yang sama |
+| Footer | `#070d08` terputus | `rgba(0,0,0,.3)` nyambung |
+| Feature cards | Langsung muncul | Stagger fade+slide saat scroll ke area |
+| Rank badges | Stagger dari mounted | Stagger saat scroll ke section rank |
+| Talqeeh content | Static | Fade+slide saat scroll ke section |
+
+## File yang Diubah
+- `src/LandingPage.jsx` — pattern, scroll observer, animasi per section
+- `src/deenme-theme.css` — 3 keyframes baru
