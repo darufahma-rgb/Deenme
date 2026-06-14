@@ -1,0 +1,93 @@
+# DEENME — Pasang Logo di Seluruh Website
+
+## Persiapan
+Upload file `Deenme_logo.png` ke folder `src/assets/` di project.
+Path yang digunakan: `./assets/Deenme_logo.png`
+
+---
+
+## Ada 4 Titik yang Perlu Diubah
+
+---
+
+### 1. Rail / Sidebar Desktop — `src/ui.jsx` baris ~84
+
+**Cari:**
+```jsx
+<div className="brand">د</div>
+```
+
+**Ganti dengan:**
+```jsx
+<div className="brand">
+  <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 26, height: 'auto', filter: 'brightness(0) saturate(100%) invert(35%) sepia(60%) saturate(500%) hue-rotate(90deg) brightness(90%)' }} />
+</div>
+```
+
+---
+
+### 2. Login Page — `src/App.jsx` baris ~186
+
+**Cari:**
+```jsx
+<div className="authlogo">د</div>
+```
+
+**Ganti dengan:**
+```jsx
+<div className="authlogo">
+  <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 38, height: 'auto', filter: 'brightness(0) invert(1)' }} />
+</div>
+```
+
+---
+
+### 3. Landing Page — logo di hero — `src/LandingPage.jsx` baris ~15
+
+**Cari:**
+```jsx
+<div className="lp-logo-icon">د</div>
+```
+
+**Ganti dengan:**
+```jsx
+<div className="lp-logo-icon">
+  <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 30, height: 'auto', filter: 'brightness(0) saturate(100%) invert(80%) sepia(30%) saturate(400%) hue-rotate(90deg)' }} />
+</div>
+```
+
+---
+
+### 4. Landing Page — footer — `src/LandingPage.jsx` baris ~98
+
+**Cari:**
+```jsx
+<div className="lp-footer-logo">Deenme</div>
+```
+
+**Ganti dengan:**
+```jsx
+<div className="lp-footer-logo" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+  <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 20, height: 'auto', filter: 'brightness(0) saturate(100%) invert(80%) sepia(20%) saturate(300%) hue-rotate(90deg)', opacity: .7 }} />
+  Deenme
+</div>
+```
+
+---
+
+## Penjelasan Filter CSS per Lokasi
+
+| Lokasi | Background | Filter yang dipakai | Hasil warna logo |
+|--------|-----------|---------------------|-----------------|
+| Rail sidebar | Hijau gelap | `invert(35%) sepia(60%) saturate(500%) hue-rotate(90deg)` | Hijau gold |
+| Login authlogo | Gold/hijau | `brightness(0) invert(1)` | Putih bersih |
+| Landing hero | Hijau gelap | `invert(80%) sepia(30%) saturate(400%) hue-rotate(90deg)` | Hijau terang |
+| Landing footer | Gelap | `invert(80%) sepia(20%) saturate(300%) hue-rotate(90deg)` + `opacity:.7` | Hijau redup |
+
+Logo asli hitam-putih → CSS filter dipakai untuk tinting tanpa perlu edit file gambar.
+
+## File yang Diubah
+- `src/assets/Deenme_logo.png` — upload file baru
+- `src/ui.jsx` — Rail brand
+- `src/App.jsx` — Login authlogo
+- `src/LandingPage.jsx` — hero logo + footer logo
