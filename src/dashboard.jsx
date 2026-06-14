@@ -1122,7 +1122,7 @@ export function DashboardPage({
 
       <div className="content scrl">
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: 18 }}>
+        <div className="dashboard-header-row" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
           <div>
             <div style={{ fontFamily: 'var(--f-ar)', direction: 'rtl', color: 'var(--gold)', fontSize: 14, marginBottom: 4 }}>
               {_arDate()}
@@ -1156,7 +1156,7 @@ export function DashboardPage({
             </div>
           </div>
           {nextPrayer && (
-            <div className="card" style={{ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+            <div className="card next-prayer-card" style={{ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
               <span style={{ color: 'var(--gold)' }}>{Icon.spark}</span>
               <div>
                 <div className="eyebrow" style={{ fontSize: 10 }}>Solat berikutnya</div>

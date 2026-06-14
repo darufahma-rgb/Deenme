@@ -1,0 +1,289 @@
+# DEENME — Mobile: Native App Feel
+
+## Masalah
+Dashboard di mobile terlihat seperti website yang diperkecil, bukan app native. Root issues:
+1. `.h1` font 28px → tanggal wrap 3 baris memakan ruang
+2. Prayer grid 3 kolom terlalu sempit → tombol gepeng, teks terpotong
+3. Header "next prayer" card duduk di sebelah tanggal → berantakan
+4. Timbangan Amal tidak terbaca dengan baik
+5. Padding content terlalu besar untuk layar kecil
+
+---
+
+## Perubahan di `src/deenme-theme.css`
+
+Cari blok `@media (max-width: 767px)` yang pertama (sekitar baris 1565) dan **ganti seluruh isinya** dengan:
+
+```css
+@media (max-width: 767px) {
+
+  /* ── Shell ── */
+  body { overflow: hidden; }
+  .deenme-root { height: 100dvh; }
+  .app { height: calc(100dvh - 58px); }
+
+  /* Hide desktop panels */
+  .rail  { display: none; }
+  .col-r { display: none; }
+  .col-l { display: none; }
+
+  /* Main layout */
+  .main    { flex-direction: column; height: calc(100dvh - 58px); overflow: hidden; }
+  .content {
+    padding: 14px 16px;
+    padding-bottom: 88px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* ── Typography — compact ── */
+  .h1 {
+    font-size: 22px !important;
+    letter-spacing: -.5px;
+    line-height: 1.15;
+  }
+  .h2 { font-size: 15px; }
+  .eyebrow { font-size: 10px; }
+
+  /* ── Dashboard header: stack vertically ── */
+  .dashboard-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+
+  /* Next prayer card — full width bawah tanggal */
+  .next-prayer-card {
+    width: 100% !important;
+    flex-shrink: unset !important;
+    padding: 10px 14px !important;
+    border-radius: 10px !important;
+  }
+
+  /* ── Timbangan Amal — compact ── */
+  .timbang-amal {
+    padding: 12px 14px !important;
+    margin-bottom: 14px !important;
+    border-radius: 12px !important;
+  }
+  .timbang-amal .timbang-pts {
+    font-size: 20px !important;
+  }
+
+  /* ── Mobile stats strip ── */
+  .mobile-stats-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .mobile-stats-strip::-webkit-scrollbar { display: none; }
+  .mobile-stat-card {
+    flex: 0 0 auto;
+    min-width: 96px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  /* ── Prayer grid — 2 kolom ── */
+  .prayer-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Prayer card — lebih tinggi, tombol lebih besar ── */
+  .prayer-card {
+    padding: 12px 12px 10px !important;
+    border-radius: 14px !important;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Status buttons (Tepat/Telat/Qadha) — lebih besar ── */
+  .seg {
+    width: 100% !important;
+    gap: 4px !important;
+    margin-top: auto !important;
+  }
+  .segbtn {
+    flex: 1 !important;
+    min-height: 36px !important;
+    font-size: 11px !important;
+    padding: 0 4px !important;
+    border-radius: 7px !important;
+    justify-content: center !important;
+  }
+
+  /* Prayer card typography */
+  .prayer-card .prayer-name {
+    font-size: 15px !important;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .prayer-card .prayer-time {
+    font-size: 13px !important;
+    margin-bottom: 8px;
+  }
+
+  /* ── Cards & surfaces ── */
+  .card    { border-radius: 14px !important; }
+  .pcard   { border-radius: 12px !important; }
+  .doacard { border-radius: 12px !important; }
+
+  /* ── Touch interactions ── */
+  .pcard, .chip, .btn, .tab, .doacard, .prayer-card, .segbtn {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .pcard:active      { transform: scale(.985); }
+  .chip:active       { transform: scale(.95);  }
+  .btn:active        { transform: scale(.97);  }
+  .doacard:active    { transform: scale(.99);  }
+  .prayer-card:active { transform: scale(.97); }
+  .segbtn:active     { transform: scale(.95);  }
+
+  /* ── Other pages ── */
+  .doagrid { grid-template-columns: 1fr !important; }
+  .prow    { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+  .tinput  { width: 100%; font-size: 16px; } /* 16px prevents iOS zoom */
+  .hc      { min-width: 28px; min-height: 28px; }
+
+  /* ── FAB ── */
+  .fab { right: 18px; bottom: 78px; width: 52px; height: 52px; font-size: 24px; }
+
+  /* ── Bottom Nav ── */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 58px;
+    background: color-mix(in srgb, var(--bg) 95%, transparent);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    z-index: 40;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bnav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: 0;
+    color: var(--text-3);
+    font-family: var(--f-head);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    cursor: pointer;
+    padding: 0;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    transition: color .15s;
+  }
+  .bnav-btn svg { width: 22px; height: 22px; }
+  .bnav-btn.on { color: var(--gold); }
+  .bnav-btn.on svg { filter: drop-shadow(0 0 5px var(--gold)); }
+
+  /* ── Bottom Sheet ── */
+  .bottom-sheet-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 49;
+    opacity: 0;
+    animation: bsFadeIn .2s ease forwards;
+  }
+  .bottom-sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    max-height: 88dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    padding: 0 18px 88px;
+    border-radius: 22px 22px 0 0;
+    background: var(--elevated);
+    border-top: 1px solid var(--border);
+    z-index: 50;
+    transform: translateY(100%);
+    animation: slideUp .32s cubic-bezier(.2,.8,.25,1) forwards;
+    -webkit-overflow-scrolling: touch;
+  }
+  .bottom-sheet * { max-width: 100%; box-sizing: border-box; }
+  .bottom-sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--border-2);
+    border-radius: 2px;
+    margin: 12px auto 18px;
+  }
+
+  /* ── Misi panel ── */
+  .misi-panel-card {
+    max-height: 55dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+```
+
+---
+
+## Perubahan di `src/dashboard.jsx`
+
+### Update struktur header DashboardPage
+
+Cari blok JSX header (sekitar baris 940–974):
+
+```jsx
+{/* Header */}
+<div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: 18 }}>
+```
+
+**Ganti** `style` div pembungkus itu dengan className:
+
+```jsx
+{/* Header */}
+<div className="dashboard-header-row" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
+```
+
+Dan pada card "next prayer", tambahkan className:
+
+```jsx
+<div className="card next-prayer-card" style={{ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+```
+
+---
+
+## Hasil yang Diharapkan
+
+| Elemen | Sebelum | Sesudah |
+|--------|---------|---------|
+| Tanggal `.h1` | 28px → wrap 3 baris | 22px → 1–2 baris bersih |
+| "Next prayer" card | Melayang di kanan tanggal, berantakan | Full width di bawah tanggal |
+| Prayer grid | 3 kolom sempit | 2 kolom lebih luas |
+| Tombol Tepat/Telat/Qadha | Gepeng 30px | Min 36px, terbaca |
+| Padding content | 16px | 14px + no horizontal overflow |
+| Bottom nav | 64px | 58px lebih compact |
+| Input font | Apapun | 16px (prevents iOS auto-zoom) |
+| Scroll | Scrollbar visible | Hidden, smooth native feel |
+
+## File yang Diubah
+- `src/deenme-theme.css` — ganti blok `@media (max-width: 767px)` pertama
+- `src/dashboard.jsx` — tambah `className` di header row + next prayer card
