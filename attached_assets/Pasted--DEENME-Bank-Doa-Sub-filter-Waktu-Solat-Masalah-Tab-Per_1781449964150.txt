@@ -1,0 +1,288 @@
+# DEENME — Bank Doa: Sub-filter Waktu Solat
+
+## Masalah
+Tab "Per Waktu Solat" di Bank Doa menampilkan semua doa Subuh, Maghrib, Isya 
+campur dalam satu list tanpa pemisah waktu. User harus scroll untuk tahu ini doa Subuh atau Maghrib.
+
+## Solusi
+Saat tab "Per Waktu Solat" aktif, tampilkan **pill sub-filter** di bawah tabs utama:
+`Semua · Subuh · Dzuhur · Ashar · Maghrib · Isya`
+
+List doa di bawahnya langsung filter sesuai pilihan, dengan **section header** (nama waktu + Arab) 
+kalau mode "Semua" aktif.
+
+---
+
+## Perubahan di `src/pages.jsx`
+
+### 1. Ganti `DOA_TABS` dan tambah `WAKTU_SOLAT_LIST`:
+
+```js
+const DOA_TABS = ['Semua', 'Per Waktu Solat', 'Ujian', 'Galau', 'Syukur', 'Safar', 'Sakit', 'Rezeki'];
+
+const WAKTU_SOLAT_LIST = [
+  { key: 'Semua',   label: 'Semua',   ar: null,       emoji: '🕌' },
+  { key: 'Subuh',   label: 'Subuh',   ar: 'الفَجْر',  emoji: '🌅' },
+  { key: 'Dzuhur',  label: 'Dzuhur',  ar: 'الظُّهْر', emoji: '☀️' },
+  { key: 'Ashar',   label: 'Ashar',   ar: 'العَصْر',  emoji: '🌤️' },
+  { key: 'Maghrib', label: 'Maghrib', ar: 'المَغْرِب', emoji: '🌆' },
+  { key: 'Isya',    label: 'Isya',    ar: 'العِشَاء', emoji: '🌙' },
+];
+```
+
+### 2. Ganti seluruh fungsi `BankDoaPage`:
+
+```jsx
+export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
+  const [tab, setTab]           = useState('Semua');
+  const [waktuFilter, setWaktuFilter] = useState('Semua'); // sub-filter
+  const [modal, setModal]       = useState(false);
+  const [selected, setSelected] = useState(null);
+
+  const all = [...userDoa, ...DOA];
+
+  // Filter utama berdasarkan tab
+  const byTab = all.filter((d) => tab === 'Semua' || d.cat === tab);
+
+  // Sub-filter waktu (hanya aktif kalau tab === 'Per Waktu Solat')
+  const list = (tab === 'Per Waktu Solat' && waktuFilter !== 'Semua')
+    ? byTab.filter(d => d.waktu === waktuFilter)
+    : byTab;
+
+  // Grouping untuk mode "Per Waktu Solat" + "Semua waktu"
+  const showGrouped = tab === 'Per Waktu Solat' && waktuFilter === 'Semua';
+  const grouped = showGrouped
+    ? WAKTU_SOLAT_LIST.filter(w => w.key !== 'Semua').map(w => ({
+        ...w,
+        items: list.filter(d => d.waktu === w.key),
+      })).filter(g => g.items.length > 0)
+    : null;
+
+  // Reset sub-filter kalau pindah tab
+  const handleTabChange = (t) => {
+    setTab(t);
+    setWaktuFilter('Semua');
+  };
+
+  return (
+    <div className="main fade-in">
+      <div className="content scrl" style={{ position: 'relative' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 16 }}>
+          <h1 className="h1">Bank Doa</h1>
+          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-3)' }}>
+            {all.length} doa tersimpan · sumber terverifikasi
+          </div>
+        </div>
+
+        {/* Tabs utama */}
+        <div className="tabs scrl" style={{ marginBottom: tab === 'Per Waktu Solat' ? 10 : 20 }}>
+          {DOA_TABS.map((t) => (
+            <button key={t} className={'tab' + (tab === t ? ' on' : '')} onClick={() => handleTabChange(t)}>
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {/* Sub-filter waktu — hanya tampil kalau tab Per Waktu Solat */}
+        {tab === 'Per Waktu Solat' && (
+          <div className="tabs scrl" style={{ marginBottom: 20, gap: 6 }}>
+            {WAKTU_SOLAT_LIST.map(({ key, label, emoji }) => (
+              <button
+                key={key}
+                onClick={() => setWaktuFilter(key)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '6px 14px', borderRadius: 20,
+                  border: `1.5px solid ${waktuFilter === key ? 'var(--gold)' : 'var(--border-2)'}`,
+                  background: waktuFilter === key ? 'var(--gold-soft)' : 'transparent',
+                  fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12,
+                  color: waktuFilter === key ? 'var(--gold)' : 'var(--text-3)',
+                  cursor: 'pointer', flexShrink: 0,
+                  transition: 'all .15s ease',
+                }}
+              >
+                <span style={{ fontSize: 13 }}>{emoji}</span>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Doa Situasional (kalau sudah ada) */}
+        {/* <DoaSituasional allDoa={all} onSelect={(doa) => setSelected(doa)} /> */}
+
+        {/* List doa */}
+        {showGrouped ? (
+          /* MODE GROUPED — Per Waktu Solat + Semua waktu */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {grouped.map(({ key, label, ar, emoji, items }) => (
+              <div key={key}>
+                {/* Section header */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  marginBottom: 10, paddingBottom: 8,
+                  borderBottom: '1px solid var(--border)',
+                }}>
+                  <span style={{ fontSize: 18 }}>{emoji}</span>
+                  <div>
+                    <div style={{
+                      fontFamily: 'var(--f-head)', fontWeight: 800,
+                      fontSize: 15, color: 'var(--text)', lineHeight: 1,
+                    }}>{label}</div>
+                    {ar && (
+                      <div style={{
+                        fontFamily: 'var(--f-ar)', fontSize: 13,
+                        color: 'var(--gold)', direction: 'rtl', marginTop: 2, opacity: .8,
+                      }}>{ar}</div>
+                    )}
+                  </div>
+                  <span style={{
+                    marginLeft: 'auto', fontFamily: 'var(--f-head)', fontWeight: 600,
+                    fontSize: 11, color: 'var(--text-3)',
+                  }}>
+                    {items.length} doa
+                  </span>
+                </div>
+
+                {/* Cards dalam grup */}
+                <div className="dm-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {items.map((d, idx) => (
+                    <DoaListCard
+                      key={d.ar + idx}
+                      doa={d}
+                      bookmarked={!!bookmarks[d.ar + (d.src || '')]}
+                      onToggleBookmark={() => toggleBookmark(d.ar + (d.src || ''))}
+                      onSelect={() => setSelected(d)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* MODE FLAT — tab lain atau sub-filter spesifik */
+          <div className="dm-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {list.length === 0 ? (
+              <div style={{
+                textAlign: 'center', padding: '40px 0',
+                color: 'var(--text-3)', fontFamily: 'var(--f-head)', fontSize: 13,
+              }}>
+                Belum ada doa untuk waktu ini
+              </div>
+            ) : list.map((d, idx) => (
+              <DoaListCard
+                key={d.ar + idx}
+                doa={d}
+                bookmarked={!!bookmarks[d.ar + (d.src || '')]}
+                onToggleBookmark={() => toggleBookmark(d.ar + (d.src || ''))}
+                onSelect={() => setSelected(d)}
+              />
+            ))}
+          </div>
+        )}
+
+        <button className="fab" onClick={() => setModal(true)} aria-label="Tambah Doa">+</button>
+      </div>
+
+      {selected && (
+        <DoaDetailDrawer
+          doa={selected}
+          bookmarked={!!bookmarks[selected.ar + (selected.src || '')]}
+          onToggleBookmark={() => toggleBookmark(selected.ar + (selected.src || ''))}
+          onClose={() => setSelected(null)}
+        />
+      )}
+
+      {modal && <AddDoaModal onClose={() => setModal(false)} onAdd={addDoa} />}
+    </div>
+  );
+}
+```
+
+### 3. Ekstrak card item jadi komponen `DoaListCard` (taruh sebelum `BankDoaPage`):
+
+Ini supaya bisa dipakai di kedua mode (grouped & flat) tanpa duplikasi kode:
+
+```jsx
+function DoaListCard({ doa, bookmarked, onToggleBookmark, onSelect }) {
+  return (
+    <div
+      onClick={onSelect}
+      style={{
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius)', padding: '14px 16px',
+        cursor: 'pointer', transition: 'border-color .15s, transform .1s',
+        display: 'flex', alignItems: 'center', gap: 14,
+      }}
+      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold-line)'}
+      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {doa.name && (
+          <div style={{
+            fontFamily: 'var(--f-head)', fontWeight: 700,
+            fontSize: 13, color: 'var(--text)', marginBottom: 4,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {doa.name}
+          </div>
+        )}
+        <div style={{
+          fontFamily: 'var(--f-ar)', direction: 'rtl',
+          fontSize: 17, color: 'var(--gold)', lineHeight: 1.6,
+          overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+          marginBottom: 4,
+        }}>
+          {doa.ar}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'var(--f-head)', fontSize: 10, color: 'var(--text-3)', fontWeight: 500 }}>
+            {doa.src}
+          </span>
+          {(doa.waktu || doa.cat) && (
+            <>
+              <span style={{ color: 'var(--border-2)', fontSize: 10 }}>·</span>
+              <span className="chip" style={{ padding: '1px 8px', fontSize: 10, pointerEvents: 'none' }}>
+                {doa.waktu || doa.cat}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <button
+          className={'bm' + (bookmarked ? ' on' : '')}
+          onClick={(e) => { e.stopPropagation(); onToggleBookmark(); }}
+          aria-label="Simpan"
+          style={{ padding: 4 }}
+        >
+          {Icon.bookmark(bookmarked)}
+        </button>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          style={{ color: 'var(--text-3)', flexShrink: 0 }}>
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## Hasil yang Diharapkan
+
+**Kalau klik tab "Per Waktu Solat":**
+- Muncul pill sub-filter: `🕌 Semua · 🌅 Subuh · ☀️ Dzuhur · 🌤️ Ashar · 🌆 Maghrib · 🌙 Isya`
+- Default: "Semua" → doa ditampilkan **grouped per waktu** dengan section header (nama + Arab + jumlah doa)
+- Klik "Subuh" → hanya doa Subuh, tanpa section header (flat)
+- Waktu yang belum ada doanya (Dzuhur, Ashar) → tampil pesan "Belum ada doa untuk waktu ini"
+
+**Tab lain (Galau, Ujian, dll):**
+- Sub-filter tidak muncul, list flat seperti biasa
+
+## File yang Diubah
+- `src/pages.jsx` — tambah `WAKTU_SOLAT_LIST`, komponen `DoaListCard`, ganti `BankDoaPage`

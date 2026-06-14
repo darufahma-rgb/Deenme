@@ -511,7 +511,12 @@ function MisiItem({ misi, done, onToggle }) {
                 onPointerUp={e => e.currentTarget.style.transform = 'scale(1)'}
                 onPointerLeave={e => e.currentTarget.style.transform = 'scale(1)'}
               >
-                <span style={{ fontSize: 16 }}>🤲</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 11V9a2 2 0 00-4 0v2"/>
+                  <path d="M14 10V8a2 2 0 00-4 0v3"/>
+                  <path d="M10 10.5V5a2 2 0 00-4 0v9"/>
+                  <path d="M18 11a2 2 0 114 0v1a8 8 0 01-8 8h-2c-2.76 0-4.5-.88-5.4-2.1L6 17"/>
+                </svg>
                 <span>{count} / {target}</span>
               </button>
 

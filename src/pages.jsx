@@ -1023,15 +1023,78 @@ function DoaDetailDrawer({ doa, bookmarked, onToggleBookmark, onClose }) {
 
 // ── Doa Situasional data ──
 const SITUASI = [
-  { emoji: '😔', label: 'Lagi galau',     cat: 'Galau',   keywords: ['galau', 'sedih', 'gundah', 'resah', 'khawatir', 'stress'] },
-  { emoji: '📚', label: 'Mau ujian',      cat: 'Ujian',   keywords: ['ujian', 'test', 'belajar', 'hafal', 'presentasi'] },
-  { emoji: '🤲', label: 'Butuh rezeki',   cat: 'Rezeki',  keywords: ['rezeki', 'uang', 'kerja', 'hutang', 'bisnis'] },
-  { emoji: '🏥', label: 'Lagi sakit',     cat: 'Sakit',   keywords: ['sakit', 'demam', 'sembuh', 'sehat', 'obat'] },
-  { emoji: '✈️', label: 'Mau bepergian', cat: 'Safar',   keywords: ['pergi', 'safar', 'perjalanan', 'mudik', 'travel'] },
-  { emoji: '😊', label: 'Mau bersyukur',  cat: 'Syukur',  keywords: ['syukur', 'senang', 'bahagia', 'nikmat', 'alhamdulillah'] },
-  { emoji: '🕌', label: 'Setelah sholat', cat: 'Per Waktu Solat', keywords: ['sholat', 'dzikir', 'setelah sholat'] },
-  { emoji: '🌙', label: 'Mau tidur',      cat: 'Per Waktu Solat', keywords: ['tidur', 'malam', 'istirahat', 'mimpi'] },
+  { iconKey: 'galau',  label: 'Lagi galau',     cat: 'Galau',          keywords: ['galau', 'sedih', 'gundah', 'resah', 'khawatir', 'stress'] },
+  { iconKey: 'ujian',  label: 'Mau ujian',       cat: 'Ujian',          keywords: ['ujian', 'test', 'belajar', 'hafal', 'presentasi'] },
+  { iconKey: 'rezeki', label: 'Butuh rezeki',    cat: 'Rezeki',         keywords: ['rezeki', 'uang', 'kerja', 'hutang', 'bisnis'] },
+  { iconKey: 'sakit',  label: 'Lagi sakit',      cat: 'Sakit',          keywords: ['sakit', 'demam', 'sembuh', 'sehat', 'obat'] },
+  { iconKey: 'safar',  label: 'Mau bepergian',   cat: 'Safar',          keywords: ['pergi', 'safar', 'perjalanan', 'mudik', 'travel'] },
+  { iconKey: 'syukur', label: 'Mau bersyukur',   cat: 'Syukur',         keywords: ['syukur', 'senang', 'bahagia', 'nikmat', 'alhamdulillah'] },
+  { iconKey: 'sholat', label: 'Setelah sholat',  cat: 'Per Waktu Solat', keywords: ['sholat', 'dzikir', 'setelah sholat'] },
+  { iconKey: 'tidur',  label: 'Mau tidur',       cat: 'Per Waktu Solat', keywords: ['tidur', 'malam', 'istirahat', 'mimpi'] },
 ];
+
+function SituasiIcon({ iconKey, size = 22, color = 'currentColor' }) {
+  const p = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  switch (iconKey) {
+    case 'galau': return (
+      <svg {...p}>
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M9 16c.85-1 4.15-1 6 0"/>
+        <circle cx="9.5" cy="10.5" r=".8" fill={color} stroke="none"/>
+        <circle cx="14.5" cy="10.5" r=".8" fill={color} stroke="none"/>
+      </svg>
+    );
+    case 'ujian': return (
+      <svg {...p}>
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+        <path d="M8 7h8M8 11h5"/>
+      </svg>
+    );
+    case 'rezeki': return (
+      <svg {...p}>
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 8v1m0 6v1"/>
+        <path d="M10 11a2 2 0 012-2h.5a1.5 1.5 0 010 3h-1a1.5 1.5 0 000 3H12a2 2 0 002-2"/>
+      </svg>
+    );
+    case 'sakit': return (
+      <svg {...p}>
+        <rect x="8" y="3" width="8" height="18" rx="2"/>
+        <rect x="3" y="8" width="18" height="8" rx="2"/>
+      </svg>
+    );
+    case 'safar': return (
+      <svg {...p}>
+        <path d="M22 2L11 13"/>
+        <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+      </svg>
+    );
+    case 'syukur': return (
+      <svg {...p}>
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    );
+    case 'sholat': return (
+      <svg {...p}>
+        <path d="M3 21h18"/>
+        <path d="M6 21V12"/>
+        <path d="M18 21V12"/>
+        <path d="M6 12C6 8.13 8.69 5 12 5s6 3.13 6 7"/>
+        <path d="M12 5V3"/>
+        <path d="M10.5 3h3"/>
+      </svg>
+    );
+    case 'tidur': return (
+      <svg {...p}>
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+    );
+    default: return (
+      <svg {...p}><circle cx="12" cy="12" r="9"/></svg>
+    );
+  }
+}
 
 function matchSituasi(text, doa) {
   const t = text.toLowerCase();
@@ -1098,7 +1161,12 @@ function DoaSituasional({ allDoa, onSelect }) {
         borderBottom: '1px solid var(--border)', padding: '14px 18px',
         display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <span style={{ fontSize: 20 }}>🤲</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 11V9a2 2 0 00-4 0v2"/>
+          <path d="M14 10V8a2 2 0 00-4 0v3"/>
+          <path d="M10 10.5V5a2 2 0 00-4 0v9"/>
+          <path d="M18 11a2 2 0 114 0v1a8 8 0 01-8 8h-2c-2.76 0-4.5-.88-5.4-2.1L6 17"/>
+        </svg>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
             Aku lagi...
@@ -1137,7 +1205,9 @@ function DoaSituasional({ allDoa, onSelect }) {
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold-line)'; e.currentTarget.style.transform = 'scale(1.04)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'scale(1)'; }}
               >
-                <div style={{ fontSize: 22, marginBottom: 4 }}>{s.emoji}</div>
+                <div style={{ marginBottom: 6, color: 'var(--gold)', display: 'flex', justifyContent: 'center' }}>
+                  <SituasiIcon iconKey={s.iconKey} size={22} />
+                </div>
                 <div style={{ fontSize: 10, color: 'var(--text-2)', lineHeight: 1.3, fontWeight: 600 }}>
                   {s.label}
                 </div>
