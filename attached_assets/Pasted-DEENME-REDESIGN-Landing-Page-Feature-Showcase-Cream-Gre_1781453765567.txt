@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+DEENME — REDESIGN: Landing Page — Feature Showcase + Cream/Green Mix
+Redesign the landing page to showcase app features with a cream + green mixed background like the dashboard.
+Replace entire LandingPage.jsx with:
+jsximport { useState, useEffect } from 'react';
 
-export function LandingPage({ onLogin, onEnter }) {
+export function LandingPage({ onLogin }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setTimeout(() => setMounted(true), 100); }, []);
-
-  const handleLogin = onLogin || onEnter;
 
   const FEATURES = [
     {
@@ -40,13 +41,13 @@ export function LandingPage({ onLogin, onEnter }) {
   ];
 
   const RANKS = [
-    { rank: 'E',   label: 'Mubtadi',    color: '#888' },
-    { rank: 'D',   label: 'Mutaallim',  color: '#6688cc' },
-    { rank: 'C',   label: 'Mutawassit', color: '#386641' },
-    { rank: 'B',   label: 'Mutaqaddim', color: '#6a994e' },
-    { rank: 'A',   label: 'Muttaqin',   color: '#a7c957' },
-    { rank: 'S',   label: 'Wali',       color: '#f0a500' },
-    { rank: 'SS',  label: 'Shiddiq',    color: '#bc4749' },
+    { rank: 'E', label: 'Mubtadi', color: '#888' },
+    { rank: 'D', label: 'Mutaallim', color: '#6688cc' },
+    { rank: 'C', label: 'Mutawassit', color: '#386641' },
+    { rank: 'B', label: 'Mutaqaddim', color: '#6a994e' },
+    { rank: 'A', label: 'Muttaqin', color: '#a7c957' },
+    { rank: 'S', label: 'Wali', color: '#f0a500' },
+    { rank: 'SS', label: 'Shiddiq', color: '#bc4749' },
     { rank: 'SSS', label: 'Ulul Albab', color: '#8b5cf6' },
   ];
 
@@ -62,7 +63,7 @@ export function LandingPage({ onLogin, onEnter }) {
           <span style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-.01em', color: '#1a2e1c' }}>Deenme</span>
         </div>
         <button
-          onClick={handleLogin}
+          onClick={onLogin}
           style={{ background: '#386641', color: '#f2e8cf', border: 'none', borderRadius: 10, padding: '8px 20px', fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
         >
           Masuk
@@ -84,7 +85,7 @@ export function LandingPage({ onLogin, onEnter }) {
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
-            onClick={handleLogin}
+            onClick={onLogin}
             style={{ background: '#386641', color: '#f2e8cf', border: 'none', borderRadius: 12, padding: '14px 32px', fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 15, cursor: 'pointer', boxShadow: '0 4px 20px rgba(56,102,65,.25)' }}
           >
             Mulai Sekarang →
@@ -102,9 +103,9 @@ export function LandingPage({ onLogin, onEnter }) {
       <section style={{ background: '#386641', padding: '28px 32px', display: 'flex', justifyContent: 'center', gap: 'clamp(24px, 6vw, 80px)', flexWrap: 'wrap' }}>
         {[
           { val: '50+', label: 'Doa & Dzikir' },
-          { val: '8',   label: 'Waktu Ibadah' },
-          { val: '8',   label: 'Rank Sistem' },
-          { val: '2',   label: 'Zona Waktu' },
+          { val: '8', label: 'Waktu Ibadah' },
+          { val: '8', label: 'Rank Sistem' },
+          { val: '2', label: 'Zona Waktu' },
         ].map(({ val, label }) => (
           <div key={label} style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 28, color: '#ecf39e', letterSpacing: '-.02em', lineHeight: 1 }}>{val}</div>
@@ -123,8 +124,7 @@ export function LandingPage({ onLogin, onEnter }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
           {FEATURES.map((f, i) => (
-            <div key={i}
-              style={{ background: i % 2 === 0 ? '#faf4e4' : '#fff', border: '1px solid #ddd4b0', borderRadius: 16, padding: '24px 22px', transition: 'transform .15s', cursor: 'default' }}
+            <div key={i} style={{ background: i % 2 === 0 ? '#faf4e4' : '#fff', border: '1px solid #ddd4b0', borderRadius: 16, padding: '24px 22px', transition: 'transform .15s', cursor: 'default' }}
               onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
             >
@@ -172,7 +172,7 @@ export function LandingPage({ onLogin, onEnter }) {
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           {[
-            { flag: '🇪🇬', city: 'Cairo',     tz: 'EET · UTC+2', method: 'Egyptian Authority' },
+            { flag: '🇪🇬', city: 'Cairo', tz: 'EET · UTC+2', method: 'Egyptian Authority' },
             { flag: '🇮🇩', city: 'Tangerang', tz: 'WIB · UTC+7', method: 'KEMENAG' },
           ].map(z => (
             <div key={z.city} style={{ background: '#faf4e4', border: '1px solid #ddd4b0', borderRadius: 14, padding: '18px 24px', minWidth: 180, textAlign: 'left' }}>
@@ -200,7 +200,7 @@ export function LandingPage({ onLogin, onEnter }) {
           Daftar dengan kode member dan mulai lacak ibadahmu.
         </p>
         <button
-          onClick={handleLogin}
+          onClick={onLogin}
           style={{ background: '#ecf39e', color: '#1a2e1c', border: 'none', borderRadius: 12, padding: '14px 36px', fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 15, cursor: 'pointer' }}
         >
           Masuk ke Deenme →
@@ -223,3 +223,11 @@ export function LandingPage({ onLogin, onEnter }) {
     </div>
   );
 }
+IMPORTANT:
+
+Replace entire LandingPage.jsx content
+Warna: dominan cream #f2e8cf untuk bg, hunter green #386641 untuk accent/CTA section, #faf4e4 untuk surface card
+Tidak ada import CSS tambahan — pakai inline styles semua agar tidak konflik dengan deenme-theme.css
+Font tetap var(--f-head) dan var(--f-ar)
+onLogin prop dipanggil saat tombol Masuk/Mulai diklik
+Do not touch any other file

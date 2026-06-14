@@ -1,0 +1,140 @@
+# DEENME — Fix Logo: Hapus Kotak di Login & Landing Page
+
+## Masalah
+- Login page: logo di dalam kotak hijau neon (`background: var(--gold)` = #2ecc8a di dark mode)
+- Landing page: logo di dalam kotak dengan border hijau neon (#2ecc8a)
+- Keduanya harus: **tanpa kotak, tanpa border, tanpa shadow kotak** — logo langsung, warna hijau #386641
+
+---
+
+## Fix 1 — `src/deenme-theme.css`
+
+### A. Ganti `.authlogo` (baris ~1024):
+
+```css
+/* SEBELUM */
+.authlogo {
+  width: 60px; height: 60px;
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gold);
+  color: #071510;
+  font-family: var(--f-ar);
+  font-size: 34px;
+  margin-bottom: 4px;
+  box-shadow: 0 0 28px -6px #2ecc8a;
+}
+
+/* SESUDAH */
+.authlogo {
+  width: 72px; height: 72px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 4px;
+}
+```
+
+### B. Ganti `.lp-logo-icon` (baris ~1941):
+
+```css
+/* SEBELUM */
+.lp-logo-icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  background: color-mix(in srgb, #2ecc8a 15%, transparent);
+  border: 1px solid color-mix(in srgb, #2ecc8a 35%, transparent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--f-ar); font-size: 26px;
+  color: #2ecc8a;
+  box-shadow: 0 0 24px -6px #2ecc8a;
+}
+
+/* SESUDAH */
+.lp-logo-icon {
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+```
+
+### C. Cari baris light mode `.authlogo` (baris ~163) dan ganti:
+
+```css
+/* SEBELUM */
+.authlogo { background: var(--gold-soft); border: 1px solid var(--gold-line); color: #386641; }
+
+/* SESUDAH */
+.authlogo { background: transparent; border: none; box-shadow: none; }
+```
+
+---
+
+## Fix 2 — `src/App.jsx` (Login Page)
+
+Cari baris ~186:
+```jsx
+<div className="authlogo">د</div>
+```
+
+Ganti dengan:
+```jsx
+<div className="authlogo">
+  <img
+    src="./assets/Deenme_logo.png"
+    alt="Deenme"
+    style={{
+      width: 64,
+      height: 'auto',
+      filter: 'brightness(0) saturate(100%) invert(28%) sepia(30%) saturate(800%) hue-rotate(95deg) brightness(85%)',
+    }}
+  />
+</div>
+```
+
+---
+
+## Fix 3 — `src/LandingPage.jsx` (Landing Page)
+
+Cari:
+```jsx
+<div className="lp-logo-icon">
+  <img src="./assets/Deenme_logo.png" alt="Deenme"
+    style={{ width: 28, height: 'auto', filter: 'brightness(0) saturate(100%) invert(40%) sepia(40%) saturate(400%) hue-rotate(90deg)' }} />
+</div>
+```
+
+Ganti dengan:
+```jsx
+<div className="lp-logo-icon">
+  <img
+    src="./assets/Deenme_logo.png"
+    alt="Deenme"
+    style={{
+      width: 44,
+      height: 'auto',
+      filter: 'brightness(0) saturate(100%) invert(28%) sepia(30%) saturate(800%) hue-rotate(95deg) brightness(85%)',
+    }}
+  />
+</div>
+```
+
+---
+
+## Penjelasan Filter CSS
+
+Filter `brightness(0) saturate(100%) invert(28%) sepia(30%) saturate(800%) hue-rotate(95deg) brightness(85%)` menghasilkan warna **#386641** (hijau tua Deenme) dari logo hitam-putih.
+
+| Lokasi | Ukuran logo | Hasil warna |
+|--------|------------|-------------|
+| Login (authlogo) | 64px | Hijau tua #386641 |
+| Landing hero (lp-logo-icon) | 44px | Hijau tua #386641 |
+| Rail sidebar | 34px | Sudah benar dari prompt sebelumnya |
+
+## File yang Diubah
+- `src/deenme-theme.css` — 3 blok CSS (authlogo x2 + lp-logo-icon)
+- `src/App.jsx` — ganti `<div className="authlogo">د</div>`
+- `src/LandingPage.jsx` — update filter + ukuran img di lp-logo-icon
