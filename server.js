@@ -117,6 +117,48 @@ Jika cerita mimpi terlalu singkat atau tidak jelas, minta user untuk menceritaka
   }
 });
 
+app.post('/api/doa/situasional', async (req, res) => {
+  const apiKey = process.env.OPENROUTER_KEY;
+  const { text, cats } = req.body;
+  if (!text) return res.status(400).json({ error: 'text required' });
+
+  if (!apiKey) {
+    return res.json({ cats: [] });
+  }
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://deenme.app',
+        'X-Title': 'Deenme Bank Doa',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-flash-1.5',
+        messages: [
+          {
+            role: 'user',
+            content: `User menulis: "${text}"
+Dari daftar kategori doa berikut: ${(cats || []).join(', ')}
+Pilih 1-2 kategori yang paling relevan. Jawab HANYA dengan nama kategori, dipisah koma. Tanpa penjelasan.`,
+          },
+        ],
+        max_tokens: 50,
+        temperature: 0.2,
+      }),
+    });
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content || '';
+    const matched = raw.split(',').map(c => c.trim()).filter(Boolean);
+    res.json({ cats: matched });
+  } catch (err) {
+    console.error('Doa situasional error:', err);
+    res.json({ cats: [] });
+  }
+});
+
 const PORT = process.env.API_PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API server running on port ${PORT}`);

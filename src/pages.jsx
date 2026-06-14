@@ -1021,6 +1021,216 @@ function DoaDetailDrawer({ doa, bookmarked, onToggleBookmark, onClose }) {
   );
 }
 
+// ── Doa Situasional data ──
+const SITUASI = [
+  { emoji: '😔', label: 'Lagi galau',     cat: 'Galau',   keywords: ['galau', 'sedih', 'gundah', 'resah', 'khawatir', 'stress'] },
+  { emoji: '📚', label: 'Mau ujian',      cat: 'Ujian',   keywords: ['ujian', 'test', 'belajar', 'hafal', 'presentasi'] },
+  { emoji: '🤲', label: 'Butuh rezeki',   cat: 'Rezeki',  keywords: ['rezeki', 'uang', 'kerja', 'hutang', 'bisnis'] },
+  { emoji: '🏥', label: 'Lagi sakit',     cat: 'Sakit',   keywords: ['sakit', 'demam', 'sembuh', 'sehat', 'obat'] },
+  { emoji: '✈️', label: 'Mau bepergian', cat: 'Safar',   keywords: ['pergi', 'safar', 'perjalanan', 'mudik', 'travel'] },
+  { emoji: '😊', label: 'Mau bersyukur',  cat: 'Syukur',  keywords: ['syukur', 'senang', 'bahagia', 'nikmat', 'alhamdulillah'] },
+  { emoji: '🕌', label: 'Setelah sholat', cat: 'Per Waktu Solat', keywords: ['sholat', 'dzikir', 'setelah sholat'] },
+  { emoji: '🌙', label: 'Mau tidur',      cat: 'Per Waktu Solat', keywords: ['tidur', 'malam', 'istirahat', 'mimpi'] },
+];
+
+function matchSituasi(text, doa) {
+  const t = text.toLowerCase();
+  const matched = SITUASI.find(s =>
+    s.keywords.some(k => t.includes(k)) || t.includes(s.cat.toLowerCase())
+  );
+  if (!matched) return false;
+  return doa.cat === matched.cat || (matched.cat === 'Per Waktu Solat' && doa.waktu);
+}
+
+// ── Komponen DoaSituasional ──
+function DoaSituasional({ allDoa, onSelect }) {
+  const [mode, setMode]       = useState('idle');
+  const [text, setText]       = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [chosen, setChosen]   = useState(null);
+
+  const handleQuick = (situasi) => {
+    const filtered = allDoa.filter(d => d.cat === situasi.cat);
+    setResults(filtered.slice(0, 4));
+    setChosen(situasi);
+    setMode('result');
+  };
+
+  const handleSearch = async () => {
+    if (!text.trim()) return;
+    setLoading(true);
+    setMode('result');
+
+    const local = allDoa.filter(d => matchSituasi(text, d));
+    if (local.length >= 2) {
+      setResults(local.slice(0, 4));
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/doa/situasional', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, cats: SITUASI.map(s => s.cat) }),
+      });
+      const data = await res.json();
+      const cats = (data.cats || []);
+      const aiResults = allDoa.filter(d => cats.some(c => d.cat?.toLowerCase().includes(c.toLowerCase())));
+      setResults(aiResults.slice(0, 4));
+    } catch {
+      setResults(allDoa.slice(0, 4));
+    }
+    setLoading(false);
+  };
+
+  const reset = () => { setMode('idle'); setText(''); setResults([]); setChosen(null); };
+
+  return (
+    <div style={{
+      background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 16,
+    }}>
+      {/* Header */}
+      <div style={{
+        background: 'linear-gradient(135deg, color-mix(in srgb, var(--gold) 10%, var(--elevated)), var(--elevated))',
+        borderBottom: '1px solid var(--border)', padding: '14px 18px',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <span style={{ fontSize: 20 }}>🤲</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
+            Aku lagi...
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
+            Ceritakan situasimu, kami carikan doanya
+          </div>
+        </div>
+        {mode !== 'idle' && (
+          <button onClick={reset} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--text-3)', fontFamily: 'var(--f-head)', fontSize: 12,
+            padding: '4px 8px',
+          }}>← Kembali</button>
+        )}
+      </div>
+
+      {/* IDLE — pilihan cepat */}
+      {mode === 'idle' && (
+        <div style={{ padding: '14px 18px' }}>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
+            marginBottom: 12,
+          }}>
+            {SITUASI.map(s => (
+              <button
+                key={s.cat + s.label}
+                onClick={() => handleQuick(s)}
+                style={{
+                  background: 'var(--elevated)', border: '1px solid var(--border)',
+                  borderRadius: 10, padding: '10px 6px',
+                  cursor: 'pointer', textAlign: 'center',
+                  transition: 'border-color .15s, transform .12s',
+                  fontFamily: 'var(--f-head)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold-line)'; e.currentTarget.style.transform = 'scale(1.04)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'scale(1)'; }}
+              >
+                <div style={{ fontSize: 22, marginBottom: 4 }}>{s.emoji}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-2)', lineHeight: 1.3, fontWeight: 600 }}>
+                  {s.label}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              className="tinput"
+              value={text}
+              onChange={e => setText(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              placeholder="Atau ceritakan situasimu..."
+              style={{
+                flex: 1, background: 'var(--elevated)',
+                border: '1px solid var(--border)', color: 'var(--text)',
+                fontSize: 13,
+              }}
+            />
+            <button
+              onClick={handleSearch}
+              className="btn gold"
+              style={{ padding: '0 16px', fontSize: 13, flexShrink: 0 }}
+            >
+              Cari
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* RESULT */}
+      {mode === 'result' && (
+        <div style={{ padding: '12px 18px' }}>
+          {chosen && (
+            <div style={{
+              fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11,
+              color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '.1em',
+              marginBottom: 10,
+            }}>
+              {chosen.emoji} Doa untuk "{chosen.label}"
+            </div>
+          )}
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-3)', fontSize: 13 }}>
+              🔍 Mencarikan doa terbaik...
+            </div>
+          ) : results.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-3)', fontSize: 13 }}>
+              Tidak ditemukan. Coba kata lain.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {results.map((doa, i) => (
+                <div
+                  key={i}
+                  onClick={() => onSelect(doa)}
+                  style={{
+                    background: 'var(--elevated)', border: '1px solid var(--border)',
+                    borderRadius: 10, padding: '12px 14px', cursor: 'pointer',
+                    transition: 'border-color .15s',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold-line)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {doa.name && (
+                      <div style={{
+                        fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12,
+                        color: 'var(--text)', marginBottom: 3,
+                      }}>{doa.name}</div>
+                    )}
+                    <div style={{
+                      fontFamily: 'var(--f-ar)', direction: 'rtl', fontSize: 15,
+                      color: 'var(--gold)', lineHeight: 1.6,
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>{doa.ar}</div>
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)', flexShrink: 0 }}>
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
   const [tab, setTab]           = useState('Semua');
   const [modal, setModal]       = useState(false);
@@ -1040,6 +1250,12 @@ export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
             {all.length} doa tersimpan · sumber terverifikasi
           </div>
         </div>
+
+        {/* Doa Situasional */}
+        <DoaSituasional
+          allDoa={all}
+          onSelect={(doa) => setSelected(doa)}
+        />
 
         {/* Tabs */}
         <div className="tabs scrl" style={{ marginBottom: 20 }}>
