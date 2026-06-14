@@ -53,7 +53,7 @@ export function LandingPage({ onEnter }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <img src="./assets/Deenme_logo.png" alt="Deenme" style={{
-            width: 38, height: 38,
+            width: 38, height: 'auto',
             filter: 'brightness(0) saturate(100%) invert(22%) sepia(35%) saturate(700%) hue-rotate(95deg) brightness(80%)',
           }} />
           <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: '-.02em', color: C.green }}>Deenme</span>
@@ -98,25 +98,6 @@ export function LandingPage({ onEnter }) {
         }} />
 
         <div style={{ position: 'relative', maxWidth: 700, zIndex: 1 }}>
-
-          {/* Logo mark besar di atas judul */}
-          <div style={{
-            display: 'flex', justifyContent: 'center', marginBottom: 24,
-            opacity: mounted ? 1 : 0, transform: mounted ? 'scale(1)' : 'scale(.7)',
-            transition: 'opacity .5s, transform .5s cubic-bezier(.34,1.56,.64,1)',
-          }}>
-            <div style={{
-              width: 80, height: 80, borderRadius: 22,
-              background: C.greenMid,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 8px 32px rgba(56,102,65,.35), 0 2px 8px rgba(56,102,65,.2)`,
-            }}>
-              <img src="./assets/Deenme_logo.png" alt="Deenme" style={{
-                width: 52, height: 52,
-                filter: 'brightness(0) invert(1)',
-              }} />
-            </div>
-          </div>
 
           {/* Bismillah */}
           <div style={{
