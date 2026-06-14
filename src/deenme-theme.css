@@ -2055,6 +2055,12 @@ label, .label, .caption {
 .rail { background: #0d1a11; border-right: 1px solid var(--border); }
 .rail .brand { background: transparent; border: none; box-shadow: none; }
 
+@media (max-width: 767px) {
+  .rail  { display: none !important; }
+  .col-l { display: none !important; }
+  .col-r { display: none !important; }
+}
+
 /* Cards */
 .card { background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 6px rgba(0,0,0,.2); }
 
