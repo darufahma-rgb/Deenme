@@ -540,6 +540,8 @@ label, .label, .caption {
   align-items: center;
   padding: 22px 0 20px;
   gap: 4px;
+  position: relative;
+  z-index: 10;
 }
 .rail .brand {
   width: 40px; height: 40px;
