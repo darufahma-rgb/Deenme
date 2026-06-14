@@ -1,0 +1,83 @@
+# DEENME — Fix Logo Rail: Hapus Kotak, Logo Langsung
+
+## Masalah
+Logo di sidebar rail muncul di dalam kotak (background + border + shadow) yang jelek.
+Mau logo langsung tanpa kotak apapun.
+
+---
+
+## Fix 1 — `src/deenme-theme.css`
+
+Ada 3 baris `.rail .brand` yang perlu diupdate. Ganti semua dengan versi tanpa box:
+
+**Cari baris ~105:**
+```css
+.rail .brand { background: var(--gold-soft); border: 1px solid var(--gold-line); color: #386641; }
+```
+**Ganti:**
+```css
+.rail .brand { background: transparent; border: none; color: #386641; box-shadow: none; }
+```
+
+**Cari baris ~544 (blok multi-line):**
+```css
+.rail .brand {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold);
+  font-family: var(--f-ar);
+  font-size: 22px;
+  margin-bottom: 18px;
+  box-shadow: 0 0 20px -6px #2ecc8a;
+}
+```
+**Ganti:**
+```css
+.rail .brand {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 18px;
+}
+```
+
+**Cari baris ~1788:**
+```css
+.rail .brand { background: var(--gold-soft); border: 1px solid var(--gold-line); color: var(--gold); box-shadow: 0 0 20px -6px #2ecc8a; }
+```
+**Ganti:**
+```css
+.rail .brand { background: transparent; border: none; box-shadow: none; }
+```
+
+---
+
+## Fix 2 — `src/ui.jsx`
+
+Update ukuran dan filter logo di dalam brand agar pas tanpa kotak:
+
+**Cari:**
+```jsx
+<div className="brand">
+  <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 26, height: 'auto', filter: 'brightness(0) saturate(100%) invert(35%) sepia(60%) saturate(500%) hue-rotate(90deg) brightness(90%)' }} />
+</div>
+```
+
+**Ganti:**
+```jsx
+<div className="brand">
+  <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 34, height: 'auto', filter: 'brightness(0) saturate(100%) invert(55%) sepia(40%) saturate(400%) hue-rotate(90deg)' }} />
+</div>
+```
+
+---
+
+## Hasil
+- Logo langsung muncul tanpa kotak, border, atau shadow
+- Ukuran sedikit lebih besar (34px) karena tidak ada padding kotak
+- Warna logo tetap hijau menyesuaikan tema sidebar

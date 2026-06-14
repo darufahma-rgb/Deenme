@@ -102,7 +102,7 @@ body {
 }
 
 .rail { background: #ede3c4; border-right: 1px solid var(--border); box-shadow: 2px 0 8px rgba(0,0,0,.04); }
-.rail .brand { background: var(--gold-soft); border: 1px solid var(--gold-line); color: #386641; }
+.rail .brand { background: transparent; border: none; color: #386641; box-shadow: none; }
 
 .navbtn { color: var(--text-3); }
 .navbtn:hover { background: var(--elevated); color: var(--text); }
@@ -543,15 +543,11 @@ label, .label, .caption {
 }
 .rail .brand {
   width: 40px; height: 40px;
-  border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center;
-  background: var(--gold-soft);
-  border: 1px solid var(--gold-line);
-  color: var(--gold);
-  font-family: var(--f-ar);
-  font-size: 22px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   margin-bottom: 18px;
-  box-shadow: 0 0 20px -6px #2ecc8a;
 }
 .navbtn {
   position: relative;
@@ -1762,7 +1758,7 @@ label, .label, .caption {
 
 /* Rail */
 .rail { background: #0d1a11; border-right: 1px solid var(--border); }
-.rail .brand { background: var(--gold-soft); border: 1px solid var(--gold-line); color: var(--gold); box-shadow: 0 0 20px -6px #2ecc8a; }
+.rail .brand { background: transparent; border: none; box-shadow: none; }
 
 /* Cards */
 .card { background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 6px rgba(0,0,0,.2); }
