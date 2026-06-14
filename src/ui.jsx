@@ -125,7 +125,7 @@ function TimezonePicker({ timezone, onChange, options }) {
 export function Rail({ page, go, onLogout, timezone, changeTimezone, timezoneOptions }) {
   return (
     <div className="rail" style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
-      <div className="brand" style={{ flexShrink: 0 }}>
+      <div className="brand" style={{ marginTop: 16, marginBottom: 8, flexShrink: 0 }}>
         <img src="/assets/Deenme_logo.png" alt="Deenme" style={{ width: 22, height: 'auto', filter: 'brightness(0) saturate(100%) invert(53%) sepia(20%) saturate(580%) hue-rotate(74deg)' }} />
       </div>
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 0' }}>

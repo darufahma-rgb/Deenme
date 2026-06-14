@@ -172,7 +172,7 @@ export function LandingPage({ onLogin, onEnter }) {
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           {[
-            { flag: '🇪🇬', city: 'Cairo',     tz: 'EET · UTC+2', method: 'Egyptian Authority' },
+            { flag: '🇪🇬', city: 'Cairo',     tz: 'EEST · UTC+3 (musim panas)', method: 'Egyptian Authority' },
             { flag: '🇮🇩', city: 'Tangerang', tz: 'WIB · UTC+7', method: 'KEMENAG' },
           ].map(z => (
             <div key={z.city} style={{ background: '#faf4e4', border: '1px solid #ddd4b0', borderRadius: 14, padding: '18px 24px', minWidth: 180, textAlign: 'left' }}>

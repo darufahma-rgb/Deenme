@@ -1080,7 +1080,9 @@ export function DashboardPage({
     : PRAYERS.find((p) => !prayers[p.k])?.k;
 
   // Timezone label
-  const tzLabel = timezone === 'Africa/Cairo' ? 'EET' : 'WIB';
+  const tzLabel = timezone === 'Africa/Cairo'
+    ? (new Date().toLocaleTimeString('en', { timeZone: 'Africa/Cairo', timeZoneName: 'short' }).split(' ')[2] || 'EET')
+    : 'WIB';
 
   // Live clock — updates every second
   const [clock, setClock] = useState(() =>

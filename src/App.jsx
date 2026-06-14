@@ -226,8 +226,8 @@ function LoginPage({ onEnter }) {
 
 // ── Timezone Options ─────────────────────────────────────────────────────────
 const TIMEZONE_OPTIONS = [
-  { value: 'Asia/Jakarta', label: 'Jakarta / WIB', flag: '🇮🇩', offset: 'UTC+7' },
-  { value: 'Africa/Cairo', label: 'Cairo / EET',   flag: '🇪🇬', offset: 'UTC+2' },
+  { value: 'Asia/Jakarta', label: 'Tangerang / WIB', flag: '🇮🇩', offset: 'UTC+7' },
+  { value: 'Africa/Cairo', label: 'Cairo / EEST',    flag: '🇪🇬', offset: 'UTC+3' },
 ];
 
 // ── App ──────────────────────────────────────────────────────────────────────
