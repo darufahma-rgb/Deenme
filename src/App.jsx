@@ -188,13 +188,12 @@ function LoginPage({ onEnter }) {
             src="/assets/Deenme_logo.png"
             alt="Deenme"
             style={{
-              width: 64,
+              width: 44,
               height: 'auto',
               filter: 'brightness(0) saturate(100%) invert(28%) sepia(30%) saturate(800%) hue-rotate(95deg) brightness(85%)',
             }}
           />
         </div>
-        <div style={{ fontFamily: 'var(--f-head)', fontWeight: 500, fontSize: 32, letterSpacing: '-.01em', color: 'var(--text)', marginTop: 2 }}>Deenme</div>
         <div className="ar" style={{ fontSize: 22, marginTop: 2 }}>مَرْحَبًا بِعَوْدَتِكَ</div>
         <div className="muted tiny" style={{ marginBottom: 8 }}>Welcome back</div>
         <div style={{ position: 'relative', margin: '6px 0' }}>

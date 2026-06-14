@@ -64,7 +64,7 @@ export function LandingPage({ onEnter }) {
               src="./assets/Deenme_logo.png"
               alt="Deenme"
               style={{
-                width: 32, height: 32,
+                width: 26, height: 26,
                 filter: 'brightness(0) saturate(100%) invert(22%) sepia(35%) saturate(700%) hue-rotate(95deg) brightness(80%)',
               }}
             />
