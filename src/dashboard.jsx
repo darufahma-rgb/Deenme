@@ -379,17 +379,79 @@ const PRAYER_ID  = { subuh: 'Subuh', dzuhur: 'Dzuhur', ashar: 'Ashar', maghrib: 
 const PRAYER_AR  = { subuh: 'الفجر', dzuhur: 'الظهر', ashar: 'العصر', maghrib: 'المغرب', isya: 'العشاء' };
 
 // ── Mission Item ─────────────────────────────────────────────────────────────
+// Parse "100×" → 100, "33-33-34" → 100, "3×" → 3
+// Return null kalau tidak bisa diparsing (Hisnul Muslim, dll)
+function parseCountTarget(countStr) {
+  if (!countStr) return null;
+  if (countStr.includes('-')) {
+    const parts = countStr.split('-').map(Number);
+    if (parts.every(n => !isNaN(n))) return parts.reduce((a, b) => a + b, 0);
+  }
+  const m = countStr.match(/^(\d+)[×x]/);
+  if (m) return parseInt(m[1]);
+  return null;
+}
+
 function MisiItem({ misi, done, onToggle }) {
   const [open, setOpen] = useState(false);
+
+  const target     = misi.type === 'dzikir' ? parseCountTarget(misi.count) : null;
+  const storageKey = `dzikir-count-${misi.id}`;
+  const [count, setCount] = useState(() => {
+    if (!target) return 0;
+    return parseInt(localStorage.getItem(storageKey) || '0');
+  });
+
+  const isCountable = !!target;
+  const progress    = isCountable ? Math.min(count / target, 1) : 0;
+
+  const handleTap = (e) => {
+    if (done) return;
+    const next = count + 1;
+    setCount(next);
+    localStorage.setItem(storageKey, String(next));
+    if (navigator.vibrate) navigator.vibrate(8);
+
+    if (next < target) {
+      const el = document.createElement('div');
+      el.textContent = `${next}/${target}`;
+      el.style.cssText = `
+        position:fixed; left:${e.clientX}px; top:${e.clientY - 20}px;
+        font-family:var(--f-head); font-weight:700; font-size:11px;
+        color:var(--gold); pointer-events:none; z-index:9999;
+        animation: xpFloat .7s ease forwards;
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 700);
+    }
+
+    if (next >= target && !done) {
+      setTimeout(() => onToggle(misi.id), 200);
+      setTimeout(() => {
+        localStorage.removeItem(storageKey);
+        setCount(0);
+      }, 800);
+    }
+  };
+
+  const handleReset = (e) => {
+    e.stopPropagation();
+    setCount(0);
+    localStorage.removeItem(storageKey);
+  };
+
   return (
     <div className={'misi-item' + (done ? ' done' : '')}>
-      <div
-        className={'misi-item-checkbox' + (done ? ' checked' : '')}
-        onClick={() => onToggle(misi.id)}
-      >
-        {done && <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="var(--bg)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
-      </div>
-      <div className="misi-item-body">
+      {(!isCountable || done) && (
+        <div
+          className={'misi-item-checkbox' + (done ? ' checked' : '')}
+          onClick={() => onToggle(misi.id)}
+        >
+          {done && <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="var(--bg)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+        </div>
+      )}
+
+      <div className="misi-item-body" style={{ flex: 1 }}>
         <div className="misi-item-ar">{misi.nameAr}</div>
         <div className="misi-item-top">
           <span className={'misi-item-name' + (done ? ' checked' : '')}>{misi.name}</span>
@@ -401,8 +463,7 @@ function MisiItem({ misi, done, onToggle }) {
                         'color-mix(in srgb, #8b8bff 15%, transparent)',
             color: misi.type === 'sholat' ? 'var(--ok)' :
                    misi.type === 'dzikir' ? 'var(--gold)' : '#a0a0ff',
-            borderColor: 'transparent',
-            pointerEvents: 'none',
+            borderColor: 'transparent', pointerEvents: 'none',
           }}>
             {misi.type === 'sholat' ? 'Sholat' : misi.type === 'dzikir' ? 'Dzikir' : 'Doa'}
           </span>
@@ -412,6 +473,65 @@ function MisiItem({ misi, done, onToggle }) {
             </span>
           )}
         </div>
+
+        {/* DZIKIR COUNTER — hanya untuk countable dan belum done */}
+        {isCountable && !done && (
+          <div style={{ marginTop: 10 }}>
+            <div style={{
+              height: 3, background: 'var(--elevated-2)',
+              borderRadius: 2, marginBottom: 8, overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%', borderRadius: 2,
+                background: 'linear-gradient(90deg, var(--gold), #a7c957)',
+                width: `${progress * 100}%`,
+                transition: 'width .2s ease',
+              }} />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={handleTap}
+                style={{
+                  flex: 1,
+                  background: count >= target
+                    ? 'color-mix(in srgb, var(--gold) 20%, transparent)'
+                    : 'var(--surface)',
+                  border: `1.5px solid ${count >= target ? 'var(--gold)' : 'var(--border-2)'}`,
+                  borderRadius: 10, padding: '10px 0',
+                  fontFamily: 'var(--f-head)', fontWeight: 700,
+                  fontSize: 13, color: 'var(--gold)',
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  transition: 'transform .1s, background .15s, border-color .15s',
+                  userSelect: 'none', WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+                onPointerDown={e => e.currentTarget.style.transform = 'scale(.93)'}
+                onPointerUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                onPointerLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <span style={{ fontSize: 16 }}>🤲</span>
+                <span>{count} / {target}</span>
+              </button>
+
+              {count > 0 && (
+                <button
+                  onClick={handleReset}
+                  title="Reset"
+                  style={{
+                    background: 'none', border: '1.5px solid var(--border)',
+                    borderRadius: 8, width: 36, height: 36,
+                    cursor: 'pointer', color: 'var(--text-3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12, flexShrink: 0,
+                  }}
+                >↺</button>
+              )}
+            </div>
+          </div>
+        )}
+
         {misi.desc && (
           <>
             <button className="misi-item-toggle" onClick={() => setOpen((o) => !o)}>
