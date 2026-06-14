@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from './supabase.js';
 import { BADGES, getRank, getLevel, getNextRank, RANK_SYSTEM } from './dashboard.jsx';
 
@@ -6,100 +6,36 @@ function getInitials(name) {
   return (name || 'A').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-// ── Animated counter ─────────────────────────────────────────────────────────
-function Counter({ to, duration = 1200 }) {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (!to) return;
-    let start = null;
-    const step = (ts) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / duration, 1);
-      setVal(Math.floor(p * to));
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [to]);
-  return val.toLocaleString();
-}
-
-// ── Rank badge ────────────────────────────────────────────────────────────────
-function RankBadge({ rank, size = 52, pulse = false }) {
-  return (
-    <div style={{
-      width: size, height: size,
-      borderRadius: size * 0.25,
-      background: `linear-gradient(145deg, rgba(245,237,218,.04), rgba(245,237,218,.01))`,
-      border: `2px solid ${rank.color}`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'var(--f-head)', fontWeight: 900,
-      fontSize: size * 0.38, color: rank.color,
-      boxShadow: `0 0 ${size * 0.5}px -${size * 0.1}px ${rank.color}80, inset 0 1px 0 rgba(255,255,255,.06)`,
-      flexShrink: 0,
-      animation: pulse ? 'rankGlowPulse 2.5s ease-in-out infinite' : 'none',
-      position: 'relative',
-    }}>
-      {rank.rank}
-    </div>
-  );
-}
-
-// ── XP bar ────────────────────────────────────────────────────────────────────
-function XPBar({ pct, color, nextColor, shimmer = true }) {
-  return (
-    <div style={{ height: 6, background: 'rgba(245,237,218,.06)', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
-      <div style={{
-        height: '100%', borderRadius: 3,
-        background: `linear-gradient(90deg, ${color}, ${nextColor || color})`,
-        width: `${Math.min(pct, 100)}%`,
-        transition: 'width 1.2s cubic-bezier(.22,1,.36,1)',
-        boxShadow: `0 0 12px ${color}80`,
-        position: 'relative', overflow: 'hidden',
-      }}>
-        {shimmer && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,.25) 50%, transparent 100%)',
-            backgroundSize: '200% 100%',
-            animation: 'dm-shimmer 2s ease-in-out infinite',
-          }} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Main ──────────────────────────────────────────────────────────────────────
 export function ProfilePage({
   userName, codeId,
   totalPoints, streak, freeze,
   prayers, misiDone, unlockedBadges,
   onUpdateName, onLogout,
 }) {
-  const [tab, setTab]             = useState('profile');
-  const [editName, setEditName]   = useState(userName);
-  const [saving, setSaving]       = useState(false);
-  const [saved, setSaved]         = useState(false);
+  const [tab, setTab]           = useState('profil');
+  const [editName, setEditName] = useState(userName);
+  const [saving, setSaving]     = useState(false);
+  const [saved, setSaved]       = useState(false);
   const [memberInfo, setMemberInfo] = useState(null);
-  const [mounted, setMounted]     = useState(false);
+  const [mounted, setMounted]   = useState(false);
 
   const rank     = getRank(totalPoints);
   const nextRank = getNextRank(totalPoints);
   const level    = getLevel(totalPoints);
   const doneCount = Object.values(prayers || {}).filter(v => v).length;
   const misiCount = Object.keys(misiDone || {}).length;
-  const pct = level.next
+  const xpPct = level.next
     ? ((totalPoints - level.low) / (level.next - level.low)) * 100
     : 100;
 
   useEffect(() => {
-    setTimeout(() => setMounted(true), 100);
+    setTimeout(() => setMounted(true), 80);
     if (!codeId) return;
-    supabase.from('member_codes').select('name, code, created_at').eq('id', codeId).single()
+    supabase.from('member_codes').select('name,code,created_at').eq('id', codeId).single()
       .then(({ data }) => { if (data) setMemberInfo(data); });
   }, [codeId]);
 
-  const handleSaveName = async () => {
+  const saveName = async () => {
     if (!editName.trim() || editName === userName || saving) return;
     setSaving(true);
     await supabase.from('member_codes').update({ name: editName.trim() }).eq('id', codeId);
@@ -108,127 +44,121 @@ export function ProfilePage({
     setTimeout(() => setSaved(false), 2500);
   };
 
-  const TABS = [
-    { id: 'profile',  label: 'Profil',      icon: '👤' },
-    { id: 'rank',     label: 'Rank',         icon: '⚔️' },
-    { id: 'badges',   label: 'Badge',        icon: '🏆' },
-    { id: 'settings', label: 'Pengaturan',   icon: '⚙️' },
-  ];
+  const TABS = ['profil', 'rank', 'badge', 'pengaturan'];
+
+  const card = {
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 14,
+    overflow: 'hidden',
+  };
+  const sectionTitle = {
+    fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 10,
+    color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '.12em',
+  };
+  const row = (last) => ({
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '13px 16px',
+    borderBottom: last ? 'none' : '1px solid var(--border)',
+  });
 
   return (
-    <div style={{ minHeight: '100%', background: 'var(--bg)', fontFamily: 'var(--f-head)' }}>
-      <div style={{ overflowY: 'auto', paddingBottom: 100 }}>
+    <div className="main fade-in">
+      <div className="content scrl" style={{ paddingBottom: 100 }}>
 
-        {/* ══════════════ HERO ══════════════ */}
-        <div style={{
-          position: 'relative', overflow: 'hidden',
-          background: `linear-gradient(160deg, #060d08 0%, ${rank.bg || '#0a1a0d'} 50%, #060d08 100%)`,
-          minHeight: 280,
-        }}>
-          {/* Grid pattern */}
+        {/* ══ PROFILE CARD ══ */}
+        <div style={{ ...card, marginBottom: 12, background: 'var(--surface)' }}>
+          {/* Top accent stripe */}
           <div style={{
-            position: 'absolute', inset: 0, pointerEvents: 'none',
-            backgroundImage: `linear-gradient(rgba(56,102,65,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(56,102,65,.06) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px',
+            height: 3,
+            background: `linear-gradient(90deg, var(--gold), #a7c957, var(--gold))`,
           }} />
 
-          {/* Rank glow orb */}
-          <div style={{
-            position: 'absolute', top: -60, right: -60, width: 320, height: 320,
-            background: `radial-gradient(circle, ${rank.color}25, transparent 65%)`,
-            filter: 'blur(30px)', pointerEvents: 'none',
-            animation: 'rankGlowPulse 3s ease-in-out infinite',
-          }} />
-          <div style={{
-            position: 'absolute', bottom: -80, left: -40, width: 260, height: 260,
-            background: `radial-gradient(circle, ${rank.glow || 'rgba(56,102,65,.15)'}, transparent 65%)`,
-            filter: 'blur(40px)', pointerEvents: 'none',
-          }} />
-
-          {/* Decorative rank text */}
-          <div style={{
-            position: 'absolute', top: 12, right: 20,
-            fontFamily: 'var(--f-head)', fontWeight: 900,
-            fontSize: 120, color: `${rank.color}06`,
-            lineHeight: 1, userSelect: 'none', pointerEvents: 'none',
-            letterSpacing: '-.05em',
-          }}>
-            {rank.rank}
-          </div>
-
-          {/* Content */}
-          <div style={{ position: 'relative', padding: '28px 24px 24px' }}>
-
-            {/* Top row */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 20 }}>
-              {/* Avatar */}
+          <div style={{ padding: '20px 18px' }}>
+            {/* Avatar row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
               <div style={{
-                width: 72, height: 72, borderRadius: 20, flexShrink: 0,
-                background: `linear-gradient(145deg, ${rank.color}22, ${rank.color}08)`,
-                border: `2px solid ${rank.color}55`,
+                width: 58, height: 58, borderRadius: 16, flexShrink: 0,
+                background: 'var(--gold-soft)',
+                border: '2px solid var(--gold-line)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--f-head)', fontWeight: 900, fontSize: 28,
-                color: rank.color,
-                boxShadow: `0 0 24px ${rank.color}30, inset 0 1px 0 rgba(255,255,255,.08)`,
+                fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 22,
+                color: 'var(--gold)',
                 opacity: mounted ? 1 : 0,
-                transform: mounted ? 'scale(1)' : 'scale(.7)',
-                transition: 'opacity .5s, transform .5s cubic-bezier(.34,1.56,.64,1)',
+                transform: mounted ? 'scale(1)' : 'scale(.8)',
+                transition: 'opacity .4s, transform .4s cubic-bezier(.34,1.56,.64,1)',
               }}>
                 {getInitials(userName)}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
-                {/* Name */}
                 <div style={{
-                  fontWeight: 800, fontSize: 26, color: '#f0ede6',
-                  letterSpacing: '-.03em', lineHeight: 1.1, marginBottom: 6,
+                  fontFamily: 'var(--f-head)', fontWeight: 800,
+                  fontSize: 22, color: 'var(--text)', letterSpacing: '-.03em', lineHeight: 1.1,
+                  marginBottom: 5,
                   opacity: mounted ? 1 : 0,
-                  transform: mounted ? 'translateX(0)' : 'translateX(-12px)',
-                  transition: 'opacity .5s .1s, transform .5s .1s',
+                  transform: mounted ? 'translateX(0)' : 'translateX(-8px)',
+                  transition: 'opacity .4s .1s, transform .4s .1s',
                 }}>
                   {userName}
                 </div>
 
-                {/* Rank row */}
+                {/* Rank pill */}
                 <div style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  opacity: mounted ? 1 : 0, transition: 'opacity .5s .2s',
+                  display: 'inline-flex', alignItems: 'center', gap: 7,
+                  background: 'var(--gold-soft)', border: '1px solid var(--gold-line)',
+                  borderRadius: 999, padding: '4px 10px',
                 }}>
-                  <RankBadge rank={rank} size={32} pulse />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: rank.color, letterSpacing: '.02em' }}>
-                      Rank {rank.rank} · {rank.label}
-                    </div>
-                    <div style={{ fontFamily: 'var(--f-ar)', fontSize: 11, color: `${rank.color}88`, direction: 'rtl', marginTop: 1 }}>
-                      {level.ar}
-                    </div>
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 6,
+                    background: 'var(--gold)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'var(--f-head)', fontWeight: 900, fontSize: 11, color: 'var(--bg)',
+                  }}>
+                    {rank.rank}
                   </div>
+                  <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--gold)' }}>
+                    {rank.label}
+                  </span>
+                  <span style={{ fontFamily: 'var(--f-ar)', fontSize: 11, color: 'var(--gold)', opacity: .7 }}>
+                    {level.ar}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* XP section */}
-            <div style={{
-              opacity: mounted ? 1 : 0, transition: 'opacity .5s .3s',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 12, color: 'rgba(240,237,230,.4)', fontWeight: 600 }}>
-                  <Counter to={totalPoints} /> XP
+            {/* XP bar */}
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--text-2)' }}>
+                  {totalPoints} XP
                 </span>
                 {nextRank && (
-                  <span style={{ fontSize: 12, color: 'rgba(240,237,230,.3)' }}>
-                    {nextRank.minPts - totalPoints} XP → Rank {nextRank.rank}
+                  <span style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>
+                    {nextRank.minPts - totalPoints} XP lagi → Rank {nextRank.rank}
                   </span>
                 )}
               </div>
-              <XPBar pct={pct} color={rank.color} nextColor={nextRank?.color} />
+              <div style={{ height: 6, background: 'var(--elevated-2)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: 3,
+                  background: 'linear-gradient(90deg, var(--gold), #a7c957)',
+                  width: `${Math.min(xpPct, 100)}%`,
+                  transition: 'width 1s cubic-bezier(.22,1,.36,1)',
+                  position: 'relative', overflow: 'hidden',
+                }}>
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent)',
+                    backgroundSize: '200% 100%',
+                    animation: 'dm-shimmer 1.8s ease-in-out infinite',
+                  }} />
+                </div>
+              </div>
             </div>
 
             {/* Stats row */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 20,
-              opacity: mounted ? 1 : 0, transition: 'opacity .5s .4s',
-            }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {[
                 { icon: '🔥', val: streak,            label: 'Streak' },
                 { icon: '🕌', val: `${doneCount}/5`,  label: 'Sholat' },
@@ -236,14 +166,18 @@ export function ProfilePage({
                 { icon: '✓',  val: misiCount,          label: 'Misi' },
               ].map(({ icon, val, label }) => (
                 <div key={label} style={{
-                  background: 'rgba(245,237,218,.04)',
-                  border: '1px solid rgba(245,237,218,.07)',
-                  borderRadius: 12, padding: '10px 8px', textAlign: 'center',
-                  backdropFilter: 'blur(8px)',
+                  background: 'var(--elevated)', border: '1px solid var(--border)',
+                  borderRadius: 10, padding: '10px 6px', textAlign: 'center',
                 }}>
-                  <div style={{ fontSize: 14, marginBottom: 4 }}>{icon}</div>
-                  <div style={{ fontWeight: 800, fontSize: 17, color: rank.color, letterSpacing: '-.02em', lineHeight: 1 }}>{val}</div>
-                  <div style={{ fontSize: 9, color: 'rgba(240,237,230,.3)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 600 }}>{label}</div>
+                  <div style={{ fontSize: 15, marginBottom: 4 }}>{icon}</div>
+                  <div style={{
+                    fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 16,
+                    color: 'var(--gold)', letterSpacing: '-.02em', lineHeight: 1,
+                  }}>{val}</div>
+                  <div style={{
+                    fontSize: 9, color: 'var(--text-3)', marginTop: 4,
+                    textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 600,
+                  }}>{label}</div>
                 </div>
               ))}
             </div>
@@ -251,15 +185,14 @@ export function ProfilePage({
             {/* Member code */}
             {memberInfo && (
               <div style={{
-                marginTop: 16, paddingTop: 14,
-                borderTop: '1px solid rgba(245,237,218,.06)',
+                marginTop: 14, paddingTop: 12,
+                borderTop: '1px solid var(--border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                opacity: mounted ? 1 : 0, transition: 'opacity .5s .5s',
               }}>
-                <span style={{ fontSize: 11, color: 'rgba(240,237,230,.25)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                <span style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'var(--f-head)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em' }}>
                   Kode Member
                 </span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 15, color: `${rank.color}cc`, letterSpacing: 3 }}>
+                <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 15, color: 'var(--gold)', letterSpacing: 2 }}>
                   {memberInfo.code}
                 </span>
               </div>
@@ -267,279 +200,255 @@ export function ProfilePage({
           </div>
         </div>
 
-        {/* ══════════════ TABS ══════════════ */}
+        {/* ══ TABS ══ */}
         <div style={{
-          display: 'flex', background: '#0a0f0b',
-          borderBottom: '1px solid rgba(56,102,65,.15)',
-          position: 'sticky', top: 0, zIndex: 5,
+          display: 'flex', background: 'var(--elevated)',
+          borderRadius: 10, padding: 4, marginBottom: 14, gap: 2,
         }}>
           {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{
-              flex: 1, padding: '12px 0',
-              background: 'none', border: 'none',
-              borderBottom: `2px solid ${tab === t.id ? rank.color : 'transparent'}`,
-              color: tab === t.id ? rank.color : 'rgba(240,237,230,.3)',
-              fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11,
-              cursor: 'pointer', transition: 'color .15s, border-color .15s',
-              textTransform: 'uppercase', letterSpacing: '.06em',
+            <button key={t} onClick={() => setTab(t)} style={{
+              flex: 1, padding: '8px 0', borderRadius: 7, border: 'none',
+              background: tab === t ? 'var(--surface)' : 'transparent',
+              color: tab === t ? 'var(--gold)' : 'var(--text-3)',
+              fontFamily: 'var(--f-head)', fontWeight: 700,
+              fontSize: 11, cursor: 'pointer',
+              textTransform: 'capitalize',
+              transition: 'all .15s',
+              boxShadow: tab === t ? '0 1px 4px rgba(0,0,0,.07)' : 'none',
             }}>
-              <div style={{ fontSize: 14, marginBottom: 2 }}>{t.icon}</div>
-              {t.label}
+              {t}
             </button>
           ))}
         </div>
 
-        {/* ══════════════ CONTENT ══════════════ */}
-        <div style={{ padding: '20px 20px', background: 'var(--bg)' }}>
+        {/* ══ TAB: PROFIL ══ */}
+        {tab === 'profil' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-          {/* ── PROFIL TAB ── */}
-          {tab === 'profile' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={card}>
+              <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--elevated)', ...sectionTitle }}>
+                Info Akun
+              </div>
               {[
-                { section: 'Info Akun', rows: [
-                  { label: 'Nama', val: userName },
-                  { label: 'Bergabung', val: memberInfo ? new Date(memberInfo.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—' },
-                  { label: 'Rank', val: `${rank.rank} · ${rank.label}`, color: rank.color },
-                  { label: 'Total XP', val: `${totalPoints.toLocaleString()} poin`, color: 'var(--gold)' },
-                  { label: 'Freeze Shield', val: `${freeze} tersisa` },
-                ]},
-                { section: 'Progress Hari Ini', rows: [
-                  { label: 'Sholat Wajib', val: `${doneCount}/5`, bar: (doneCount / 5) * 100, color: rank.color },
-                  { label: 'Misi Amalan', val: `${misiCount}`, bar: Math.min((misiCount / 20) * 100, 100), color: rank.color },
-                ]},
-              ].map(({ section, rows }) => (
-                <div key={section} style={{
-                  background: 'rgba(245,237,218,.03)',
-                  border: '1px solid rgba(245,237,218,.07)',
-                  borderRadius: 16, overflow: 'hidden',
-                }}>
-                  <div style={{
-                    padding: '10px 16px',
-                    borderBottom: '1px solid rgba(245,237,218,.06)',
-                    background: 'rgba(245,237,218,.02)',
-                    fontWeight: 700, fontSize: 10,
-                    color: rank.color, textTransform: 'uppercase', letterSpacing: '.12em',
-                  }}>
-                    {section}
-                  </div>
-                  {rows.map(({ label, val, color, bar }, i, arr) => (
-                    <div key={label} style={{
-                      padding: '13px 16px',
-                      borderBottom: i < arr.length - 1 ? '1px solid rgba(245,237,218,.05)' : 'none',
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: 13, color: 'rgba(240,237,230,.45)', fontWeight: 500 }}>{label}</span>
-                        <span style={{ fontSize: 13, color: color || 'rgba(240,237,230,.8)', fontWeight: 700 }}>{val}</span>
-                      </div>
-                      {bar !== undefined && (
-                        <div style={{ marginTop: 8 }}>
-                          <XPBar pct={bar} color={color || rank.color} shimmer={false} />
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                { label: 'Nama',          val: userName },
+                { label: 'Bergabung',     val: memberInfo ? new Date(memberInfo.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—' },
+                { label: 'Rank',          val: `${rank.rank} · ${rank.label}` },
+                { label: 'Total XP',      val: `${totalPoints} poin` },
+                { label: 'Streak',        val: `${streak} hari` },
+                { label: 'Freeze Shield', val: `${freeze} tersisa` },
+              ].map(({ label, val }, i, arr) => (
+                <div key={label} style={row(i === arr.length - 1)}>
+                  <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>{label}</span>
+                  <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 700 }}>{val}</span>
                 </div>
               ))}
             </div>
-          )}
 
-          {/* ── RANK TAB ── */}
-          {tab === 'rank' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 12, color: 'rgba(240,237,230,.3)', marginBottom: 4, textAlign: 'center' }}>
-                Kumpulkan XP dari ibadah untuk naik rank
+            <div style={card}>
+              <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--elevated)', ...sectionTitle }}>
+                Progress Hari Ini
               </div>
-              {RANK_SYSTEM.map((r, i) => {
-                const isCurrent  = r.rank === rank.rank;
-                const isUnlocked = totalPoints >= r.minPts;
-                const nextR      = RANK_SYSTEM[i + 1];
-                return (
-                  <div key={r.rank} style={{
-                    background: isCurrent
-                      ? `linear-gradient(135deg, ${r.color}10, rgba(245,237,218,.02))`
-                      : 'rgba(245,237,218,.02)',
-                    border: `1px solid ${isCurrent ? r.color + '55' : 'rgba(245,237,218,.07)'}`,
-                    borderRadius: 14, padding: '14px 16px',
-                    display: 'flex', alignItems: 'center', gap: 14,
-                    opacity: isUnlocked ? 1 : .35,
-                    transition: 'all .2s',
-                    transform: isCurrent ? 'scale(1.01)' : 'scale(1)',
+              {[
+                { label: 'Sholat Wajib', val: `${doneCount}/5`,        pct: (doneCount / 5) * 100 },
+                { label: 'Misi Amalan',  val: `${misiCount} selesai`,  pct: Math.min((misiCount / 20) * 100, 100) },
+              ].map(({ label, val, pct }, i, arr) => (
+                <div key={label} style={{ padding: '14px 16px', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>{label}</span>
+                    <span style={{ fontSize: 13, color: 'var(--gold)', fontWeight: 700 }}>{val}</span>
+                  </div>
+                  <div style={{ height: 5, background: 'var(--elevated-2)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 3, width: `${pct}%`, background: 'linear-gradient(90deg, var(--gold), #a7c957)', transition: 'width 1s cubic-bezier(.22,1,.36,1)' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ══ TAB: RANK ══ */}
+        {tab === 'rank' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', marginBottom: 4 }}>
+              Kumpulkan XP dari ibadah untuk naik rank
+            </div>
+            {RANK_SYSTEM.map((r, i) => {
+              const isCurrent  = r.rank === rank.rank;
+              const isUnlocked = totalPoints >= r.minPts;
+              const nextR      = RANK_SYSTEM[i + 1];
+              return (
+                <div key={r.rank} style={{
+                  background: isCurrent ? 'var(--gold-soft)' : 'var(--surface)',
+                  border: `1px solid ${isCurrent ? 'var(--gold-line)' : 'var(--border)'}`,
+                  borderRadius: 14, padding: '14px 16px',
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  opacity: isUnlocked ? 1 : .4,
+                  transition: 'all .15s',
+                }}>
+                  <div style={{
+                    width: isCurrent ? 48 : 38, height: isCurrent ? 48 : 38, flexShrink: 0,
+                    borderRadius: isCurrent ? 13 : 10,
+                    background: isCurrent ? 'var(--gold)' : 'var(--elevated)',
+                    border: `1.5px solid ${isCurrent ? 'var(--gold)' : 'var(--border-2)'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'var(--f-head)', fontWeight: 900,
+                    fontSize: isCurrent ? 20 : 16,
+                    color: isCurrent ? 'var(--bg)' : 'var(--text-3)',
+                    transition: 'all .15s',
                   }}>
-                    <RankBadge rank={r} size={isCurrent ? 52 : 40} pulse={isCurrent} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontWeight: 800, fontSize: 16, color: isCurrent ? r.color : 'rgba(240,237,230,.7)' }}>
-                          {r.label}
+                    {r.rank}
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                      <span style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 15, color: isCurrent ? 'var(--gold)' : 'var(--text)' }}>
+                        {r.label}
+                      </span>
+                      {isCurrent && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 800,
+                          background: 'var(--gold)', color: 'var(--bg)',
+                          borderRadius: 4, padding: '2px 6px', letterSpacing: '.06em',
+                        }}>
+                          KAMU
                         </span>
-                        {isCurrent && (
-                          <span style={{
-                            fontSize: 9, background: `${r.color}20`, color: r.color,
-                            border: `1px solid ${r.color}44`, borderRadius: 4,
-                            padding: '2px 7px', fontWeight: 800, letterSpacing: '.06em',
-                          }}>
-                            ► RANK KAMU
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontFamily: 'var(--f-ar)', fontSize: 11, color: `${r.color}70`, direction: 'rtl', marginBottom: 6 }}>
-                        {r.label === 'Mubtadi' ? 'مُبْتَدِئ' : r.label === 'Mutaallim' ? 'مُتَعَلِّم' : r.label === 'Mutawassit' ? 'مُتَوَسِّط' : r.label === 'Mutaqaddim' ? 'مُتَقَدِّم' : r.label === 'Muttaqin' ? 'مُتَّقِن' : r.label === 'Wali' ? 'وَلِيّ' : r.label === 'Shiddiq' ? 'صِدِّيق' : 'أُولُو الأَلْبَاب'}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'rgba(240,237,230,.3)' }}>
-                        {r.minPts.toLocaleString()} XP
-                        {!isUnlocked && ` · butuh ${(r.minPts - totalPoints).toLocaleString()} XP lagi`}
-                      </div>
-                      {isCurrent && nextR && (
-                        <div style={{ marginTop: 8 }}>
-                          <XPBar pct={pct} color={r.color} nextColor={nextR.color} />
-                          <div style={{ fontSize: 10, color: 'rgba(240,237,230,.25)', marginTop: 4 }}>
-                            {totalPoints - r.minPts} / {nextR.minPts - r.minPts} XP menuju Rank {nextR.rank}
-                          </div>
-                        </div>
                       )}
                     </div>
-                    <div style={{ fontSize: isUnlocked ? 18 : 16, flexShrink: 0 }}>
-                      {isCurrent ? '' : isUnlocked ? '✓' : '🔒'}
+                    <div style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'var(--f-head)' }}>
+                      {r.minPts.toLocaleString()} XP
+                      {!isUnlocked && ` · butuh ${(r.minPts - totalPoints).toLocaleString()} XP lagi`}
                     </div>
+                    {isCurrent && nextR && (
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ height: 4, background: 'var(--elevated-2)', borderRadius: 2, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', borderRadius: 2, width: `${xpPct}%`, background: 'linear-gradient(90deg, var(--gold), #a7c957)', transition: 'width 1s cubic-bezier(.22,1,.36,1)' }} />
+                        </div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>
+                          {totalPoints - r.minPts} / {nextR.minPts - r.minPts} XP menuju Rank {nextR.rank}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ fontSize: isUnlocked ? 15 : 14, flexShrink: 0, color: 'var(--text-3)' }}>
+                    {isCurrent ? '' : isUnlocked ? '✓' : '🔒'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ══ TAB: BADGE ══ */}
+        {tab === 'badge' && (
+          <div>
+            <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12, textAlign: 'center' }}>
+              {(unlockedBadges || []).length} / {BADGES.length} badge diraih
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+              {BADGES.map(b => {
+                const unlocked = (unlockedBadges || []).includes(b.id);
+                return (
+                  <div key={b.id} style={{
+                    background: unlocked ? 'var(--gold-soft)' : 'var(--surface)',
+                    border: `1px solid ${unlocked ? 'var(--gold-line)' : 'var(--border)'}`,
+                    borderRadius: 14, padding: '16px 14px',
+                    opacity: unlocked ? 1 : .45,
+                    transition: 'all .15s',
+                  }}>
+                    <div style={{ fontSize: 26, marginBottom: 10, filter: unlocked ? 'none' : 'grayscale(1)' }}>{b.icon}</div>
+                    <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 2 }}>{b.name}</div>
+                    <div style={{ fontFamily: 'var(--f-ar)', fontSize: 10, color: 'var(--gold)', opacity: unlocked ? .8 : .4, direction: 'rtl', marginBottom: 6 }}>{b.nameAr}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6 }}>{b.desc}</div>
+                    {unlocked && <div style={{ marginTop: 8, fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>✓ Diraih</div>}
                   </div>
                 );
               })}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* ── BADGES TAB ── */}
-          {tab === 'badges' && (
-            <div>
-              <div style={{ fontSize: 12, color: 'rgba(240,237,230,.3)', marginBottom: 14, textAlign: 'center' }}>
-                {(unlockedBadges || []).length} / {BADGES.length} badge diraih
+        {/* ══ TAB: PENGATURAN ══ */}
+        {tab === 'pengaturan' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+            <div style={card}>
+              <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--elevated)', ...sectionTitle }}>
+                Edit Profil
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-                {BADGES.map((b, i) => {
-                  const unlocked = (unlockedBadges || []).includes(b.id);
-                  return (
-                    <div key={b.id} style={{
-                      background: unlocked
-                        ? `linear-gradient(145deg, ${rank.color}12, rgba(245,237,218,.03))`
-                        : 'rgba(245,237,218,.02)',
-                      border: `1px solid ${unlocked ? rank.color + '44' : 'rgba(245,237,218,.07)'}`,
-                      borderRadius: 14, padding: '16px 14px',
-                      opacity: unlocked ? 1 : .4,
-                      transition: 'all .2s',
-                      position: 'relative', overflow: 'hidden',
-                    }}>
-                      {unlocked && (
-                        <div style={{
-                          position: 'absolute', top: -20, right: -20, width: 80, height: 80,
-                          background: `radial-gradient(circle, ${rank.color}20, transparent 65%)`,
-                          pointerEvents: 'none',
-                        }} />
-                      )}
-                      <div style={{ fontSize: 30, marginBottom: 10, filter: unlocked ? 'none' : 'grayscale(1)' }}>
-                        {b.icon}
-                      </div>
-                      <div style={{ fontWeight: 800, fontSize: 13, color: unlocked ? 'rgba(240,237,230,.9)' : 'rgba(240,237,230,.4)', marginBottom: 2 }}>
-                        {b.name}
-                      </div>
-                      <div style={{ fontFamily: 'var(--f-ar)', fontSize: 10, color: unlocked ? `${rank.color}88` : 'rgba(240,237,230,.2)', direction: 'rtl', marginBottom: 6 }}>
-                        {b.nameAr}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'rgba(240,237,230,.3)', lineHeight: 1.6 }}>{b.desc}</div>
-                      {unlocked && (
-                        <div style={{ marginTop: 10, fontSize: 10, color: rank.color, fontWeight: 800, letterSpacing: '.06em' }}>
-                          ✦ DIRAIH
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── SETTINGS TAB ── */}
-          {tab === 'settings' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-              {/* Edit nama */}
-              <div style={{ background: 'rgba(245,237,218,.03)', border: '1px solid rgba(245,237,218,.07)', borderRadius: 16, overflow: 'hidden' }}>
-                <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(245,237,218,.06)', fontWeight: 700, fontSize: 10, color: rank.color, textTransform: 'uppercase', letterSpacing: '.12em' }}>
-                  Edit Profil
-                </div>
-                <div style={{ padding: 16 }}>
-                  <div style={{ fontSize: 12, color: 'rgba(240,237,230,.4)', marginBottom: 8, fontWeight: 600 }}>Nama Tampilan</div>
-                  <input
-                    className="tinput"
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); }}
-                    placeholder="Nama kamu"
-                    style={{ width: '100%', boxSizing: 'border-box', marginBottom: 10 }}
-                  />
-                  <button
-                    className="btn gold"
-                    style={{ width: '100%', padding: '11px 0', fontSize: 13, opacity: editName.trim() && editName !== userName ? 1 : .4 }}
-                    onClick={handleSaveName}
-                    disabled={saving || !editName.trim() || editName === userName}
-                  >
-                    {saving ? '⟳ Menyimpan...' : saved ? '✦ Tersimpan!' : 'Simpan Nama'}
-                  </button>
-                  <div style={{ fontSize: 11, color: 'rgba(240,237,230,.25)', marginTop: 8, lineHeight: 1.6 }}>
-                    Perubahan nama langsung terlihat oleh admin.
-                  </div>
-                </div>
-              </div>
-
-              {/* App info */}
-              <div style={{ background: 'rgba(245,237,218,.03)', border: '1px solid rgba(245,237,218,.07)', borderRadius: 16, overflow: 'hidden' }}>
-                <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(245,237,218,.06)', fontWeight: 700, fontSize: 10, color: rank.color, textTransform: 'uppercase', letterSpacing: '.12em' }}>
-                  Tentang Deenme
-                </div>
-                {[
-                  { label: 'Versi', val: '1.0.0' },
-                  { label: 'Dibuat oleh', val: 'Dar Dev' },
-                  { label: 'Untuk', val: 'Keluarga Talqeeh 🌿' },
-                ].map(({ label, val }) => (
-                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid rgba(245,237,218,.05)' }}>
-                    <span style={{ fontSize: 13, color: 'rgba(240,237,230,.4)' }}>{label}</span>
-                    <span style={{ fontSize: 13, color: 'rgba(240,237,230,.75)', fontWeight: 600 }}>{val}</span>
-                  </div>
-                ))}
-                <div style={{ padding: '12px 16px' }}>
-                  <a href="https://talqeeh.vercel.app" target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize: 13, color: rank.color, fontWeight: 700, textDecoration: 'none' }}>
-                    🔗 Kunjungi Talqeeh →
-                  </a>
-                </div>
-              </div>
-
-              {/* Logout */}
-              <div style={{ background: 'rgba(188,71,73,.04)', border: '1px solid rgba(188,71,73,.2)', borderRadius: 16, overflow: 'hidden' }}>
-                <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(188,71,73,.1)', fontWeight: 700, fontSize: 10, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
-                  Keluar
-                </div>
-                <div style={{ padding: 16 }}>
-                  <div style={{ fontSize: 12, color: 'rgba(240,237,230,.3)', marginBottom: 12, lineHeight: 1.7 }}>
-                    Data ibadahmu tersimpan di server. Kamu bisa masuk kembali kapan saja dengan kode yang sama.
-                  </div>
-                  <button
-                    onClick={() => { if (confirm('Keluar dari Deenme?')) onLogout(); }}
-                    style={{
-                      width: '100%', padding: '11px 0', borderRadius: 10,
-                      background: 'rgba(188,71,73,.08)',
-                      border: '1px solid rgba(188,71,73,.3)',
-                      color: 'var(--danger)', fontFamily: 'var(--f-head)',
-                      fontWeight: 700, fontSize: 13, cursor: 'pointer',
-                      transition: 'background .15s',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(188,71,73,.16)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(188,71,73,.08)'}
-                  >
-                    Keluar dari Deenme
-                  </button>
+              <div style={{ padding: 16 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8, fontWeight: 600 }}>Nama Tampilan</div>
+                <input
+                  className="tinput"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') saveName(); }}
+                  placeholder="Nama kamu"
+                  style={{ width: '100%', boxSizing: 'border-box', marginBottom: 10 }}
+                />
+                <button
+                  className="btn gold"
+                  style={{ width: '100%', padding: '11px 0', fontSize: 13, opacity: editName.trim() && editName !== userName ? 1 : .4 }}
+                  onClick={saveName}
+                  disabled={saving || !editName.trim() || editName === userName}
+                >
+                  {saving ? '⟳ Menyimpan...' : saved ? '✓ Tersimpan!' : 'Simpan Nama'}
+                </button>
+                <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.6 }}>
+                  Perubahan nama terlihat langsung oleh admin.
                 </div>
               </div>
             </div>
-          )}
-        </div>
+
+            <div style={card}>
+              <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--elevated)', ...sectionTitle }}>
+                Tentang Deenme
+              </div>
+              {[
+                { label: 'Versi',       val: '1.0.0' },
+                { label: 'Dibuat oleh', val: 'Dar Dev' },
+                { label: 'Untuk',       val: 'Keluarga Talqeeh 🌿' },
+              ].map(({ label, val }, i, arr) => (
+                <div key={label} style={row(i === arr.length - 1)}>
+                  <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>{label}</span>
+                  <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>{val}</span>
+                </div>
+              ))}
+              <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
+                <a href="https://talqeeh.vercel.app" target="_blank" rel="noopener noreferrer"
+                  style={{ fontSize: 13, color: 'var(--gold)', fontWeight: 700, textDecoration: 'none' }}>
+                  🔗 Kunjungi Talqeeh →
+                </a>
+              </div>
+            </div>
+
+            <div style={{ ...card, border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)' }}>
+              <div style={{ padding: '10px 16px', borderBottom: '1px solid color-mix(in srgb, var(--danger) 15%, transparent)', background: 'var(--elevated)', fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 10, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
+                Keluar
+              </div>
+              <div style={{ padding: 16 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12, lineHeight: 1.7 }}>
+                  Data ibadahmu tersimpan di server. Kamu bisa masuk kembali kapan saja dengan kode yang sama.
+                </div>
+                <button
+                  onClick={() => { if (confirm('Keluar dari Deenme?')) onLogout(); }}
+                  style={{
+                    width: '100%', padding: '11px 0', borderRadius: 10,
+                    background: 'transparent',
+                    border: '1.5px solid color-mix(in srgb, var(--danger) 40%, transparent)',
+                    color: 'var(--danger)', fontFamily: 'var(--f-head)',
+                    fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'background .15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'color-mix(in srgb, var(--danger) 8%, transparent)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  Keluar dari Deenme
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
