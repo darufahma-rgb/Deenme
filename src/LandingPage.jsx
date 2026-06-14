@@ -13,7 +13,7 @@ export function LandingPage({ onEnter }) {
           <div className="lp-bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
           <div className="lp-logo-wrap">
             <div className="lp-logo-icon">
-  <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 30, height: 'auto', filter: 'brightness(0) saturate(100%) invert(80%) sepia(30%) saturate(400%) hue-rotate(90deg)' }} />
+  <img src="/assets/Deenme_logo.png" alt="Deenme" style={{ width: 30, height: 'auto', filter: 'brightness(0) saturate(100%) invert(80%) sepia(30%) saturate(400%) hue-rotate(90deg)' }} />
 </div>
             <span className="lp-logo-text">Deenme</span>
           </div>
@@ -98,7 +98,7 @@ export function LandingPage({ onEnter }) {
       {/* ── FOOTER ── */}
       <footer className="lp-footer">
         <div className="lp-footer-logo" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-  <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 20, height: 'auto', filter: 'brightness(0) saturate(100%) invert(80%) sepia(20%) saturate(300%) hue-rotate(90deg)', opacity: .7 }} />
+  <img src="/assets/Deenme_logo.png" alt="Deenme" style={{ width: 20, height: 'auto', filter: 'brightness(0) saturate(100%) invert(80%) sepia(20%) saturate(300%) hue-rotate(90deg)', opacity: .7 }} />
   Deenme
 </div>
         <div className="lp-footer-sub">Dibuat dengan ❤️ oleh Dar Dev · Cairo, 2026</div>
