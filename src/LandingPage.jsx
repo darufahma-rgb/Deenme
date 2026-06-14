@@ -145,42 +145,38 @@ export function LandingPage({ onEnter }) {
           {/* Logo mark */}
           <div style={{
             display: 'flex', justifyContent: 'center',
-            marginBottom: isMobile ? 20 : 28,
+            marginBottom: isMobile ? 14 : 18,
             opacity: mounted ? 1 : 0,
             transform: mounted ? 'scale(1)' : 'scale(.5)',
             transition: 'opacity .5s, transform .6s cubic-bezier(.34,1.56,.64,1)',
           }}>
             <div style={{
-              width: 52, height: 52,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 28px -4px rgba(167,201,87,.35)',
+              boxShadow: '0 0 20px -4px rgba(167,201,87,.3)',
             }}>
               <img src="./assets/Deenme_logo.png" alt="Deenme" style={{
-                width: isMobile ? 44 : 48,
+                width: isMobile ? 34 : 38,
                 filter: 'brightness(0) saturate(100%) invert(78%) sepia(30%) saturate(500%) hue-rotate(55deg) brightness(95%)',
               }} />
             </div>
           </div>
 
-          {/* Eyebrow */}
+          {/* Arabic — di atas judul */}
           <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7,
-            background: `rgba(62,207,142,.08)`, border: `1px solid rgba(62,207,142,.2)`,
-            borderRadius: 999, padding: isMobile ? '5px 12px' : '5px 14px',
+            fontFamily: 'var(--f-ar)',
+            fontSize: isMobile ? 14 : 'clamp(14px, 2vw, 18px)',
+            color: 'rgba(62,207,142,.6)', direction: 'rtl',
             marginBottom: isMobile ? 18 : 24,
-            opacity: mounted ? 1 : 0, transition: 'opacity .5s .1s',
+            opacity: mounted ? .8 : 0, transition: 'opacity .6s .1s',
           }}>
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: C.green, flexShrink: 0, boxShadow: `0 0 6px ${C.green}` }} />
-            <span style={{ fontSize: isMobile ? 11 : 12, fontWeight: 600, color: C.green, letterSpacing: '.04em' }}>
-              🎁 Hadiah eksklusif untuk member Talqeeh
-            </span>
+            بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
           </div>
 
           {/* Headline */}
           <h1 style={{
             fontWeight: 800,
-            fontSize: isMobile ? 'clamp(36px, 10vw, 48px)' : 'clamp(38px, 6vw, 68px)',
-            lineHeight: 1.05, letterSpacing: '-.04em', color: C.text,
+            fontSize: isMobile ? 'clamp(42px, 12vw, 60px)' : 'clamp(52px, 7.5vw, 88px)',
+            lineHeight: 1.0, letterSpacing: '-.04em', color: C.text,
             margin: '0 0 4px',
             opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(20px)',
             transition: 'opacity .6s .15s, transform .6s .15s',
@@ -189,8 +185,8 @@ export function LandingPage({ onEnter }) {
           </h1>
           <h1 style={{
             fontWeight: 800,
-            fontSize: isMobile ? 'clamp(36px, 10vw, 48px)' : 'clamp(38px, 6vw, 68px)',
-            lineHeight: 1.05, letterSpacing: '-.04em', margin: '0 0 18px',
+            fontSize: isMobile ? 'clamp(42px, 12vw, 60px)' : 'clamp(52px, 7.5vw, 88px)',
+            lineHeight: 1.0, letterSpacing: '-.04em', margin: '0 0 24px',
             background: `linear-gradient(135deg, ${C.green} 0%, ${C.lime} 60%, ${C.green} 100%)`,
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
             opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(20px)',
@@ -199,15 +195,18 @@ export function LandingPage({ onEnter }) {
             setiap hari.
           </h1>
 
-          {/* Arabic */}
+          {/* Eyebrow — di bawah judul */}
           <div style={{
-            fontFamily: 'var(--f-ar)',
-            fontSize: isMobile ? 14 : 'clamp(14px, 2vw, 18px)',
-            color: 'rgba(62,207,142,.6)', direction: 'rtl',
-            marginBottom: isMobile ? 18 : 24,
-            opacity: mounted ? .8 : 0, transition: 'opacity .6s .25s',
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            background: `rgba(62,207,142,.08)`, border: `1px solid rgba(62,207,142,.2)`,
+            borderRadius: 999, padding: isMobile ? '5px 12px' : '5px 14px',
+            marginBottom: isMobile ? 18 : 28,
+            opacity: mounted ? 1 : 0, transition: 'opacity .5s .25s',
           }}>
-            بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: C.green, flexShrink: 0, boxShadow: `0 0 6px ${C.green}` }} />
+            <span style={{ fontSize: isMobile ? 11 : 12, fontWeight: 600, color: C.green, letterSpacing: '.04em' }}>
+              🎁 Hadiah eksklusif untuk member Talqeeh
+            </span>
           </div>
 
           {/* Sub */}
