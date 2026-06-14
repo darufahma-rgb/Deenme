@@ -7,6 +7,7 @@ export const Icon = {
   stats: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>,
   amalan: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/><path d="M19.5 5.5l1.5-1.5M15 2l.5 2M20 7.5l2-.5"/></svg>,
   logout: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>,
+  profile: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
   flame: <svg width="110" height="110" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.6 4 5 6.2 5 10.2a5 5 0 0 1-10 0c0-2 .8-3.7 2.1-5.1.2 1.5 1 2.2 1.9 2.4C10.1 7.4 11 4.6 12 2z"/></svg>,
   check: <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>,
   bookmark: (on) => <svg width="16" height="16" viewBox="0 0 24 24" fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4z"/></svg>,
@@ -71,11 +72,12 @@ export function ScoreRing({ pct = 0, size = 88 }) {
 }
 
 const RAIL_ITEMS = [
-  ['dashboard', 'dash',   'Dashboard'],
-  ['journal',   'journal','Jurnal'],
-  ['doa',       'doa',    'Bank Doa'],
-  ['amalan',    'amalan', 'Amalan'],
-  ['stats',     'stats',  'Statistik'],
+  ['dashboard', 'dash',    'Dashboard'],
+  ['journal',   'journal', 'Jurnal'],
+  ['doa',       'doa',     'Bank Doa'],
+  ['amalan',    'amalan',  'Amalan'],
+  ['stats',     'stats',   'Statistik'],
+  ['profile',   'profile', 'Profil'],
 ];
 
 function TimezonePicker({ timezone, onChange, options }) {
@@ -195,6 +197,7 @@ export function BottomNav({ page, go }) {
     { view: 'doa',       icon: 'doa',     label: 'Doa' },
     { view: 'amalan',    icon: 'amalan',  label: 'Amalan' },
     { view: 'stats',     icon: 'stats',   label: 'Statistik' },
+    { view: 'profile',   icon: 'profile', label: 'Profil' },
   ];
   return (
     <nav className="bottom-nav">

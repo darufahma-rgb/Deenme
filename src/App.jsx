@@ -6,6 +6,7 @@ import { JournalPage, BankDoaPage, StatistikPage, AmalanPage, PrayerAmalanPage }
 import { LandingPage } from './LandingPage.jsx';
 import { supabase } from './supabase.js';
 import { AdminPage } from './AdminPage.jsx';
+import { ProfilePage } from './ProfilePage.jsx';
 
 // ── Solo Leveling: page transition ───────────────────────────────────────────
 function PageTransition({ viewKey, children }) {
@@ -364,6 +365,11 @@ export default function App() {
     setView(destination);
   };
 
+  const onUpdateName = (newName) => {
+    setUserName(newName);
+    localStorage.setItem('deenme-user-name', newName);
+  };
+
   const onLogout = () => {
     localStorage.removeItem('deenme-code-id');
     localStorage.removeItem('deenme-user-name');
@@ -509,6 +515,7 @@ export default function App() {
             {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
             {v === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
             {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} times={times} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} qadhaDebt={qadhaDebt} addQadha={addQadha} lunasiQadha={lunasiQadha} totalQadha={totalQadha} />}
+            {v === 'profile' && <ProfilePage userName={userName} codeId={codeId} totalPoints={totalPoints} streak={streak} freeze={freeze} prayers={prayers} misiDone={misiDone} unlockedBadges={unlockedBadges} onUpdateName={onUpdateName} onLogout={onLogout} />}
           </>)}
         </PageTransition>
       </div>
