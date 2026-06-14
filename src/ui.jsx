@@ -99,7 +99,6 @@ function TimezonePicker({ timezone, onChange, options }) {
             <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, color: timezone === opt.value ? 'var(--gold)' : 'var(--text)', lineHeight: 1.2 }}>
               {opt.label}
             </div>
-            <div style={{ fontFamily: 'var(--f-head)', fontSize: 9, color: 'var(--text-3)' }}>{opt.offset}</div>
           </div>
           {timezone === opt.value && (
             <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)', flexShrink: 0 }}>
