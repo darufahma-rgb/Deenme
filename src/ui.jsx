@@ -82,7 +82,7 @@ export function Rail({ page, go, onLogout }) {
   return (
     <div className="rail">
       <div className="brand">
-  <img src="/assets/Deenme_logo.png" alt="Deenme" style={{ width: 22, height: 'auto', filter: 'brightness(0) saturate(100%) invert(41%) sepia(30%) saturate(380%) hue-rotate(85deg) brightness(92%)' }} />
+  <img src="/assets/Deenme_logo.png" alt="Deenme" style={{ width: 22, height: 'auto', filter: 'brightness(0) saturate(100%) invert(53%) sepia(20%) saturate(580%) hue-rotate(74deg)' }} />
 </div>
       {RAIL_ITEMS.map(([view, icon, label]) => (
         <button key={view} className={'navbtn' + (page === view ? ' on' : '')} onClick={() => go(view)} aria-label={label}>
