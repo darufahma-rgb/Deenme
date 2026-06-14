@@ -501,7 +501,7 @@ export default function App() {
             {v === 'journal' && <JournalPage go={setView} codeId={codeId} />}
             {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
             {v === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
-            {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} qadhaDebt={qadhaDebt} addQadha={addQadha} lunasiQadha={lunasiQadha} totalQadha={totalQadha} />}
+            {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} times={times} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} qadhaDebt={qadhaDebt} addQadha={addQadha} lunasiQadha={lunasiQadha} totalQadha={totalQadha} />}
           </>)}
         </PageTransition>
       </div>

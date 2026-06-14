@@ -1956,10 +1956,23 @@ function QadhaTracker({ qadhaDebt, addQadha, lunasiQadha, totalQadha }) {
 }
 
 // ─── STATISTIK ────────────────────────────────────────────
-export function StatistikPage({ streak, freeze, useFreeze, prayers, sunnah, misiDone, amalanDone, setAmalanDone, qadhaDebt, addQadha, lunasiQadha, totalQadha }) {
+export function StatistikPage({ streak, freeze, useFreeze, prayers, times, sunnah, misiDone, amalanDone, setAmalanDone, qadhaDebt, addQadha, lunasiQadha, totalQadha }) {
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState('harian');
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
+
+  // ── Rekap sholat dari prayers state (satu source of truth dengan Dashboard) ──
+  const PRAYER_LABELS = {
+    tahajud: 'Tahajud', subuh: 'Subuh', dzuhur: 'Dzuhur',
+    ashar: 'Ashar', maghrib: 'Maghrib', isya: 'Isya',
+  };
+  const qadhaList = Object.entries(prayers || {})
+    .filter(([_, status]) => status === 'qadha')
+    .map(([k]) => ({ key: k, label: PRAYER_LABELS[k] || k, time: times?.[k] || null }));
+  const tepat = Object.values(prayers || {}).filter(s => s === 'ok').length;
+  const telat = Object.values(prayers || {}).filter(s => s === 'late').length;
+  const qadha = Object.values(prayers || {}).filter(s => s === 'qadha').length;
+  const totalSholat = tepat + telat + qadha;
 
   const maxPoints = calcMaxPoints();
   const { points: todayPoints, breakdown } = calcDailyPoints({ prayers: prayers || {}, sunnah: sunnah || {}, misiDone: misiDone || {}, amalanDone: amalanDone || {} });
@@ -2038,6 +2051,67 @@ export function StatistikPage({ streak, freeze, useFreeze, prayers, sunnah, misi
                   <span className="muted tiny">{todayPct}% dari {maxPoints} poin max</span>
                 </div>
               </div>
+            </div>
+
+            {/* ── REKAP SHOLAT ── */}
+            <div style={{ marginBottom: 16 }}>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Rekap Sholat Hari Ini</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
+                {[
+                  { label: 'Tepat Waktu', val: tepat, color: 'var(--ok)' },
+                  { label: 'Telat', val: telat, color: 'var(--warn)' },
+                  { label: 'Qadha', val: qadha, color: 'var(--danger)' },
+                ].map(({ label, val, color }) => (
+                  <div key={label} className="card" style={{ padding: '12px 14px', textAlign: 'center' }}>
+                    <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 28, color, lineHeight: 1, letterSpacing: '-.02em' }}>{val}</div>
+                    <div className="muted tiny" style={{ marginTop: 4 }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {qadhaList.length > 0 && (
+                <div style={{ background: 'var(--surface)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderLeft: '3px solid var(--danger)', borderRadius: 'var(--radius)', padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--danger)', flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                    </svg>
+                    <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--danger)' }}>
+                      {qadhaList.length} sholat perlu diqadha
+                    </span>
+                  </div>
+                  {qadhaList.map((q, i) => (
+                    <div key={q.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < qadhaList.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', flexShrink: 0 }} />
+                        <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>{q.label}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {q.time && <span className="muted tiny">Dicatat {q.time}</span>}
+                        <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--danger)', background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)', borderRadius: 999, padding: '2px 8px' }}>
+                          Qadha
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ marginTop: 12 }}>
+                    <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7, margin: 0 }}>
+                      Segera qadha sholat yang terlewat. Qadha dilakukan sesuai jumlah rakaat aslinya, tidak perlu mengganti waktu yang sama.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {totalSholat >= 5 && qadhaList.length === 0 && (
+                <div style={{ background: 'var(--surface)', border: '1px solid color-mix(in srgb, var(--ok) 30%, transparent)', borderLeft: '3px solid var(--ok)', borderRadius: 'var(--radius)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--ok)', flexShrink: 0 }}>
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <path d="M22 4L12 14.01l-3-3"/>
+                  </svg>
+                  <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13, color: 'var(--ok)' }}>
+                    MasyaAllah! Semua sholat hari ini terjaga ✓
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Qadha Tracker */}
