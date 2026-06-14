@@ -1,0 +1,82 @@
+DEENME — FIX: Timezone Picker Masuk ke Dalam Rail/Navbar
+Timezone picker must be contained inside the sidebar rail, not overflowing outside it.
+In src/ui.jsx, find the Rail component and make sure TimezonePicker is placed INSIDE the rail flex container, above the logout button, with proper overflow handling.
+jsx// Rail component structure harus seperti ini:
+<div className="rail" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+
+  {/* Brand logo — top */}
+  <div className="brand" style={{ flexShrink: 0 }}>
+    {/* logo */}
+  </div>
+
+  {/* Nav buttons — middle, scrollable jika overflow */}
+  <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 0' }}>
+    {/* navbtn items */}
+  </div>
+
+  {/* Bottom section — timezone + logout, always at bottom */}
+  <div style={{ flexShrink: 0, borderTop: '1px solid var(--border)', paddingBottom: 8 }}>
+
+    {/* Timezone picker — compact, no label */}
+    <div style={{ padding: '8px 6px 4px' }}>
+      {TIMEZONE_OPTIONS.map(opt => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            width: '100%',
+            padding: '6px 8px',
+            borderRadius: 'var(--radius-sm)',
+            border: 'none',
+            background: timezone === opt.value ? 'var(--gold-soft)' : 'transparent',
+            cursor: 'pointer',
+            transition: '.15s',
+            marginBottom: 2,
+          }}
+        >
+          <span style={{ fontSize: 14, flexShrink: 0 }}>{opt.flag}</span>
+          <span style={{
+            fontFamily: 'var(--f-head)',
+            fontWeight: 600,
+            fontSize: 10,
+            color: timezone === opt.value ? 'var(--gold)' : 'var(--text-3)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {opt.offset}
+          </span>
+          {timezone === opt.value && (
+            <svg width="9" height="9" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)', marginLeft: 'auto', flexShrink: 0 }}>
+              <path d="M3 7.4 5.7 10 11 4.2"/>
+            </svg>
+          )}
+        </button>
+      ))}
+    </div>
+
+    {/* Logout button */}
+    <div style={{ padding: '0 6px' }}>
+      {/* existing logout navbtn */}
+    </div>
+  </div>
+
+</div>
+Also update .rail CSS in src/deenme-theme.css:
+css.rail {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden; /* tidak boleh keluar */
+  flex-shrink: 0;
+}
+IMPORTANT:
+
+Rail harus overflow: hidden agar tidak ada yang keluar
+Layout rail: flex column — brand (top) + nav (flex 1, scroll) + timezone+logout (bottom, fixed)
+Timezone picker width mengikuti lebar rail — tidak boleh melebihi
+Text timezone pakai overflow: hidden; text-overflow: ellipsis agar tidak overflow
+Do not change any other component
