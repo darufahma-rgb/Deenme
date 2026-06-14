@@ -46,34 +46,35 @@ export function LandingPage({ onEnter }) {
       {/* ════════════ NAVBAR ════════════ */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 20,
-        background: 'rgba(245,237,218,.9)', backdropFilter: 'blur(28px)',
-        borderBottom: `1px solid ${C.border}`,
+        background: 'rgba(26,46,28,.96)', backdropFilter: 'blur(28px)',
+        borderBottom: `1px solid rgba(255,255,255,.08)`,
         padding: '0 clamp(20px, 5vw, 48px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <img src="./assets/Deenme_logo.png" alt="Deenme" style={{
             width: 38, height: 'auto',
-            filter: 'brightness(0) saturate(100%) invert(22%) sepia(35%) saturate(700%) hue-rotate(95deg) brightness(80%)',
+            filter: 'brightness(0) invert(1)',
           }} />
-          <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: '-.02em', color: C.green }}>Deenme</span>
+          <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: '-.02em', color: C.cream }}>Deenme</span>
         </div>
         <button onClick={onEnter} style={{
-          background: C.greenMid, color: C.cream,
+          background: C.lime, color: C.dark,
           border: 'none', borderRadius: 10, padding: '9px 22px',
           fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14,
           cursor: 'pointer', letterSpacing: '-.01em',
-          boxShadow: '0 2px 12px rgba(56,102,65,.3)',
+          boxShadow: '0 2px 12px rgba(167,201,87,.3)',
           transition: 'background .15s, transform .12s, box-shadow .15s',
         }}
-          onMouseEnter={e => { e.currentTarget.style.background = C.green; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = C.greenMid; e.currentTarget.style.transform = 'translateY(0)'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#bcd962'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = C.lime; e.currentTarget.style.transform = 'translateY(0)'; }}
         >Masuk</button>
       </nav>
 
       {/* ════════════ HERO ════════════ */}
       <section style={{
         minHeight: 'calc(100dvh - 60px)',
+        background: C.darkMid,
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         padding: 'clamp(48px, 8vh, 80px) clamp(20px, 5vw, 48px)',
@@ -84,14 +85,14 @@ export function LandingPage({ onEnter }) {
         <div style={{
           position: 'absolute', top: '10%', left: '50%', transform: 'translateX(-50%)',
           width: 700, height: 500, borderRadius: '50%',
-          background: `radial-gradient(ellipse, color-mix(in srgb, ${C.greenMid} 12%, transparent), transparent 68%)`,
+          background: `radial-gradient(ellipse, rgba(167,201,87,.12), transparent 68%)`,
           filter: 'blur(60px)', pointerEvents: 'none',
         }} />
 
         {/* Fine grid */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          backgroundImage: `linear-gradient(${C.border}55 1px, transparent 1px), linear-gradient(90deg, ${C.border}55 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px)`,
           backgroundSize: '52px 52px',
           maskImage: 'radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)',
           WebkitMaskImage: 'radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)',
@@ -102,8 +103,8 @@ export function LandingPage({ onEnter }) {
           {/* Bismillah */}
           <div style={{
             fontFamily: 'var(--f-ar)', fontSize: 'clamp(16px, 2.5vw, 22px)',
-            color: C.greenLt, direction: 'rtl', marginBottom: 20,
-            opacity: mounted ? .9 : 0, transition: 'opacity .6s .1s',
+            color: C.lime, direction: 'rtl', marginBottom: 20,
+            opacity: mounted ? .85 : 0, transition: 'opacity .6s .1s',
             letterSpacing: '.04em', lineHeight: 1.8,
           }}>
             بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
@@ -113,14 +114,13 @@ export function LandingPage({ onEnter }) {
           <h1 style={{
             fontWeight: 800, fontSize: 'clamp(38px, 6vw, 64px)',
             lineHeight: 1.05, letterSpacing: '-.04em',
-            color: C.text, margin: '0 0 8px',
+            color: C.cream, margin: '0 0 8px',
             opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(24px)',
             transition: 'opacity .6s .15s, transform .6s .15s',
           }}>
             Jaga ibadahmu,<br />
             <span style={{
-              color: C.greenMid,
-              backgroundImage: `linear-gradient(135deg, ${C.greenMid}, ${C.lime})`,
+              backgroundImage: `linear-gradient(135deg, ${C.lime}, #d4e87a)`,
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
             }}>setiap hari.</span>
@@ -129,19 +129,19 @@ export function LandingPage({ onEnter }) {
           {/* Tagline badge */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: `rgba(56,102,65,.08)`, border: `1px solid rgba(56,102,65,.2)`,
+            background: `rgba(167,201,87,.1)`, border: `1px solid rgba(167,201,87,.25)`,
             borderRadius: 999, padding: '6px 16px', margin: '18px 0 22px',
             opacity: mounted ? 1 : 0, transition: 'opacity .6s .25s',
           }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.greenMid }} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: C.greenMid, letterSpacing: '.04em' }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.lime }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: C.lime, letterSpacing: '.04em' }}>
               🎁 Hadiah eksklusif untuk member Talqeeh
             </span>
           </div>
 
           {/* Sub */}
           <p style={{
-            fontSize: 'clamp(15px, 1.8vw, 17px)', color: C.textMid, lineHeight: 1.8,
+            fontSize: 'clamp(15px, 1.8vw, 17px)', color: 'rgba(245,237,218,.65)', lineHeight: 1.8,
             maxWidth: 500, margin: '0 auto 36px',
             opacity: mounted ? 1 : 0, transition: 'opacity .6s .3s',
           }}>
@@ -156,32 +156,32 @@ export function LandingPage({ onEnter }) {
             opacity: mounted ? 1 : 0, transition: 'opacity .6s .38s',
           }}>
             <button onClick={onEnter} style={{
-              background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})`,
-              color: C.cream, border: 'none', borderRadius: 14,
-              padding: '15px 36px', fontFamily: 'var(--f-head)', fontWeight: 700,
+              background: C.lime, color: C.dark,
+              border: 'none', borderRadius: 14,
+              padding: '15px 36px', fontFamily: 'var(--f-head)', fontWeight: 800,
               fontSize: 16, cursor: 'pointer', letterSpacing: '-.01em',
-              boxShadow: `0 6px 28px rgba(56,102,65,.35), 0 2px 8px rgba(56,102,65,.2)`,
-              transition: 'transform .15s, box-shadow .15s',
+              boxShadow: `0 6px 28px rgba(167,201,87,.3)`,
+              transition: 'transform .15s, box-shadow .15s, background .15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 10px 36px rgba(56,102,65,.45), 0 4px 12px rgba(56,102,65,.25)`; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 6px 28px rgba(56,102,65,.35), 0 2px 8px rgba(56,102,65,.2)`; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.background = '#bcd962'; e.currentTarget.style.boxShadow = `0 10px 36px rgba(167,201,87,.4)`; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.background = C.lime; e.currentTarget.style.boxShadow = `0 6px 28px rgba(167,201,87,.3)`; }}
             >
               Mulai Sekarang →
             </button>
             <button onClick={() => document.getElementById('fitur')?.scrollIntoView({ behavior: 'smooth' })} style={{
-              background: 'transparent', color: C.greenMid,
-              border: `1.5px solid rgba(56,102,65,.28)`,
+              background: 'transparent', color: 'rgba(245,237,218,.8)',
+              border: `1.5px solid rgba(245,237,218,.2)`,
               borderRadius: 14, padding: '14px 28px',
               fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 15,
               cursor: 'pointer', transition: 'border-color .15s, background .15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = `rgba(56,102,65,.6)`; e.currentTarget.style.background = `rgba(56,102,65,.05)`; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = `rgba(56,102,65,.28)`; e.currentTarget.style.background = 'transparent'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = `rgba(245,237,218,.5)`; e.currentTarget.style.background = `rgba(245,237,218,.06)`; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = `rgba(245,237,218,.2)`; e.currentTarget.style.background = 'transparent'; }}
             >
               Lihat Fitur
             </button>
           </div>
-          <p style={{ fontSize: 12, color: C.textMuted, opacity: mounted ? 1 : 0, transition: 'opacity .6s .45s' }}>
+          <p style={{ fontSize: 12, color: 'rgba(245,237,218,.35)', opacity: mounted ? 1 : 0, transition: 'opacity .6s .45s' }}>
             Masukkan kode undangan dari Talqeeh untuk masuk
           </p>
         </div>

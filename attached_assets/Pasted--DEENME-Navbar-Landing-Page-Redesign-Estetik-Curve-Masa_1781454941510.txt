@@ -1,0 +1,136 @@
+# DEENME — Navbar Landing Page: Redesign Estetik + Curve
+
+## Masalah
+Navbar saat ini: logo + "Deenme" teks + "دين" Arab numpuk → berantakan.
+Target: logo saja (tanpa teks samping), floating dengan curve bawah, glassmorphism.
+
+## Ganti HANYA bagian `{/* NAV */}` di `src/LandingPage.jsx`
+
+Cari blok ini:
+```jsx
+{/* NAV */}
+<nav style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,237,218,.9)', ...}}>
+  <div style={s.navLogo}>
+    <div style={s.navLogoMark}>
+      <span style={{ fontFamily: 'var(--f-ar)', fontSize: 16, color: '#f5edda' }}>د</span>
+    </div>
+    <span style={s.navLogoText}>Deenme</span>
+  </div>
+  <button ...>Masuk</button>
+</nav>
+```
+
+**Ganti seluruh blok `<nav>` dengan:**
+
+```jsx
+{/* NAV */}
+<div style={{ position: 'sticky', top: 0, zIndex: 20 }}>
+  <nav style={{
+    margin: '10px 16px 0',
+    background: 'rgba(245,237,218,.82)',
+    backdropFilter: 'blur(32px)',
+    WebkitBackdropFilter: 'blur(32px)',
+    borderRadius: 20,
+    border: '1px solid rgba(56,102,65,.14)',
+    boxShadow: '0 4px 24px rgba(56,102,65,.08), 0 1px 0 rgba(255,255,255,.6) inset',
+    padding: '0 20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 56,
+  }}>
+    {/* Logo only — no text */}
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <img
+        src="./assets/Deenme_logo.png"
+        alt="Deenme"
+        style={{
+          width: 32, height: 32,
+          filter: 'brightness(0) saturate(100%) invert(22%) sepia(35%) saturate(700%) hue-rotate(95deg) brightness(80%)',
+        }}
+      />
+    </div>
+
+    {/* Right side */}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      {/* Pill label */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        background: 'rgba(56,102,65,.08)',
+        border: '1px solid rgba(56,102,65,.15)',
+        borderRadius: 999, padding: '5px 12px',
+      }}>
+        <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#386641', flexShrink: 0 }} />
+        <span style={{
+          fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11,
+          color: '#386641', letterSpacing: '.04em', whiteSpace: 'nowrap',
+        }}>
+          Eksklusif Talqeeh
+        </span>
+      </div>
+
+      {/* Masuk button */}
+      <button
+        onClick={onEnter}
+        style={{
+          background: 'linear-gradient(135deg, #386641, #2d5a27)',
+          color: '#f5edda',
+          border: 'none',
+          borderRadius: 12,
+          padding: '8px 20px',
+          fontFamily: 'var(--f-head)',
+          fontWeight: 700,
+          fontSize: 13,
+          cursor: 'pointer',
+          letterSpacing: '-.01em',
+          boxShadow: '0 2px 12px rgba(56,102,65,.3), 0 1px 0 rgba(255,255,255,.15) inset',
+          transition: 'transform .12s, box-shadow .15s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = '0 6px 20px rgba(56,102,65,.4), 0 1px 0 rgba(255,255,255,.15) inset';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 2px 12px rgba(56,102,65,.3), 0 1px 0 rgba(255,255,255,.15) inset';
+        }}
+      >
+        Masuk
+      </button>
+    </div>
+  </nav>
+
+  {/* Curve bawah navbar */}
+  <div style={{ position: 'relative', height: 16, overflow: 'hidden', margin: '0 16px' }}>
+    <div style={{
+      position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+      width: '70%', height: 1,
+      background: 'linear-gradient(90deg, transparent, rgba(56,102,65,.15), transparent)',
+    }} />
+  </div>
+</div>
+```
+
+---
+
+## Juga update `s.hero` padding-top supaya tidak tertimpa navbar floating
+
+Cari:
+```js
+hero: { padding: 'clamp(48px, 8vh, 80px) clamp(20px, 5vw, 48px)', ...
+```
+
+Ganti jadi:
+```js
+hero: { padding: 'clamp(32px, 6vh, 60px) clamp(20px, 5vw, 48px)', ...
+```
+
+---
+
+## Hasil yang Diharapkan
+- Navbar **floating** dengan border-radius 20px — tidak nempel ke tepi browser
+- **Logo saja** tanpa teks Deenme atau Arab دين
+- Pill kecil "Eksklusif Talqeeh" dengan dot hijau
+- Tombol Masuk gradient hijau dengan hover lift
+- Garis tipis dekoratif di bawah navbar sebagai separator halus
+- Mobile: navbar tetap floating dengan margin 16px dari tepi
