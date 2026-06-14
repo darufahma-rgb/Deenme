@@ -1,438 +1,448 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export function LandingPage({ onEnter }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
+  const [scrolled, setScrolled] = useState(false);
+  const [mounted,  setMounted]  = useState(false);
 
-  const FEATURES = [
-    { icon: '🕌', title: 'Tracker Sholat', ar: 'مَوَاقِيتُ الصَّلَاة', desc: 'Catat 5 waktu sholat — tepat waktu, telat, atau qadha. Jadwal otomatis per kota.' },
-    { icon: '📿', title: 'Misi Amalan',    ar: 'مُهِمَّاتُ العِبَادَة', desc: 'Panduan dzikir & doa setelah setiap sholat. Lengkap bacaan Arab, latin, arti, dan dalil.' },
-    { icon: '⭐', title: 'Rank & XP',      ar: 'الدَّرَجَاتُ وَالنُّقَاط', desc: 'Dari Mubtadi hingga Ulul Albab. Setiap ibadah menghasilkan XP dan menaikkan rankmu.' },
-    { icon: '🤲', title: 'Bank Doa',       ar: 'بَنْكُ الأَدْعِيَة',      desc: '50+ doa dari Al-Quran & hadits shahih. Lengkap kisah latar belakang dan faedah.' },
-    { icon: '📖', title: 'Jurnal Harian',  ar: 'يَوْمِيَّاتٌ شَخْصِيَّة', desc: 'Tulis refleksi harian. Rapikan AI dan Tafsir Mimpi berbasis kecerdasan buatan.' },
-    { icon: '📊', title: 'Statistik',      ar: 'إِحْصَائِيَّاتٌ يَوْمِيَّة', desc: 'Laporan harian & mingguan dengan grade A–F, heatmap, bar chart, dan rekap qadha.' },
-  ];
-
-  const RANKS = [
-    { rank: 'E',   label: 'Mubtadi',    ar: 'مُبْتَدِئ',        color: '#94a3b8' },
-    { rank: 'D',   label: 'Mutaallim',  ar: 'مُتَعَلِّم',       color: '#6688cc' },
-    { rank: 'C',   label: 'Mutawassit', ar: 'مُتَوَسِّط',       color: '#386641' },
-    { rank: 'B',   label: 'Mutaqaddim', ar: 'مُتَقَدِّم',       color: '#6a994e' },
-    { rank: 'A',   label: 'Muttaqin',   ar: 'مُتَّقِن',         color: '#a7c957' },
-    { rank: 'S',   label: 'Wali',       ar: 'وَلِيّ',           color: '#f59e0b' },
-    { rank: 'SS',  label: 'Shiddiq',    ar: 'صِدِّيق',          color: '#ef4444' },
-    { rank: 'SSS', label: 'Ulul Albab', ar: 'أُولُو الأَلْبَاب', color: '#a855f7' },
-  ];
+  useEffect(() => {
+    setTimeout(() => setMounted(true), 80);
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const C = {
-    bg:       '#f5edda',
-    surface:  '#faf5e8',
-    border:   '#e2d9c0',
-    green:    '#2d5a27',
-    greenMid: '#386641',
-    greenLt:  '#6a994e',
-    lime:     '#a7c957',
-    text:     '#1a2e1c',
-    textMid:  '#3d5c3f',
-    textMuted:'#7a8f7a',
-    dark:     '#111c12',
-    darkMid:  '#1a2e1c',
-    cream:    '#f5edda',
+    bg:      '#0f1710',
+    surface: '#161f17',
+    border:  'rgba(56,102,65,.18)',
+    green:   '#3ecf8e',
+    greenDk: '#386641',
+    lime:    '#a7c957',
+    text:    '#f0ede6',
+    textSub: 'rgba(240,237,230,.55)',
+    textMut: 'rgba(240,237,230,.28)',
+    cream:   '#f5edda',
   };
+
+  const RANKS = [
+    { rank: 'E',   label: 'Mubtadi',    color: '#94a3b8', pts: '0' },
+    { rank: 'D',   label: 'Mutaallim',  color: '#6688cc', pts: '100' },
+    { rank: 'C',   label: 'Mutawassit', color: '#3ecf8e', pts: '300' },
+    { rank: 'B',   label: 'Mutaqaddim', color: '#6a994e', pts: '600' },
+    { rank: 'A',   label: 'Muttaqin',   color: '#a7c957', pts: '1k' },
+    { rank: 'S',   label: 'Wali',       color: '#f59e0b', pts: '2k' },
+    { rank: 'SS',  label: 'Shiddiq',    color: '#ef4444', pts: '5k' },
+    { rank: 'SSS', label: 'Ulul Albab', color: '#a855f7', pts: '10k' },
+  ];
 
   return (
     <div style={{ minHeight: '100dvh', background: C.bg, fontFamily: 'var(--f-head)', color: C.text, overflowX: 'hidden' }}>
 
-      {/* ════════════ NAVBAR ════════════ */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 20 }}>
-        <nav style={{
-          margin: '10px 16px 0',
-          background: 'rgba(245,237,218,.82)',
-          backdropFilter: 'blur(32px)',
-          WebkitBackdropFilter: 'blur(32px)',
-          borderRadius: 20,
-          border: '1px solid rgba(56,102,65,.14)',
-          boxShadow: '0 4px 24px rgba(56,102,65,.08), 0 1px 0 rgba(255,255,255,.6) inset',
-          padding: '0 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: 56,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <img
-              src="./assets/Deenme_logo.png"
-              alt="Deenme"
-              style={{
-                width: 26, height: 26,
-                filter: 'brightness(0) saturate(100%) invert(22%) sepia(35%) saturate(700%) hue-rotate(95deg) brightness(80%)',
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(56,102,65,.08)',
-              border: '1px solid rgba(56,102,65,.15)',
-              borderRadius: 999, padding: '5px 12px',
-            }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#386641', flexShrink: 0 }} />
-              <span style={{
-                fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11,
-                color: '#386641', letterSpacing: '.04em', whiteSpace: 'nowrap',
-              }}>
-                Eksklusif Talqeeh
-              </span>
-            </div>
-
-            <button
-              onClick={onEnter}
-              style={{
-                background: 'linear-gradient(135deg, #386641, #2d5a27)',
-                color: '#f5edda',
-                border: 'none',
-                borderRadius: 12,
-                padding: '8px 20px',
-                fontFamily: 'var(--f-head)',
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: 'pointer',
-                letterSpacing: '-.01em',
-                boxShadow: '0 2px 12px rgba(56,102,65,.3), 0 1px 0 rgba(255,255,255,.15) inset',
-                transition: 'transform .12s, box-shadow .15s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(56,102,65,.4), 0 1px 0 rgba(255,255,255,.15) inset';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 12px rgba(56,102,65,.3), 0 1px 0 rgba(255,255,255,.15) inset';
-              }}
-            >
-              Masuk
-            </button>
-          </div>
-        </nav>
-
-        {/* Garis dekoratif bawah navbar */}
-        <div style={{ position: 'relative', height: 16, overflow: 'hidden', margin: '0 16px' }}>
-          <div style={{
-            position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
-            width: '70%', height: 1,
-            background: 'linear-gradient(90deg, transparent, rgba(56,102,65,.15), transparent)',
+      {/* ══════════ NAVBAR ══════════ */}
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, height: 60,
+        background: scrolled ? 'rgba(15,23,16,.92)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px)' : 'none',
+        borderBottom: `1px solid ${scrolled ? C.border : 'transparent'}`,
+        transition: 'background .3s, border-color .3s, backdrop-filter .3s',
+        display: 'flex', alignItems: 'center',
+        padding: '0 clamp(20px, 5vw, 48px)',
+        justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img src="./assets/Deenme_logo.png" alt="Deenme" style={{
+            width: 30, height: 30,
+            filter: 'brightness(0) saturate(100%) invert(70%) sepia(30%) saturate(400%) hue-rotate(95deg)',
           }} />
+          <span style={{ fontWeight: 800, fontSize: 16, color: C.text, letterSpacing: '-.02em' }}>Deenme</span>
         </div>
-      </div>
 
-      {/* ════════════ HERO ════════════ */}
+        <div style={{ display: 'flex', gap: 28, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          {['Fitur', 'Rank', 'Talqeeh'].map(l => (
+            <button key={l} onClick={() => document.getElementById(l.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })}
+              style={{ background: 'none', border: 'none', color: C.textSub, fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 14, cursor: 'pointer', transition: 'color .15s', padding: 0 }}
+              onMouseEnter={e => e.currentTarget.style.color = C.text}
+              onMouseLeave={e => e.currentTarget.style.color = C.textSub}
+            >{l}</button>
+          ))}
+        </div>
+
+        <button onClick={onEnter} style={{
+          background: C.green, color: '#0a1a0c',
+          border: 'none', borderRadius: 8, padding: '8px 20px',
+          fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 13,
+          cursor: 'pointer', letterSpacing: '-.01em',
+          boxShadow: `0 0 20px ${C.green}40`,
+          transition: 'transform .12s, box-shadow .15s',
+        }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 4px 28px ${C.green}60`; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 0 20px ${C.green}40`; }}
+        >
+          Masuk →
+        </button>
+      </nav>
+
+      {/* ══════════ HERO ══════════ */}
       <section style={{
-        minHeight: 'calc(100dvh - 60px)',
-        background: C.darkMid,
-        display: 'flex', flexDirection: 'column',
+        minHeight: '100dvh', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        padding: 'clamp(32px, 6vh, 60px) clamp(20px, 5vw, 48px)',
+        padding: 'clamp(100px, 15vh, 140px) clamp(20px, 5vw, 48px) clamp(60px, 8vh, 80px)',
         textAlign: 'center', position: 'relative', overflow: 'hidden',
       }}>
-
-        {/* BG decorative orb */}
-        <div style={{
-          position: 'absolute', top: '10%', left: '50%', transform: 'translateX(-50%)',
-          width: 700, height: 500, borderRadius: '50%',
-          background: `radial-gradient(ellipse, rgba(167,201,87,.12), transparent 68%)`,
-          filter: 'blur(60px)', pointerEvents: 'none',
-        }} />
-
-        {/* Fine grid */}
+        {/* Grid BG */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          backgroundImage: `linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px)`,
-          backgroundSize: '52px 52px',
-          maskImage: 'radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%)',
+          backgroundImage: `linear-gradient(${C.border} 1px, transparent 1px), linear-gradient(90deg, ${C.border} 1px, transparent 1px)`,
+          backgroundSize: '64px 64px',
+          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%)',
         }} />
 
-        <div style={{ position: 'relative', maxWidth: 700, zIndex: 1 }}>
+        {/* Glow orbs */}
+        <div style={{ position: 'absolute', top: '5%', left: '50%', transform: 'translateX(-50%)', width: 800, height: 600, background: `radial-gradient(ellipse, ${C.green}14 0%, transparent 65%)`, filter: 'blur(40px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '30%', left: '20%', width: 400, height: 400, background: `radial-gradient(ellipse, ${C.lime}08 0%, transparent 65%)`, filter: 'blur(60px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '20%', right: '15%', width: 350, height: 350, background: `radial-gradient(ellipse, rgba(56,102,65,.1) 0%, transparent 65%)`, filter: 'blur(50px)', pointerEvents: 'none' }} />
 
-          {/* Bismillah */}
+        <div style={{ position: 'relative', maxWidth: 760, zIndex: 1 }}>
+          {/* Logo mark */}
           <div style={{
-            fontFamily: 'var(--f-ar)', fontSize: 'clamp(16px, 2.5vw, 22px)',
-            color: C.lime, direction: 'rtl', marginBottom: 20,
-            opacity: mounted ? .85 : 0, transition: 'opacity .6s .1s',
-            letterSpacing: '.04em', lineHeight: 1.8,
+            display: 'flex', justifyContent: 'center', marginBottom: 28,
+            opacity: mounted ? 1 : 0, transform: mounted ? 'scale(1)' : 'scale(.5)',
+            transition: 'opacity .5s, transform .6s cubic-bezier(.34,1.56,.64,1)',
           }}>
-            بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
+            <div style={{
+              width: 72, height: 72, borderRadius: 20,
+              background: `linear-gradient(145deg, ${C.greenDk}, #2d5a27)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 0 0 1px rgba(62,207,142,.2), 0 8px 32px ${C.green}30`,
+            }}>
+              <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 46, filter: 'brightness(0) invert(1)' }} />
+            </div>
           </div>
 
-          {/* Headline */}
-          <h1 style={{
-            fontWeight: 800, fontSize: 'clamp(38px, 6vw, 64px)',
-            lineHeight: 1.05, letterSpacing: '-.04em',
-            color: C.cream, margin: '0 0 8px',
-            opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(24px)',
-            transition: 'opacity .6s .15s, transform .6s .15s',
-          }}>
-            Jaga ibadahmu,<br />
-            <span style={{
-              backgroundImage: `linear-gradient(135deg, ${C.lime}, #d4e87a)`,
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>setiap hari.</span>
-          </h1>
-
-          {/* Tagline badge */}
+          {/* Eyebrow badge */}
           <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: `rgba(167,201,87,.1)`, border: `1px solid rgba(167,201,87,.25)`,
-            borderRadius: 999, padding: '6px 16px', margin: '18px 0 22px',
-            opacity: mounted ? 1 : 0, transition: 'opacity .6s .25s',
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            background: `rgba(62,207,142,.08)`, border: `1px solid rgba(62,207,142,.2)`,
+            borderRadius: 999, padding: '5px 14px', marginBottom: 24,
+            opacity: mounted ? 1 : 0, transition: 'opacity .5s .1s',
           }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.lime }} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: C.lime, letterSpacing: '.04em' }}>
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: C.green, boxShadow: `0 0 6px ${C.green}` }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: C.green, letterSpacing: '.04em' }}>
               🎁 Hadiah eksklusif untuk member Talqeeh
             </span>
           </div>
 
+          {/* Headline */}
+          <h1 style={{
+            fontWeight: 800, fontSize: 'clamp(38px, 6vw, 68px)',
+            lineHeight: 1.05, letterSpacing: '-.04em', color: C.text,
+            margin: '0 0 4px',
+            opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+            transition: 'opacity .6s .15s, transform .6s .15s',
+          }}>
+            Jaga ibadahmu,
+          </h1>
+          <h1 style={{
+            fontWeight: 800, fontSize: 'clamp(38px, 6vw, 68px)',
+            lineHeight: 1.05, letterSpacing: '-.04em', margin: '0 0 20px',
+            background: `linear-gradient(135deg, ${C.green} 0%, ${C.lime} 60%, ${C.green} 100%)`,
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+            transition: 'opacity .6s .2s, transform .6s .2s',
+          }}>
+            setiap hari.
+          </h1>
+
+          {/* Arabic */}
+          <div style={{
+            fontFamily: 'var(--f-ar)', fontSize: 'clamp(14px, 2vw, 18px)',
+            color: 'rgba(62,207,142,.6)', direction: 'rtl', marginBottom: 24,
+            opacity: mounted ? .8 : 0, transition: 'opacity .6s .25s',
+          }}>
+            بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
+          </div>
+
           {/* Sub */}
           <p style={{
-            fontSize: 'clamp(15px, 1.8vw, 17px)', color: 'rgba(245,237,218,.65)', lineHeight: 1.8,
-            maxWidth: 500, margin: '0 auto 36px',
+            fontSize: 'clamp(15px, 1.8vw, 18px)', color: C.textSub, lineHeight: 1.75,
+            maxWidth: 520, margin: '0 auto 36px',
             opacity: mounted ? 1 : 0, transition: 'opacity .6s .3s',
           }}>
             Tracker sholat, dzikir, dan amalan harian dengan sistem rank, streak, dan bank doa.
-            Dirancang untuk kamu yang ingin istiqamah.
+            Dirancang untuk istiqamah — satu hari satu langkah.
           </p>
 
           {/* CTAs */}
           <div style={{
-            display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap',
-            marginBottom: 16,
+            display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 12,
             opacity: mounted ? 1 : 0, transition: 'opacity .6s .38s',
           }}>
             <button onClick={onEnter} style={{
-              background: C.lime, color: C.dark,
-              border: 'none', borderRadius: 14,
-              padding: '15px 36px', fontFamily: 'var(--f-head)', fontWeight: 800,
-              fontSize: 16, cursor: 'pointer', letterSpacing: '-.01em',
-              boxShadow: `0 6px 28px rgba(167,201,87,.3)`,
-              transition: 'transform .15s, box-shadow .15s, background .15s',
+              background: C.green, color: '#0a1a0c',
+              border: 'none', borderRadius: 10, padding: '14px 32px',
+              fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 15,
+              cursor: 'pointer', letterSpacing: '-.01em',
+              boxShadow: `0 0 32px ${C.green}50, 0 4px 12px rgba(0,0,0,.3)`,
+              transition: 'transform .15s, box-shadow .15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.background = '#bcd962'; e.currentTarget.style.boxShadow = `0 10px 36px rgba(167,201,87,.4)`; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.background = C.lime; e.currentTarget.style.boxShadow = `0 6px 28px rgba(167,201,87,.3)`; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 0 48px ${C.green}70, 0 8px 20px rgba(0,0,0,.3)`; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 0 32px ${C.green}50, 0 4px 12px rgba(0,0,0,.3)`; }}
             >
               Mulai Sekarang →
             </button>
             <button onClick={() => document.getElementById('fitur')?.scrollIntoView({ behavior: 'smooth' })} style={{
-              background: 'transparent', color: 'rgba(245,237,218,.8)',
-              border: `1.5px solid rgba(245,237,218,.2)`,
-              borderRadius: 14, padding: '14px 28px',
+              background: 'rgba(240,237,230,.05)', color: C.textSub,
+              border: `1px solid ${C.border}`, borderRadius: 10, padding: '13px 28px',
               fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 15,
-              cursor: 'pointer', transition: 'border-color .15s, background .15s',
+              cursor: 'pointer', transition: 'border-color .15s, color .15s, background .15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = `rgba(245,237,218,.5)`; e.currentTarget.style.background = `rgba(245,237,218,.06)`; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = `rgba(245,237,218,.2)`; e.currentTarget.style.background = 'transparent'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(62,207,142,.3)'; e.currentTarget.style.color = C.text; e.currentTarget.style.background = 'rgba(62,207,142,.06)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.textSub; e.currentTarget.style.background = 'rgba(240,237,230,.05)'; }}
             >
               Lihat Fitur
             </button>
           </div>
-          <p style={{ fontSize: 12, color: 'rgba(245,237,218,.35)', opacity: mounted ? 1 : 0, transition: 'opacity .6s .45s' }}>
+          <p style={{ fontSize: 12, color: C.textMut, opacity: mounted ? 1 : 0, transition: 'opacity .5s .5s' }}>
             Masukkan kode undangan dari Talqeeh untuk masuk
           </p>
         </div>
       </section>
 
-      {/* ════════════ STATS STRIP ════════════ */}
-      <div style={{ background: C.greenMid, padding: '22px clamp(20px,5vw,48px)' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto', display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '12px 32px' }}>
+      {/* ══════════ STATS STRIP ══════════ */}
+      <div style={{ borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: '20px clamp(20px,5vw,48px)' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '12px 40px' }}>
           {[
-            { val: '50+', label: 'Doa & Dzikir' },
-            { val: '8',   label: 'Waktu Ibadah' },
-            { val: '8',   label: 'Rank Level' },
+            { val: '50+', label: 'Doa & Dzikir Shahih' },
+            { val: '8',   label: 'Rank Sistem' },
+            { val: '5',   label: 'Waktu Sholat' },
             { val: '2',   label: 'Zona Waktu' },
           ].map(({ val, label }) => (
             <div key={label} style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 800, fontSize: 'clamp(22px, 3vw, 30px)', color: C.lime, letterSpacing: '-.03em', lineHeight: 1 }}>{val}</div>
-              <div style={{ fontSize: 12, color: 'rgba(245,237,218,.65)', marginTop: 5, fontWeight: 500 }}>{label}</div>
+              <div style={{ fontWeight: 800, fontSize: 'clamp(20px,3vw,28px)', color: C.green, letterSpacing: '-.03em', lineHeight: 1 }}>{val}</div>
+              <div style={{ fontSize: 12, color: C.textMut, marginTop: 5, fontWeight: 500 }}>{label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ════════════ TALQEEH BANNER ════════════ */}
-      <div style={{
-        background: C.surface, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
-        padding: 'clamp(28px, 4vw, 40px) clamp(20px, 5vw, 48px)',
-        textAlign: 'center',
-      }}>
-        <div style={{ maxWidth: 560, margin: '0 auto' }}>
-          <div style={{ fontWeight: 700, fontSize: 10, color: C.greenLt, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 10 }}>
-            Tentang Deenme
-          </div>
-          <p style={{ fontWeight: 600, fontSize: 'clamp(14px, 2vw, 16px)', color: C.text, lineHeight: 1.75, marginBottom: 18 }}>
-            Deenme lahir sebagai hadiah kecil untuk para anggota Talqeeh —
-            komunitas belajar Islam yang memberi ruang tumbuh, belajar, dan saling menguatkan.
-          </p>
-          <a href="https://talqeeh.vercel.app" target="_blank" rel="noopener noreferrer" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            color: C.greenMid, border: `1.5px solid rgba(56,102,65,.3)`,
-            borderRadius: 10, padding: '9px 20px',
-            fontWeight: 700, fontSize: 13, textDecoration: 'none',
-            transition: 'border-color .15s, background .15s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = C.greenMid; e.currentTarget.style.background = `rgba(56,102,65,.06)`; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = `rgba(56,102,65,.3)`; e.currentTarget.style.background = 'transparent'; }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Kunjungi Talqeeh
-          </a>
-        </div>
-      </div>
-
-      {/* ════════════ FEATURES ════════════ */}
-      <section id="fitur" style={{ padding: 'clamp(56px,8vw,88px) clamp(20px,5vw,48px)', maxWidth: 1040, margin: '0 auto' }}>
+      {/* ══════════ BENTO FEATURES ══════════ */}
+      <section id="fitur" style={{ padding: 'clamp(64px,8vw,96px) clamp(20px,5vw,48px)', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div style={{ fontWeight: 700, fontSize: 11, color: C.greenLt, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 12 }}>
-            Fitur Unggulan
-          </div>
+          <div style={{ fontWeight: 700, fontSize: 11, color: C.green, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 12 }}>Fitur Unggulan</div>
           <h2 style={{ fontWeight: 800, fontSize: 'clamp(24px,3.5vw,38px)', color: C.text, letterSpacing: '-.03em', lineHeight: 1.15, margin: 0 }}>
             Semua yang kamu butuhkan<br />untuk ibadah yang lebih baik
           </h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(285px, 1fr))', gap: 14 }}>
-          {FEATURES.map((f, i) => (
-            <div key={i} style={{
+
+        {/* Bento grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, gridTemplateAreas: `"full full" "a b" "c d"` }}>
+
+          {/* Full-width card — Tracker Sholat */}
+          <div style={{
+            gridArea: 'full',
+            background: C.surface, border: `1px solid ${C.border}`,
+            borderRadius: 20, padding: '32px 36px',
+            display: 'flex', alignItems: 'center', gap: 40,
+            position: 'relative', overflow: 'hidden',
+            transition: 'border-color .2s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = `rgba(62,207,142,.4)`}
+            onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
+          >
+            <div style={{ position: 'absolute', top: -40, right: -40, width: 250, height: 250, background: `radial-gradient(circle, ${C.green}10, transparent 65%)`, pointerEvents: 'none' }} />
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 32, marginBottom: 14 }}>🕌</div>
+              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 13, color: `${C.green}70`, direction: 'rtl', marginBottom: 6 }}>مَوَاقِيتُ الصَّلَاة</div>
+              <h3 style={{ fontWeight: 800, fontSize: 22, color: C.text, letterSpacing: '-.02em', marginBottom: 10 }}>Tracker Sholat</h3>
+              <p style={{ fontSize: 14, color: C.textSub, lineHeight: 1.75, margin: 0 }}>
+                Catat 5 waktu sholat harian — tepat waktu, telat, atau qadha. Jadwal otomatis dengan metode Egyptian Authority & KEMENAG. Ganti zona waktu dengan satu klik antara Cairo dan Tangerang.
+              </p>
+            </div>
+
+            {/* Mini mockup */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6, width: 180 }}>
+              {[
+                { name: 'Subuh',   time: '04:37', done: true },
+                { name: 'Dzuhur',  time: '11:54', done: true },
+                { name: 'Ashar',   time: '15:16', done: false },
+                { name: 'Maghrib', time: '17:47', done: false },
+                { name: 'Isya',    time: '19:02', done: false },
+              ].map(p => (
+                <div key={p.name} style={{
+                  background: p.done ? `rgba(62,207,142,.1)` : 'rgba(240,237,230,.03)',
+                  border: `1px solid ${p.done ? 'rgba(62,207,142,.25)' : 'rgba(240,237,230,.07)'}`,
+                  borderRadius: 8, padding: '7px 10px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: p.done ? C.green : C.textMut }}>{p.name}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 11, color: C.textMut }}>{p.time}</span>
+                    {p.done && <span style={{ color: C.green, fontSize: 12 }}>✓</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Half cards */}
+          {[
+            { icon: '📿', title: 'Misi Amalan',  ar: 'مُهِمَّاتُ العِبَادَة',     desc: 'Panduan dzikir & doa setelah setiap sholat. Bacaan Arab, latin, arti, dalil, dan keutamaan.' },
+            { icon: '🤲', title: 'Bank Doa',      ar: 'بَنْكُ الأَدْعِيَة',        desc: '50+ doa dari Al-Quran & hadits shahih. Lengkap kisah latar belakang dan faedah.' },
+            { icon: '📖', title: 'Jurnal Harian', ar: 'يَوْمِيَّاتٌ شَخْصِيَّة',   desc: 'Tulis refleksi harian. Rapikan AI dan Tafsir Mimpi berbasis kecerdasan buatan.' },
+            { icon: '📊', title: 'Statistik',     ar: 'إِحْصَائِيَّاتٌ يَوْمِيَّة', desc: 'Laporan dengan grade A–F, heatmap kalender, bar chart, dan rekap qadha otomatis.' },
+          ].map((f) => (
+            <div key={f.title} style={{
               background: C.surface, border: `1px solid ${C.border}`,
-              borderRadius: 18, padding: '22px 20px',
-              transition: 'transform .18s cubic-bezier(.22,1,.36,1), border-color .15s, box-shadow .18s',
-              cursor: 'default',
+              borderRadius: 18, padding: '24px 22px',
+              position: 'relative', overflow: 'hidden',
+              transition: 'border-color .2s, transform .2s cubic-bezier(.22,1,.36,1)',
             }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = `rgba(56,102,65,.4)`; e.currentTarget.style.boxShadow = `0 12px 32px rgba(56,102,65,.1)`; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = 'none'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = `rgba(62,207,142,.35)`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
-              <div style={{ fontSize: 28, marginBottom: 14, lineHeight: 1 }}>{f.icon}</div>
-              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 11, color: C.greenLt, direction: 'rtl', marginBottom: 5, opacity: .8 }}>{f.ar}</div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: C.text, marginBottom: 8 }}>{f.title}</div>
-              <div style={{ fontSize: 13, color: C.textMid, lineHeight: 1.75 }}>{f.desc}</div>
+              <div style={{ position: 'absolute', bottom: -30, right: -20, width: 120, height: 120, background: `radial-gradient(circle, ${C.green}08, transparent 65%)`, pointerEvents: 'none' }} />
+              <div style={{ fontSize: 26, marginBottom: 12 }}>{f.icon}</div>
+              <div style={{ fontFamily: 'var(--f-ar)', fontSize: 11, color: `${C.green}60`, direction: 'rtl', marginBottom: 5 }}>{f.ar}</div>
+              <h3 style={{ fontWeight: 700, fontSize: 16, color: C.text, letterSpacing: '-.01em', marginBottom: 8 }}>{f.title}</h3>
+              <p style={{ fontSize: 13, color: C.textSub, lineHeight: 1.75, margin: 0 }}>{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ════════════ RANK SYSTEM ════════════ */}
-      <section style={{
-        background: C.dark, padding: 'clamp(56px,8vw,88px) clamp(20px,5vw,48px)',
-        textAlign: 'center', position: 'relative', overflow: 'hidden',
+      {/* ══════════ DARK HIGHLIGHT — RANK SYSTEM ══════════ */}
+      <section id="rank" style={{
+        background: '#070d08', borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
+        padding: 'clamp(64px,8vw,96px) clamp(20px,5vw,48px)', textAlign: 'center', position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 400, background: `radial-gradient(ellipse, rgba(167,201,87,.07), transparent 65%)`, pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', maxWidth: 860, margin: '0 auto' }}>
-          <div style={{ fontWeight: 700, fontSize: 11, color: C.lime, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 12 }}>
-            Sistem Gamifikasi
-          </div>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.5vw,34px)', color: C.cream, letterSpacing: '-.03em', marginBottom: 12 }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: `linear-gradient(rgba(62,207,142,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(62,207,142,.04) 1px, transparent 1px)`, backgroundSize: '40px 40px', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 700, height: 400, background: `radial-gradient(ellipse, rgba(62,207,142,.06), transparent 65%)`, filter: 'blur(40px)', pointerEvents: 'none' }} />
+
+        <div style={{ position: 'relative', maxWidth: 900, margin: '0 auto' }}>
+          <div style={{ fontWeight: 700, fontSize: 11, color: C.green, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 12 }}>Sistem Gamifikasi</div>
+          <h2 style={{ fontWeight: 800, fontSize: 'clamp(24px,3.5vw,38px)', color: C.text, letterSpacing: '-.03em', marginBottom: 14 }}>
             Naiki rank lewat ibadah
           </h2>
-          <p style={{ fontSize: 14, color: 'rgba(245,237,218,.5)', lineHeight: 1.8, maxWidth: 420, margin: '0 auto 44px' }}>
+          <p style={{ fontSize: 15, color: C.textSub, lineHeight: 1.8, maxWidth: 460, margin: '0 auto 48px' }}>
             Setiap sholat, dzikir, dan amalan menghasilkan XP. Dari Mubtadi hingga Ulul Albab — perjalanan istiqamahmu tercatat.
           </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             {RANKS.map((r, i) => (
               <div key={r.rank} style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                 opacity: mounted ? 1 : 0,
-                transform: mounted ? 'translateY(0)' : 'translateY(18px)',
-                transition: `opacity .45s ${i * 55}ms, transform .45s ${i * 55}ms cubic-bezier(.22,1,.36,1)`,
+                transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+                transition: `opacity .4s ${i * 60}ms, transform .4s ${i * 60}ms cubic-bezier(.22,1,.36,1)`,
               }}>
                 <div style={{
-                  width: 56, height: 56, borderRadius: 15,
-                  background: `rgba(245,237,218,.04)`,
+                  width: 60, height: 60, borderRadius: 16,
+                  background: `rgba(240,237,230,.03)`,
                   border: `1.5px solid ${r.color}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 900, fontSize: 18, color: r.color,
-                  boxShadow: `0 0 20px -6px ${r.color}`,
-                  fontFamily: 'var(--f-head)',
-                }}>
+                  fontFamily: 'var(--f-head)', fontWeight: 900, fontSize: 20, color: r.color,
+                  boxShadow: `0 0 24px -6px ${r.color}80`,
+                  transition: 'transform .15s',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
                   {r.rank}
                 </div>
-                <div style={{ fontWeight: 600, fontSize: 10, color: 'rgba(245,237,218,.45)', textAlign: 'center' }}>{r.label}</div>
-                <div style={{ fontFamily: 'var(--f-ar)', fontSize: 10, color: 'rgba(245,237,218,.25)', direction: 'rtl' }}>{r.ar}</div>
+                <div style={{ fontWeight: 700, fontSize: 11, color: C.textMut }}>{r.label}</div>
+                <div style={{ fontSize: 10, color: `${r.color}60`, fontWeight: 600 }}>{r.pts} XP</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ════════════ TALQEEH CTA ════════════ */}
-      <section style={{
-        background: `linear-gradient(160deg, ${C.greenMid} 0%, ${C.green} 100%)`,
-        padding: 'clamp(64px,9vw,100px) clamp(20px,5vw,48px)',
-        textAlign: 'center', position: 'relative', overflow: 'hidden',
+      {/* ══════════ TALQEEH CTA ══════════ */}
+      <section id="talqeeh" style={{
+        padding: 'clamp(72px,9vw,100px) clamp(20px,5vw,48px)', textAlign: 'center',
+        position: 'relative', overflow: 'hidden',
+        background: `linear-gradient(160deg, ${C.greenDk}dd 0%, #1a3d1e 100%)`,
       }}>
-        <div style={{ position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 700, height: 500, background: `radial-gradient(ellipse, rgba(167,201,87,.18), transparent 65%)`, filter: 'blur(20px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: 20, right: 40, fontFamily: 'var(--f-ar)', fontSize: 120, color: 'rgba(255,255,255,.04)', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>الله</div>
+        <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 700, height: 500, background: `radial-gradient(ellipse, ${C.lime}18, transparent 65%)`, filter: 'blur(40px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: 16, right: 48, fontFamily: 'var(--f-ar)', fontSize: 140, color: 'rgba(255,255,255,.04)', userSelect: 'none', pointerEvents: 'none', lineHeight: 1 }}>الله</div>
 
-        <div style={{ position: 'relative', maxWidth: 560, margin: '0 auto' }}>
-          <div style={{ fontWeight: 700, fontSize: 10, color: C.lime, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 18 }}>
-            Dari kami, untuk Talqeeh
-          </div>
-          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 'clamp(20px, 3vw, 28px)', color: '#ecf39e', direction: 'rtl', marginBottom: 20, lineHeight: 1.7 }}>
-            جَزَاكُمُ اللهُ خَيْرًا
-          </div>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,4vw,38px)', color: C.cream, letterSpacing: '-.03em', lineHeight: 1.2, marginBottom: 18 }}>
-            Terima kasih sudah jadi bagian<br />dari keluarga Talqeeh
+        <div style={{ position: 'relative', maxWidth: 580, margin: '0 auto' }}>
+          <div style={{ fontWeight: 700, fontSize: 10, color: C.lime, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 16 }}>Dari kami, untuk Talqeeh</div>
+          <div style={{ fontFamily: 'var(--f-ar)', fontSize: 'clamp(20px,3vw,28px)', color: '#ecf39e', direction: 'rtl', marginBottom: 18, lineHeight: 1.7 }}>جَزَاكُمُ اللهُ خَيْرًا</div>
+          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,4vw,38px)', color: C.cream, letterSpacing: '-.03em', lineHeight: 1.2, marginBottom: 16 }}>
+            Terima kasih sudah menjadi<br />bagian dari keluarga Talqeeh
           </h2>
-          <p style={{ fontSize: 15, color: 'rgba(245,237,218,.75)', lineHeight: 1.85, marginBottom: 10 }}>
-            Deenme adalah wujud syukur kami atas kepercayaan kalian.
-            Semoga setiap amalan yang tercatat menjadi saksi kebaikan di hari yang paling kita harapkan.
+          <p style={{ fontSize: 15, color: 'rgba(245,237,218,.7)', lineHeight: 1.85, marginBottom: 10 }}>
+            Deenme adalah wujud syukur kami. Semoga setiap amalan yang tercatat menjadi saksi kebaikan di hari yang paling kita harapkan.
           </p>
-          <p style={{ fontSize: 14, color: 'rgba(245,237,218,.5)', marginBottom: 38, fontStyle: 'italic' }}>Barakallahu fiikum. 🌿</p>
+          <p style={{ fontSize: 14, color: 'rgba(245,237,218,.45)', marginBottom: 36, fontStyle: 'italic' }}>Barakallahu fiikum. 🌿</p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={onEnter} style={{
-              background: C.cream, color: C.green, border: 'none',
-              borderRadius: 14, padding: '14px 32px',
-              fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 15,
-              cursor: 'pointer', transition: 'transform .15s, box-shadow .15s',
-              boxShadow: '0 4px 20px rgba(0,0,0,.2)',
+              background: C.cream, color: '#1a2e1c', border: 'none', borderRadius: 10, padding: '14px 32px',
+              fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 15, cursor: 'pointer',
+              boxShadow: '0 4px 20px rgba(0,0,0,.25)', transition: 'transform .15s, box-shadow .15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,.25)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,.2)'; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,.3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,.25)'; }}
             >
               Masuk ke Deenme →
             </button>
             <a href="https://talqeeh.vercel.app" target="_blank" rel="noopener noreferrer" style={{
               display: 'inline-flex', alignItems: 'center', gap: 7,
               color: '#ecf39e', border: '1.5px solid rgba(236,243,158,.3)',
-              borderRadius: 14, padding: '13px 24px',
-              fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14,
-              textDecoration: 'none', transition: 'border-color .15s',
+              borderRadius: 10, padding: '13px 24px',
+              fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14, textDecoration: 'none',
+              transition: 'border-color .15s, background .15s',
             }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(236,243,158,.7)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(236,243,158,.3)'}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(236,243,158,.7)'; e.currentTarget.style.background = 'rgba(236,243,158,.05)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(236,243,158,.3)'; e.currentTarget.style.background = 'transparent'; }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               Kunjungi Talqeeh
             </a>
           </div>
         </div>
       </section>
 
-      {/* ════════════ FOOTER ════════════ */}
-      <footer style={{
-        background: C.darkMid,
-        padding: '20px clamp(20px,5vw,48px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: 10,
-        borderTop: `1px solid rgba(56,102,65,.2)`,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="./assets/Deenme_logo.png" alt="Deenme" style={{
-            width: 24, height: 24,
-            filter: 'brightness(0) invert(.6)',
-          }} />
-          <span style={{ fontWeight: 700, fontSize: 13, color: 'rgba(245,237,218,.7)' }}>Deenme</span>
-        </div>
-        <div style={{ fontSize: 11, color: 'rgba(245,237,218,.3)', fontFamily: 'var(--f-head)' }}>
-          Hadiah kecil dari Dar Dev · untuk keluarga Talqeeh · 2026
+      {/* ══════════ FOOTER ══════════ */}
+      <footer style={{ background: '#070d08', borderTop: `1px solid ${C.border}`, padding: 'clamp(40px,5vw,64px) clamp(20px,5vw,48px) 32px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr repeat(3, 1fr)', gap: 40, marginBottom: 48 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <img src="./assets/Deenme_logo.png" alt="Deenme" style={{ width: 26, filter: 'brightness(0) invert(.5)' }} />
+                <span style={{ fontWeight: 800, fontSize: 15, color: C.textSub }}>Deenme</span>
+              </div>
+              <p style={{ fontSize: 13, color: C.textMut, lineHeight: 1.75, maxWidth: 220, margin: 0 }}>
+                Ibadah tracker untuk Muslim yang ingin istiqamah setiap hari.
+              </p>
+            </div>
+
+            {[
+              { title: 'Produk',    links: ['Tracker Sholat', 'Misi Amalan', 'Bank Doa', 'Jurnal', 'Statistik'] },
+              { title: 'Sistem',    links: ['Rank & XP', 'Badge', 'Streak Shield', 'Timbangan Amal'] },
+              { title: 'Komunitas', links: ['Talqeeh', 'Dar Dev', 'Cairo 2026'] },
+            ].map(({ title, links }) => (
+              <div key={title}>
+                <div style={{ fontWeight: 700, fontSize: 12, color: C.textSub, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 14 }}>{title}</div>
+                {links.map(l => (
+                  <div key={l} style={{ fontSize: 13, color: C.textMut, marginBottom: 8, cursor: 'default' }}>{l}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+            <div style={{ fontSize: 12, color: C.textMut }}>
+              © 2026 Deenme · Dibuat oleh Dar Dev untuk keluarga Talqeeh
+            </div>
+            <a href="https://talqeeh.vercel.app" target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 12, color: C.green, textDecoration: 'none', fontWeight: 600 }}>
+              talqeeh.vercel.app →
+            </a>
+          </div>
         </div>
       </footer>
 
