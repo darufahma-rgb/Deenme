@@ -338,6 +338,26 @@ function TafsirMimpiPage({ codeId }) {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [noKeyToast, setNoKeyToast] = useState(false);
+  const textRef = useRef(null);
+
+  // ── Daily limit — 1× per hari per user ──
+  const todayKey = new Date().toLocaleDateString('id-ID', {
+    timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit',
+  });
+  const limitKey = `deenme-tafsir-date-${codeId}`;
+  const usedToday = localStorage.getItem(limitKey) === todayKey;
+
+  // Countdown ke midnight WIB
+  const getMidnightWIB = () => {
+    const now = new Date();
+    const wib = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const midnight = new Date(wib);
+    midnight.setHours(24, 0, 0, 0);
+    const diff = midnight - wib;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return `${h}j ${m}m`;
+  };
 
   useEffect(() => {
     if (!codeId) { setLoadingHistory(false); return; }
@@ -356,7 +376,7 @@ function TafsirMimpiPage({ codeId }) {
 
   const tafsirkan = async () => {
     const text = dreamText.trim();
-    if (!text || loading) return;
+    if (!text || loading || usedToday) return;
     setLoading(true);
     setResult(null);
     setSelectedHistory(null);
@@ -380,6 +400,8 @@ function TafsirMimpiPage({ codeId }) {
 
       if (tafsir) {
         setResult(tafsir);
+        // Tandai sudah digunakan hari ini
+        localStorage.setItem(limitKey, todayKey);
         if (codeId) {
           const { data: saved } = await supabase
             .from('dream_tafsir')
@@ -422,12 +444,12 @@ function TafsirMimpiPage({ codeId }) {
       )}
 
       {/* Left: History */}
-      <div className="col-l scrl">
+      <div className="col-l scrl" style={{ minWidth: 220, maxWidth: 260 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>Riwayat Tafsir</div>
         {loadingHistory ? (
           <div className="muted tiny">Memuat...</div>
         ) : history.length === 0 ? (
-          <div className="muted tiny" style={{ lineHeight: 1.6 }}>Belum ada riwayat.<br/>Ceritakan mimpimu pertama kali!</div>
+          <div className="muted tiny" style={{ lineHeight: 1.6 }}>Belum ada riwayat tafsir mimpi.</div>
         ) : history.map(h => (
           <div
             key={h.id}
@@ -460,6 +482,31 @@ function TafsirMimpiPage({ codeId }) {
           <div className="muted tiny" style={{ marginTop: 4 }}>Berdasarkan kitab Ibnu Sirin &amp; psikologi modern · dijawab AI</div>
         </div>
 
+        {/* ── Banner limit harian ── */}
+        {usedToday && !selectedHistory && (
+          <div style={{
+            background: 'var(--elevated)',
+            border: '1px solid var(--border)',
+            borderLeft: '3px solid var(--warn)',
+            borderRadius: 'var(--radius)',
+            padding: '14px 18px', marginBottom: 16,
+            display: 'flex', alignItems: 'flex-start', gap: 12,
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--warn)', flexShrink: 0, marginTop: 1 }}>
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+            </svg>
+            <div>
+              <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 4 }}>
+                Tafsir hari ini sudah digunakan
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                Limit 1× tafsir per hari. Reset dalam <strong>{getMidnightWIB()}</strong> lagi.
+                Lihat riwayat tafsir di panel kiri.
+              </div>
+            </div>
+          </div>
+        )}
+
         {selectedHistory ? (
           <div>
             <button
@@ -484,15 +531,35 @@ function TafsirMimpiPage({ codeId }) {
         ) : (
           <>
             {/* Input area */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', marginBottom: 16, overflow: 'hidden' }}>
+            <div style={{
+              background: 'var(--surface)', border: '1px solid var(--border)',
+              borderRadius: 'var(--radius)', marginBottom: 16, overflow: 'hidden',
+              opacity: usedToday ? .5 : 1,
+              pointerEvents: usedToday ? 'none' : 'auto',
+              transition: 'opacity .2s',
+            }}>
               <div style={{ padding: '14px 16px 8px', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 4 }}>Ceritakan mimpi kamu</div>
-                <div className="muted tiny">Semakin detail ceritamu, semakin akurat tafsirnya</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Ceritakan mimpi kamu</div>
+                  {/* Indikator limit */}
+                  <span style={{
+                    fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11,
+                    color: usedToday ? 'var(--danger)' : 'var(--ok)',
+                    background: usedToday ? 'color-mix(in srgb, var(--danger) 10%, transparent)' : 'color-mix(in srgb, var(--ok) 10%, transparent)',
+                    border: `1px solid ${usedToday ? 'color-mix(in srgb, var(--danger) 25%, transparent)' : 'color-mix(in srgb, var(--ok) 25%, transparent)'}`,
+                    borderRadius: 999, padding: '2px 10px',
+                  }}>
+                    {usedToday ? '0/1 tersisa' : '1/1 tersisa'}
+                  </span>
+                </div>
+                <div className="muted tiny" style={{ marginTop: 4 }}>Semakin detail ceritamu, semakin akurat tafsirnya</div>
               </div>
               <textarea
+                ref={textRef}
                 value={dreamText}
                 onChange={e => setDreamText(e.target.value)}
                 placeholder="Contoh: Tadi malam saya bermimpi berada di sebuah masjid yang sangat besar dan indah, lalu tiba-tiba langit menjadi terang benderang..."
+                disabled={usedToday}
                 style={{
                   width: '100%', minHeight: 160, padding: '16px',
                   background: 'transparent', border: 'none', outline: 'none',
@@ -504,9 +571,9 @@ function TafsirMimpiPage({ codeId }) {
                 <span className="muted tiny">{dreamText.length} karakter</span>
                 <button
                   className="btn gold"
-                  style={{ padding: '10px 22px', fontSize: 13, opacity: dreamText.trim().length < 10 || loading ? .5 : 1, display: 'flex', alignItems: 'center', gap: 8 }}
+                  style={{ padding: '10px 22px', fontSize: 13, opacity: dreamText.trim().length < 10 || loading || usedToday ? .5 : 1, display: 'flex', alignItems: 'center', gap: 8 }}
                   onClick={tafsirkan}
-                  disabled={dreamText.trim().length < 10 || loading}
+                  disabled={dreamText.trim().length < 10 || loading || usedToday}
                 >
                   {loading ? (
                     <><span className="spin" style={{ width: 14, height: 14, borderWidth: 2 }} />Menafsirkan...</>

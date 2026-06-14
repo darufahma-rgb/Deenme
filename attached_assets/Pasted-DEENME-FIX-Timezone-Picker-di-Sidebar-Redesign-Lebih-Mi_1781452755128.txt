@@ -1,0 +1,55 @@
+DEENME — FIX: Timezone Picker di Sidebar — Redesign Lebih Minimalis
+The timezone picker in the sidebar is too bulky and breaks the aesthetic. Replace with a cleaner, more minimal design.
+In src/ui.jsx atau wherever TimezonePicker is defined, replace with:
+jsxfunction TimezonePicker({ timezone, onChange, options }) {
+  return (
+    <div style={{ padding: '12px 8px 8px', borderTop: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {options.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => onChange(opt.value)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '7px 10px',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
+              background: timezone === opt.value ? 'var(--gold-soft)' : 'transparent',
+              cursor: 'pointer',
+              transition: '.15s',
+              width: '100%',
+            }}
+          >
+            <span style={{ fontSize: 15, flexShrink: 0 }}>{opt.flag}</span>
+            <span style={{
+              fontFamily: 'var(--f-head)',
+              fontWeight: 600,
+              fontSize: 11,
+              color: timezone === opt.value ? 'var(--gold)' : 'var(--text-3)',
+              transition: 'color .15s',
+              whiteSpace: 'nowrap',
+            }}>
+              {opt.offset}
+            </span>
+            {timezone === opt.value && (
+              <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gold)', marginLeft: 'auto', flexShrink: 0 }}>
+                <path d="M3 7.4 5.7 10 11 4.2"/>
+              </svg>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+Also remove the eyebrow label "ZONA WAKTU" — tidak perlu label, cukup flag + offset saja yang terlihat.
+IMPORTANT:
+
+No card/box wrapper
+No bold label "ZONA WAKTU"
+Hanya flag emoji + offset text (UTC+7 / UTC+2) yang ditampilkan
+Active state: background gold-soft + text gold
+Inactive: transparent + text-3 (muted)
+Do not change any other component
