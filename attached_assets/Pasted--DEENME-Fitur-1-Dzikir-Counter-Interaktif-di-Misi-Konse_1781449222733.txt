@@ -1,0 +1,233 @@
+# DEENME — Fitur 1: Dzikir Counter Interaktif di Misi
+
+## Konsep
+Misi bertipe `dzikir` yang punya `count` angka (contoh: `100×`, `33-33-34`, `3×`) 
+kini punya **tombol TAP** di dalam card-nya. User tap → counter naik → saat target tercapai → 
+otomatis centang selesai + confetti kecil + XP popup.
+
+Misi bertipe `sholat` atau count `Hisnul Muslim` tetap centang manual seperti sekarang.
+
+---
+
+## Perubahan di `src/dashboard.jsx`
+
+### 1. Parse helper — tambahkan fungsi ini di atas komponen `MisiItem`:
+
+```js
+// Parse "100×" → 100, "33-33-34" → 100, "3×" → 3, "1×" → 1
+// Return null kalau tidak bisa diparsing (Hisnul Muslim, dll)
+function parseCountTarget(countStr) {
+  if (!countStr) return null;
+  // "33-33-34" → sum
+  if (countStr.includes('-')) {
+    const parts = countStr.split('-').map(Number);
+    if (parts.every(n => !isNaN(n))) return parts.reduce((a, b) => a + b, 0);
+  }
+  // "100×" atau "3×" atau "1×"
+  const m = countStr.match(/^(\d+)[×x]/);
+  if (m) return parseInt(m[1]);
+  return null;
+}
+```
+
+### 2. Ganti komponen `MisiItem` seluruhnya:
+
+```jsx
+function MisiItem({ misi, done, onToggle }) {
+  const [open, setOpen] = useState(false);
+
+  // Dzikir counter state
+  const target = misi.type === 'dzikir' ? parseCountTarget(misi.count) : null;
+  const storageKey = `dzikir-count-${misi.id}`;
+  const [count, setCount] = useState(() => {
+    if (!target) return 0;
+    return parseInt(localStorage.getItem(storageKey) || '0');
+  });
+
+  const isCountable = !!target;
+  const progress    = isCountable ? Math.min(count / target, 1) : 0;
+  const finished    = isCountable ? count >= target : false;
+
+  const handleTap = (e) => {
+    if (done) return;
+    const next = count + 1;
+    setCount(next);
+    localStorage.setItem(storageKey, String(next));
+
+    // Haptic (mobile)
+    if (navigator.vibrate) navigator.vibrate(8);
+
+    // XP popup kecil di posisi tap
+    if (next < target) {
+      const el = document.createElement('div');
+      el.textContent = `${next}/${target}`;
+      el.style.cssText = `
+        position:fixed; left:${e.clientX}px; top:${e.clientY - 20}px;
+        font-family:var(--f-head); font-weight:700; font-size:11px;
+        color:var(--gold); pointer-events:none; z-index:9999;
+        animation: xpFloat .7s ease forwards;
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 700);
+    }
+
+    // Selesai!
+    if (next >= target && !done) {
+      setTimeout(() => onToggle(misi.id), 200);
+      // Reset counter untuk sesi berikutnya
+      setTimeout(() => {
+        localStorage.removeItem(storageKey);
+        setCount(0);
+      }, 800);
+    }
+  };
+
+  const handleReset = (e) => {
+    e.stopPropagation();
+    setCount(0);
+    localStorage.removeItem(storageKey);
+  };
+
+  return (
+    <div className={'misi-item' + (done ? ' done' : '')}>
+      {/* Checkbox — hanya untuk non-countable atau done */}
+      {(!isCountable || done) && (
+        <div
+          className={'misi-item-checkbox' + (done ? ' checked' : '')}
+          onClick={() => onToggle(misi.id)}
+        >
+          {done && <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="var(--bg)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
+        </div>
+      )}
+
+      <div className="misi-item-body" style={{ flex: 1 }}>
+        <div className="misi-item-ar">{misi.nameAr}</div>
+        <div className="misi-item-top">
+          <span className={'misi-item-name' + (done ? ' checked' : '')}>{misi.name}</span>
+        </div>
+        <div className="misi-item-meta">
+          <span className="chip" style={{
+            background: misi.type === 'sholat' ? 'color-mix(in srgb, var(--ok) 15%, transparent)' :
+                        misi.type === 'dzikir' ? 'color-mix(in srgb, var(--gold) 15%, transparent)' :
+                        'color-mix(in srgb, #8b8bff 15%, transparent)',
+            color: misi.type === 'sholat' ? 'var(--ok)' :
+                   misi.type === 'dzikir' ? 'var(--gold)' : '#a0a0ff',
+            borderColor: 'transparent', pointerEvents: 'none',
+          }}>
+            {misi.type === 'sholat' ? 'Sholat' : misi.type === 'dzikir' ? 'Dzikir' : 'Doa'}
+          </span>
+          {(misi.count || misi.rakaat) && (
+            <span className="misi-item-count">
+              {misi.rakaat ? `${misi.rakaat} rakaat` : misi.count}
+            </span>
+          )}
+        </div>
+
+        {/* DZIKIR COUNTER — hanya untuk countable dan belum done */}
+        {isCountable && !done && (
+          <div style={{ marginTop: 10 }}>
+            {/* Progress bar */}
+            <div style={{
+              height: 3, background: 'var(--elevated-2)',
+              borderRadius: 2, marginBottom: 8, overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%', borderRadius: 2,
+                background: 'linear-gradient(90deg, var(--gold), #a7c957)',
+                width: `${progress * 100}%`,
+                transition: 'width .2s ease',
+              }} />
+            </div>
+
+            {/* TAP button + counter */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={handleTap}
+                style={{
+                  flex: 1,
+                  background: finished
+                    ? 'color-mix(in srgb, var(--gold) 20%, transparent)'
+                    : 'var(--surface)',
+                  border: `1.5px solid ${finished ? 'var(--gold)' : 'var(--border-2)'}`,
+                  borderRadius: 10, padding: '10px 0',
+                  fontFamily: 'var(--f-head)', fontWeight: 700,
+                  fontSize: 13, color: 'var(--gold)',
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  transition: 'transform .1s, background .15s, border-color .15s',
+                  userSelect: 'none', WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  activeStyle: { transform: 'scale(.95)' },
+                }}
+                onPointerDown={e => e.currentTarget.style.transform = 'scale(.93)'}
+                onPointerUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                onPointerLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <span style={{ fontSize: 16 }}>🤲</span>
+                <span>{count} / {target}</span>
+              </button>
+
+              {count > 0 && (
+                <button
+                  onClick={handleReset}
+                  title="Reset"
+                  style={{
+                    background: 'none', border: '1.5px solid var(--border)',
+                    borderRadius: 8, width: 36, height: 36,
+                    cursor: 'pointer', color: 'var(--text-3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12, flexShrink: 0,
+                  }}
+                >
+                  ↺
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Keterangan toggle */}
+        {misi.desc && (
+          <>
+            <button className="misi-item-toggle" onClick={() => setOpen((o) => !o)}>
+              <span>{open ? '▾' : '›'}</span>
+              <span>{open ? 'Sembunyikan' : 'Keterangan'}</span>
+            </button>
+            {open && <div className="misi-item-detail">{misi.desc}</div>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## Perubahan di `src/deenme-theme.css`
+
+Tambahkan keyframe berikut (kalau belum ada `xpFloat`):
+
+```css
+@keyframes xpFloat {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-28px) scale(.8); }
+}
+```
+
+---
+
+## Logika Fitur
+
+| Kondisi | Behavior |
+|---------|----------|
+| `misi.type === 'dzikir'` + count angka (`100×`, `3×`, `33-33-34`) | Tampil TAP button + progress bar |
+| `misi.type === 'dzikir'` + count `Hisnul Muslim` atau null | Tetap centang manual |
+| `misi.type === 'sholat'` | Tetap centang manual |
+| Counter mencapai target | Auto-toggle selesai + XP popup + reset counter |
+| Tombol reset (↺) | Muncul kalau count > 0, reset ke 0 |
+| Counter tersimpan di `localStorage` | Persist selama sesi, reset setelah selesai |
+
+## File yang Diubah
+- `src/dashboard.jsx` — tambah `parseCountTarget()` + ganti `MisiItem`
+- `src/deenme-theme.css` — tambah `@keyframes xpFloat` (kalau belum ada)

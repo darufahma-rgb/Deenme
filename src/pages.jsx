@@ -1359,8 +1359,195 @@ export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
   );
 }
 
+// ─── QADHA TRACKER ────────────────────────────────────────
+const PRAYER_LABELS = [
+  { k: 'subuh',   label: 'Subuh',   ar: 'الفَجْر',   icon: '🌅' },
+  { k: 'dzuhur',  label: 'Dzuhur',  ar: 'الظُّهْر',  icon: '☀️' },
+  { k: 'ashar',   label: 'Ashar',   ar: 'العَصْر',   icon: '🌤️' },
+  { k: 'maghrib', label: 'Maghrib', ar: 'المَغْرِب',  icon: '🌆' },
+  { k: 'isya',    label: 'Isya',    ar: 'العِشَاء',  icon: '🌙' },
+];
+
+function QadhaTracker({ qadhaDebt, addQadha, lunasiQadha, totalQadha }) {
+  const [addMode,   setAddMode]   = useState(false);
+  const [amounts,   setAmounts]   = useState({});
+  const [lunasing,  setLunasing]  = useState(null);
+
+  const handleLunasi = (k) => {
+    if (!qadhaDebt[k] || qadhaDebt[k] <= 0) return;
+    setLunasing(k);
+    setTimeout(() => setLunasing(null), 400);
+    lunasiQadha(k);
+    if (navigator.vibrate) navigator.vibrate(12);
+  };
+
+  const handleAdd = () => {
+    Object.entries(amounts).forEach(([k, v]) => {
+      const n = parseInt(v);
+      if (n > 0) addQadha(k, n);
+    });
+    setAmounts({});
+    setAddMode(false);
+  };
+
+  return (
+    <div style={{
+      background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 16,
+    }}>
+      {/* Header */}
+      <div style={{
+        background: 'var(--elevated)', borderBottom: '1px solid var(--border)',
+        padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 9,
+          background: 'color-mix(in srgb, #bc4749 15%, transparent)',
+          border: '1px solid color-mix(in srgb, #bc4749 30%, transparent)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0,
+        }}>📋</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
+            Qadha Tracker
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
+            {totalQadha > 0 ? `${totalQadha} solat belum dilunasi` : 'Tidak ada hutang solat 🤲'}
+          </div>
+        </div>
+        <button
+          onClick={() => setAddMode(m => !m)}
+          style={{
+            background: addMode ? 'var(--gold-soft)' : 'var(--elevated-2)',
+            border: '1px solid var(--border-2)',
+            borderRadius: 8, padding: '6px 12px',
+            fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12,
+            color: 'var(--gold)', cursor: 'pointer',
+          }}
+        >
+          {addMode ? 'Batal' : '+ Catat'}
+        </button>
+      </div>
+
+      {/* Add mode */}
+      {addMode && (
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--elevated)' }}>
+          <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10 }}>
+            Berapa hutang tiap waktu?
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+            {PRAYER_LABELS.map(({ k, label }) => (
+              <div key={k} style={{ textAlign: 'center' }}>
+                <div style={{ fontFamily: 'var(--f-head)', fontSize: 10, color: 'var(--text-2)', marginBottom: 4 }}>{label}</div>
+                <input
+                  type="number" min="0" max="999"
+                  value={amounts[k] || ''}
+                  onChange={e => setAmounts(a => ({ ...a, [k]: e.target.value }))}
+                  placeholder="0"
+                  style={{
+                    width: '100%', background: 'var(--surface)',
+                    border: '1px solid var(--border-2)', borderRadius: 6,
+                    padding: '6px 4px', textAlign: 'center',
+                    fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14,
+                    color: 'var(--text)',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={handleAdd}
+            className="btn gold"
+            style={{ width: '100%', marginTop: 12, padding: '10px 0', fontSize: 13 }}
+          >
+            Simpan Hutang
+          </button>
+        </div>
+      )}
+
+      {/* Prayer list */}
+      <div style={{ padding: '10px 18px 14px' }}>
+        {totalQadha === 0 && !addMode ? (
+          <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-3)', fontSize: 13, fontFamily: 'var(--f-head)' }}>
+            ✅ Alhamdulillah, tidak ada hutang solat
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {PRAYER_LABELS.map(({ k, label, ar, icon }) => {
+              const debt = qadhaDebt[k] || 0;
+              const isAnimating = lunasing === k;
+              return (
+                <div key={k} style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 14px',
+                  background: debt > 0 ? 'color-mix(in srgb, #bc4749 5%, var(--surface))' : 'var(--elevated)',
+                  border: `1px solid ${debt > 0 ? 'color-mix(in srgb, #bc4749 20%, transparent)' : 'var(--border)'}`,
+                  borderRadius: 10,
+                  transition: 'all .2s ease',
+                  opacity: isAnimating ? .5 : 1,
+                  transform: isAnimating ? 'scale(.97)' : 'scale(1)',
+                }}>
+                  <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{label}</div>
+                    <div style={{ fontFamily: 'var(--f-ar)', fontSize: 12, color: 'var(--gold)', opacity: .7 }}>{ar}</div>
+                  </div>
+                  {debt > 0 ? (
+                    <>
+                      <div style={{
+                        fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 22,
+                        color: '#bc4749', minWidth: 36, textAlign: 'center', lineHeight: 1,
+                      }}>{debt}</div>
+                      <button
+                        onClick={() => handleLunasi(k)}
+                        style={{
+                          background: 'color-mix(in srgb, var(--gold) 15%, transparent)',
+                          border: '1.5px solid var(--gold-line)',
+                          borderRadius: 8, padding: '7px 12px',
+                          fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12,
+                          color: 'var(--gold)', cursor: 'pointer', flexShrink: 0,
+                          transition: 'transform .1s',
+                        }}
+                        onPointerDown={e => e.currentTarget.style.transform = 'scale(.93)'}
+                        onPointerUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                      >
+                        Lunasi ✓
+                      </button>
+                    </>
+                  ) : (
+                    <div style={{
+                      fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--gold)',
+                      background: 'var(--gold-soft)', border: '1px solid var(--gold-line)',
+                      borderRadius: 6, padding: '4px 10px',
+                    }}>Lunas ✓</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {totalQadha > 0 && (
+          <div style={{
+            marginTop: 12, padding: '10px 14px',
+            background: 'color-mix(in srgb, var(--gold) 8%, transparent)',
+            border: '1px solid var(--gold-line)', borderRadius: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12, color: 'var(--text-2)' }}>
+              Total sisa hutang
+            </span>
+            <span style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 18, color: 'var(--gold)' }}>
+              {totalQadha} waktu
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── STATISTIK ────────────────────────────────────────────
-export function StatistikPage({ streak, freeze, useFreeze, prayers, sunnah, misiDone, amalanDone, setAmalanDone }) {
+export function StatistikPage({ streak, freeze, useFreeze, prayers, sunnah, misiDone, amalanDone, setAmalanDone, qadhaDebt, addQadha, lunasiQadha, totalQadha }) {
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState('harian');
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
@@ -1443,6 +1630,14 @@ export function StatistikPage({ streak, freeze, useFreeze, prayers, sunnah, misi
                 </div>
               </div>
             </div>
+
+            {/* Qadha Tracker */}
+            <QadhaTracker
+              qadhaDebt={qadhaDebt}
+              addQadha={addQadha}
+              lunasiQadha={lunasiQadha}
+              totalQadha={totalQadha}
+            />
 
             {/* Breakdown per kategori */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>

@@ -249,6 +249,10 @@ export default function App() {
   const [badgeToast,     setBadgeToast]    = useState(null);
   const [amalanDone,     setAmalanDone]    = useState({});
   const [activePrayerCard, setActivePrayerCard] = useState(null);
+  const [qadhaDebt,      setQadhaDebt]     = useState(() => {
+    try { return JSON.parse(localStorage.getItem('deenme-qadha') || '{}'); }
+    catch { return {}; }
+  });
 
   const prevAll = useRef(false);
 
@@ -274,6 +278,7 @@ export default function App() {
           if (d.dailyPoints !== undefined) setDailyPoints(d.dailyPoints);
         }
         if (d.amalanDone && !isNewDay) setAmalanDone(d.amalanDone);
+        if (d.qadhaDebt)      setQadhaDebt(d.qadhaDebt);
         if (d.bookmarks)      setBookmarks(d.bookmarks);
         if (d.userDoa)        setUserDoa(d.userDoa);
         if (d.streak !== undefined)       setStreak(d.streak);
@@ -291,7 +296,7 @@ export default function App() {
     const timeout = setTimeout(async () => {
       const payload = {
         prayers, times, sunnah, bookmarks, userDoa,
-        streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone,
+        streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone, qadhaDebt,
         lastSaved: new Date().toISOString(),
       };
       await supabase
@@ -300,6 +305,24 @@ export default function App() {
     }, 2000);
     return () => clearTimeout(timeout);
   }, [prayers, times, sunnah, bookmarks, userDoa, streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone]);
+
+  // Qadha helpers
+  const addQadha = (prayer, amount = 1) => {
+    setQadhaDebt(prev => {
+      const next = { ...prev, [prayer]: (prev[prayer] || 0) + amount };
+      localStorage.setItem('deenme-qadha', JSON.stringify(next));
+      return next;
+    });
+  };
+  const lunasiQadha = (prayer) => {
+    setQadhaDebt(prev => {
+      if (!prev[prayer] || prev[prayer] <= 0) return prev;
+      const next = { ...prev, [prayer]: prev[prayer] - 1 };
+      localStorage.setItem('deenme-qadha', JSON.stringify(next));
+      return next;
+    });
+  };
+  const totalQadha = Object.values(qadhaDebt).reduce((a, b) => a + (b || 0), 0);
 
   // Score
   const score = (PRAYERS.filter((p) => prayers[p.k]).length / 5) * 0.7
@@ -464,7 +487,7 @@ export default function App() {
             {v === 'journal' && <JournalPage go={setView} codeId={codeId} />}
             {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
             {v === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
-            {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
+            {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} qadhaDebt={qadhaDebt} addQadha={addQadha} lunasiQadha={lunasiQadha} totalQadha={totalQadha} />}
           </>)}
         </PageTransition>
       </div>
