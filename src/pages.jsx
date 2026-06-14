@@ -1257,32 +1257,121 @@ export function StatistikPage({ streak, freeze, useFreeze, prayers, sunnah, misi
               </div>
             </div>
 
-            {/* Full checklist */}
-            <div className="eyebrow" style={{ marginBottom: 12 }}>Checklist Ibadah Hari Ini</div>
-            {['wajib', 'sunnah', 'amalan'].map(cat => (
-              <div key={cat} style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: CATEGORY_COLORS[cat], flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '.08em' }}>
-                    {cat === 'wajib' ? 'Sholat Wajib' : cat === 'sunnah' ? 'Sholat Sunnah' : 'Amalan Harian'}
-                  </span>
+            {/* Full checklist — redesigned */}
+            <div style={{ marginBottom: 8 }}>
+              {/* Section header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 800, fontSize: 14, color: 'var(--text)', letterSpacing: '-.01em' }}>
+                  Checklist Ibadah Hari Ini
                 </div>
-                {CHECKLIST.filter(c => c.category === cat).map(item => (
-                  <div key={item.id} className="card" style={{ padding: '10px 14px', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 12, opacity: item.done ? 1 : 0.7 }}>
-                    <div
-                      style={{ width: 20, height: 20, borderRadius: 6, border: `1.5px solid ${item.done ? CATEGORY_COLORS[cat] : 'var(--border-2)'}`, background: item.done ? CATEGORY_COLORS[cat] : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: cat === 'amalan' ? 'pointer' : 'default', transition: '.18s' }}
-                      onClick={() => { if (cat === 'amalan') setAmalanDone(prev => ({ ...prev, [item.id]: !prev[item.id] })); }}
-                    >
-                      {item.done && <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7.4 5.7 10 11 4.2"/></svg>}
-                    </div>
-                    <span style={{ flex: 1, fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13.5, color: 'var(--text)', textDecoration: item.done ? 'line-through' : 'none', opacity: item.done ? 0.6 : 1 }}>{item.label}</span>
-                    <span style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, color: CATEGORY_COLORS[cat] }}>+{item.points}</span>
-                    {cat !== 'amalan' && item.done && <span style={{ fontSize: 11, color: 'var(--ok)' }}>✓</span>}
-                    {cat !== 'amalan' && !item.done && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>—</span>}
-                  </div>
-                ))}
+                <div style={{ fontFamily: 'var(--f-head)', fontSize: 11, color: 'var(--text-3)' }}>
+                  {CHECKLIST.filter(c => c.done).length}/{CHECKLIST.length} selesai
+                </div>
               </div>
-            ))}
+
+              {['wajib', 'sunnah', 'amalan'].map(cat => {
+                const items   = CHECKLIST.filter(c => c.category === cat);
+                const doneCnt = items.filter(c => c.done).length;
+                const pct     = items.length ? Math.round((doneCnt / items.length) * 100) : 0;
+                const color   = CATEGORY_COLORS[cat];
+                const catLabel = cat === 'wajib' ? 'Sholat Wajib' : cat === 'sunnah' ? 'Sholat Sunnah' : 'Amalan Harian';
+
+                return (
+                  <div key={cat} style={{ marginBottom: 14 }}>
+                    <div style={{
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius)',
+                      overflow: 'hidden',
+                    }}>
+                      {/* Category header row */}
+                      <div style={{
+                        padding: '11px 16px 9px',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                      }}>
+                        <div style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                        <span style={{
+                          flex: 1,
+                          fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 10,
+                          color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '.12em',
+                        }}>
+                          {catLabel}
+                        </span>
+                        <span style={{
+                          fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color,
+                        }}>
+                          {doneCnt}/{items.length}
+                        </span>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div style={{ height: 2, background: 'var(--border)' }}>
+                        <div style={{
+                          height: '100%', background: color,
+                          width: mounted ? pct + '%' : '0%',
+                          transition: 'width .7s cubic-bezier(.2,.8,.25,1)',
+                        }} />
+                      </div>
+
+                      {/* Items */}
+                      {items.map((item, idx) => (
+                        <div
+                          key={item.id}
+                          onClick={() => { if (cat === 'amalan') setAmalanDone(prev => ({ ...prev, [item.id]: !prev[item.id] })); }}
+                          style={{
+                            padding: '11px 16px',
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            borderTop: '1px solid var(--border)',
+                            background: item.done ? `color-mix(in srgb, ${color} 7%, transparent)` : 'transparent',
+                            cursor: cat === 'amalan' ? 'pointer' : 'default',
+                            transition: 'background .2s',
+                          }}
+                        >
+                          {/* Checkbox */}
+                          <div style={{
+                            width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                            border: `1.5px solid ${item.done ? color : 'var(--border-2)'}`,
+                            background: item.done ? color : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'all .18s',
+                          }}>
+                            {item.done && (
+                              <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 7.4 5.7 10 11 4.2"/>
+                              </svg>
+                            )}
+                          </div>
+
+                          {/* Label */}
+                          <span style={{
+                            flex: 1,
+                            fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 13,
+                            color: item.done ? 'var(--text-3)' : 'var(--text)',
+                            textDecoration: item.done ? 'line-through' : 'none',
+                            transition: 'color .2s',
+                          }}>
+                            {item.label}
+                          </span>
+
+                          {/* Points badge */}
+                          <div style={{
+                            fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11,
+                            color: item.done ? color : 'var(--text-3)',
+                            background: item.done ? `color-mix(in srgb, ${color} 15%, transparent)` : 'transparent',
+                            border: `1px solid ${item.done ? `color-mix(in srgb, ${color} 30%, transparent)` : 'transparent'}`,
+                            borderRadius: 999,
+                            padding: '2px 9px',
+                            transition: 'all .2s',
+                          }}>
+                            +{item.points}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </>
         )}
 
