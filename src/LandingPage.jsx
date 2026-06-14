@@ -44,32 +44,87 @@ export function LandingPage({ onEnter }) {
     <div style={{ minHeight: '100dvh', background: C.bg, fontFamily: 'var(--f-head)', color: C.text, overflowX: 'hidden' }}>
 
       {/* ════════════ NAVBAR ════════════ */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 20,
-        background: 'rgba(26,46,28,.96)', backdropFilter: 'blur(28px)',
-        borderBottom: `1px solid rgba(255,255,255,.08)`,
-        padding: '0 clamp(20px, 5vw, 48px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src="./assets/Deenme_logo.png" alt="Deenme" style={{
-            width: 38, height: 'auto',
-            filter: 'brightness(0) invert(1)',
+      <div style={{ position: 'sticky', top: 0, zIndex: 20 }}>
+        <nav style={{
+          margin: '10px 16px 0',
+          background: 'rgba(245,237,218,.82)',
+          backdropFilter: 'blur(32px)',
+          WebkitBackdropFilter: 'blur(32px)',
+          borderRadius: 20,
+          border: '1px solid rgba(56,102,65,.14)',
+          boxShadow: '0 4px 24px rgba(56,102,65,.08), 0 1px 0 rgba(255,255,255,.6) inset',
+          padding: '0 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: 56,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img
+              src="./assets/Deenme_logo.png"
+              alt="Deenme"
+              style={{
+                width: 32, height: 32,
+                filter: 'brightness(0) saturate(100%) invert(22%) sepia(35%) saturate(700%) hue-rotate(95deg) brightness(80%)',
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'rgba(56,102,65,.08)',
+              border: '1px solid rgba(56,102,65,.15)',
+              borderRadius: 999, padding: '5px 12px',
+            }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#386641', flexShrink: 0 }} />
+              <span style={{
+                fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11,
+                color: '#386641', letterSpacing: '.04em', whiteSpace: 'nowrap',
+              }}>
+                Eksklusif Talqeeh
+              </span>
+            </div>
+
+            <button
+              onClick={onEnter}
+              style={{
+                background: 'linear-gradient(135deg, #386641, #2d5a27)',
+                color: '#f5edda',
+                border: 'none',
+                borderRadius: 12,
+                padding: '8px 20px',
+                fontFamily: 'var(--f-head)',
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: 'pointer',
+                letterSpacing: '-.01em',
+                boxShadow: '0 2px 12px rgba(56,102,65,.3), 0 1px 0 rgba(255,255,255,.15) inset',
+                transition: 'transform .12s, box-shadow .15s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(56,102,65,.4), 0 1px 0 rgba(255,255,255,.15) inset';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 12px rgba(56,102,65,.3), 0 1px 0 rgba(255,255,255,.15) inset';
+              }}
+            >
+              Masuk
+            </button>
+          </div>
+        </nav>
+
+        {/* Garis dekoratif bawah navbar */}
+        <div style={{ position: 'relative', height: 16, overflow: 'hidden', margin: '0 16px' }}>
+          <div style={{
+            position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+            width: '70%', height: 1,
+            background: 'linear-gradient(90deg, transparent, rgba(56,102,65,.15), transparent)',
           }} />
-          <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: '-.02em', color: C.cream }}>Deenme</span>
         </div>
-        <button onClick={onEnter} style={{
-          background: C.lime, color: C.dark,
-          border: 'none', borderRadius: 10, padding: '9px 22px',
-          fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 14,
-          cursor: 'pointer', letterSpacing: '-.01em',
-          boxShadow: '0 2px 12px rgba(167,201,87,.3)',
-          transition: 'background .15s, transform .12s, box-shadow .15s',
-        }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#bcd962'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = C.lime; e.currentTarget.style.transform = 'translateY(0)'; }}
-        >Masuk</button>
-      </nav>
+      </div>
 
       {/* ════════════ HERO ════════════ */}
       <section style={{
@@ -77,7 +132,7 @@ export function LandingPage({ onEnter }) {
         background: C.darkMid,
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        padding: 'clamp(48px, 8vh, 80px) clamp(20px, 5vw, 48px)',
+        padding: 'clamp(32px, 6vh, 60px) clamp(20px, 5vw, 48px)',
         textAlign: 'center', position: 'relative', overflow: 'hidden',
       }}>
 
