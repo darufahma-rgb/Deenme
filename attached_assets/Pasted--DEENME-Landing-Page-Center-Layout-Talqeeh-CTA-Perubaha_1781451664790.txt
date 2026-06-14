@@ -1,0 +1,323 @@
+# DEENME — Landing Page: Center Layout + Talqeeh CTA
+
+## Perubahan
+1. Hero section: hapus phone mockup, semua konten rata tengah
+2. Tambah section baru di paling bawah (sebelum footer): ucapan terima kasih ke member Talqeeh + CTA ke Talqeeh
+
+---
+
+## Ganti seluruh `src/LandingPage.jsx` dengan ini:
+
+```jsx
+import { useEffect, useState } from 'react';
+
+export function LandingPage({ onEnter }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => { setTimeout(() => setVisible(true), 100); }, []);
+
+  return (
+    <div className="landing-root">
+
+      {/* ── HERO ── */}
+      <section className="lp-hero lp-hero-center">
+        <div className={'lp-hero-content lp-hero-content-center' + (visible ? ' lp-visible' : '')}>
+
+          <div className="lp-bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+
+          <div className="lp-logo-wrap" style={{ justifyContent: 'center' }}>
+            <div className="lp-logo-icon">
+              <img src="./assets/Deenme_logo.png" alt="Deenme"
+                style={{ width: 28, height: 'auto', filter: 'brightness(0) saturate(100%) invert(40%) sepia(40%) saturate(400%) hue-rotate(90deg)' }} />
+            </div>
+            <span className="lp-logo-text">Deenme</span>
+          </div>
+
+          <h1 className="lp-headline" style={{ textAlign: 'center' }}>
+            Jaga Ibadahmu.<br/>
+            <span className="lp-headline-accent">Setiap Hari.</span>
+          </h1>
+
+          <p className="lp-sub" style={{ textAlign: 'center', margin: '20px auto 36px' }}>
+            Tracker solat, dzikir, dan amalan harian yang dirancang untuk membantu kamu istiqomah —
+            dengan sistem misi, streak, dan doa personal.
+          </p>
+
+          {/* Badge Talqeeh — eksklusif */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: 'color-mix(in srgb, #a7c957 12%, transparent)',
+            border: '1px solid color-mix(in srgb, #a7c957 35%, transparent)',
+            borderRadius: 100, padding: '8px 18px',
+            marginBottom: 28,
+          }}>
+            <span style={{ fontSize: 14 }}>🎁</span>
+            <span style={{
+              fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12,
+              color: '#a7c957', letterSpacing: '.04em',
+            }}>
+              Hadiah eksklusif untuk member Talqeeh
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <button className="lp-cta" onClick={onEnter}>
+              Mulai Sekarang
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            <p className="lp-cta-sub">Masukkan kode undangan dari Talqeeh untuk masuk</p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section className="lp-features">
+        <div className="lp-section-label">Apa yang ada di Deenme?</div>
+        <h2 className="lp-section-title">Semua yang kamu butuhkan<br/>untuk istiqomah</h2>
+        <div className="lp-features-grid">
+          {[
+            { icon: '🕌', title: 'Tracker Solat',  desc: 'Catat 5 waktu solat dengan status tepat, telat, atau qadha. Lengkap dengan jam aktual otomatis.' },
+            { icon: '📿', title: 'Misi Amalan',    desc: 'Setiap selesai sholat, muncul misi dzikir, rawatib, dan doa yang dianjurkan. Gamifikasi yang bermakna.' },
+            { icon: '🔥', title: 'Streak & Level', desc: 'Bangun streak harian, kumpulkan poin amal, dan naik level dari Mubtadi hingga Muttaqi.' },
+            { icon: '📖', title: 'Jurnal Harian',  desc: 'Tulis refleksi harianmu secara bebas. AI membantu merapikan dengan format yang indah.' },
+            { icon: '🤲', title: 'Bank Doa',       desc: 'Koleksi doa dari Al-Quran dan hadits shahih, terorganisir per situasi dan waktu sholat.' },
+            { icon: '📊', title: 'Statistik',      desc: 'Lihat progress ibadahmu lewat grafik mingguan, heatmap bulanan, dan ringkasan streak.' },
+          ].map(({ icon, title, desc }) => (
+            <div key={title} className="lp-feature-card">
+              <div className="lp-feature-icon">{icon}</div>
+              <h3 className="lp-feature-title">{title}</h3>
+              <p className="lp-feature-desc">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── QUOTE ── */}
+      <section className="lp-quote">
+        <div className="lp-quote-ar">وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَارْكَعُوا مَعَ الرَّاكِعِينَ</div>
+        <div className="lp-quote-tr">"Dan dirikanlah sholat, tunaikanlah zakat, dan rukuklah beserta orang-orang yang rukuk."</div>
+        <div className="lp-quote-src">QS. Al-Baqarah: 43</div>
+      </section>
+
+      {/* ── TALQEEH SECTION ── */}
+      <section className="lp-talqeeh">
+
+        {/* Garis dekoratif atas */}
+        <div style={{
+          width: 60, height: 3,
+          background: 'linear-gradient(90deg, transparent, #a7c957, transparent)',
+          borderRadius: 2, margin: '0 auto 40px',
+        }} />
+
+        {/* Ucapan terima kasih */}
+        <div className="lp-talqeeh-thanks">
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🤲</div>
+          <div style={{
+            fontFamily: 'var(--f-ar)', fontSize: 22, color: '#a7c957',
+            direction: 'rtl', marginBottom: 20, opacity: .85,
+          }}>
+            جَزَاكُمُ اللهُ خَيْرًا
+          </div>
+          <h2 className="lp-talqeeh-title">
+            Terima kasih, member Talqeeh
+          </h2>
+          <p className="lp-talqeeh-sub">
+            Deenme lahir sebagai hadiah kecil untuk kalian yang telah memilih belajar dan bertumbuh bersama Talqeeh.
+            Semoga setiap solat yang tercatat, setiap dzikir yang dihitung, dan setiap amalan yang dijaga
+            menjadi pemberat timbangan kebaikan kita di hari yang paling penting.
+          </p>
+          <p className="lp-talqeeh-sub" style={{ marginTop: 12 }}>
+            Barakallahu fiikum. 🌿
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div style={{
+          width: '100%', maxWidth: 480,
+          height: 1, background: 'rgba(167,201,87,.15)',
+          margin: '40px auto',
+        }} />
+
+        {/* CTA ke Talqeeh */}
+        <div className="lp-talqeeh-cta-wrap">
+          <div style={{
+            fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11,
+            color: '#a7c957', textTransform: 'uppercase', letterSpacing: '.14em',
+            marginBottom: 16,
+          }}>
+            Belum kenal Talqeeh?
+          </div>
+          <h3 style={{
+            fontFamily: 'var(--f-head)', fontWeight: 800,
+            fontSize: 'clamp(22px, 3vw, 32px)', color: '#e8ede9',
+            letterSpacing: '-.02em', lineHeight: 1.2, margin: '0 0 14px',
+          }}>
+            Tempat belajar Islam<br/>yang menyenangkan
+          </h3>
+          <p style={{
+            fontSize: 15, color: '#7a8f7e', lineHeight: 1.7,
+            maxWidth: 420, margin: '0 auto 32px',
+          }}>
+            Talqeeh adalah komunitas belajar Islam online dengan konten berkualitas,
+            kajian rutin, dan lingkungan yang supportif untuk tumbuh bersama.
+          </p>
+
+          <a
+            href="https://talqeeh.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="lp-talqeeh-btn"
+          >
+            Kunjungi Talqeeh
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>
+        </div>
+
+        {/* Garis dekoratif bawah */}
+        <div style={{
+          width: 60, height: 3,
+          background: 'linear-gradient(90deg, transparent, #a7c957, transparent)',
+          borderRadius: 2, margin: '40px auto 0',
+        }} />
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="lp-footer">
+        <div className="lp-footer-logo" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img src="./assets/Deenme_logo.png" alt="Deenme"
+            style={{ width: 20, height: 'auto', filter: 'brightness(0) invert(.7) sepia(.3)', opacity: .7 }} />
+          Deenme
+        </div>
+        <div className="lp-footer-sub">Hadiah kecil dari Dar Dev untuk keluarga Talqeeh · 2026</div>
+      </footer>
+
+    </div>
+  );
+}
+```
+
+---
+
+## Tambahkan CSS berikut di `src/deenme-theme.css`
+
+Cari baris `.lp-hero {` dan **ganti blok `.lp-hero`** dengan ini (tambahkan modifier center):
+
+```css
+.lp-hero {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.lp-hero-center {
+  flex-direction: column;
+  text-align: center;
+}
+.lp-hero-content-center {
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+```
+
+Lalu **tambahkan** CSS section Talqeeh berikut sebelum `/* ── Mobile ── */`:
+
+```css
+/* ── Talqeeh Section ── */
+.lp-talqeeh {
+  padding: 100px 48px;
+  text-align: center;
+  position: relative;
+  background: linear-gradient(180deg, var(--lp-bg) 0%, #0b1a0e 50%, var(--lp-bg) 100%);
+  border-top: 1px solid rgba(167,201,87,.1);
+  border-bottom: 1px solid rgba(167,201,87,.1);
+  overflow: hidden;
+}
+.lp-talqeeh::before {
+  content: '';
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse, color-mix(in srgb, #a7c957 8%, transparent), transparent 65%);
+  filter: blur(40px); pointer-events: none;
+}
+.lp-talqeeh-thanks {
+  max-width: 560px;
+  margin: 0 auto;
+  position: relative;
+}
+.lp-talqeeh-title {
+  font-family: var(--f-head);
+  font-weight: 800;
+  font-size: clamp(26px, 3.5vw, 40px);
+  letter-spacing: -.02em;
+  color: var(--lp-text);
+  line-height: 1.2;
+  margin: 0 0 20px;
+}
+.lp-talqeeh-sub {
+  font-size: 15px;
+  color: var(--lp-text-2);
+  line-height: 1.8;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.lp-talqeeh-cta-wrap {
+  position: relative;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.lp-talqeeh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #a7c957;
+  border: 1.5px solid rgba(167,201,87,.5);
+  font-family: var(--f-head);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .2s, border-color .2s, transform .15s, box-shadow .2s;
+}
+.lp-talqeeh-btn:hover {
+  background: color-mix(in srgb, #a7c957 12%, transparent);
+  border-color: #a7c957;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px -8px rgba(167,201,87,.3);
+}
+
+/* ── Mobile update ── */
+@media (max-width: 767px) {
+  .lp-hero-center { padding: 60px 24px 40px; }
+  .lp-talqeeh { padding: 60px 24px; }
+}
+```
+
+---
+
+## Ringkasan Perubahan
+
+| Bagian | Sebelum | Sesudah |
+|--------|---------|---------|
+| Hero layout | Split 2 kolom (teks + phone) | Rata tengah, full width |
+| Phone mockup | Ada | Dihapus |
+| Badge hero | Tidak ada | Badge "Hadiah eksklusif untuk member Talqeeh" |
+| CTA sub | "Butuh kode undangan" | "Masukkan kode undangan dari Talqeeh" |
+| Section baru | Tidak ada | Talqeeh section: ucapan terima kasih + link ke talqeeh.com |
+| Footer | "Dibuat oleh Dar Dev" | "Hadiah kecil dari Dar Dev untuk keluarga Talqeeh" |
+
+## File yang Diubah
+- `src/LandingPage.jsx` — ganti seluruh file
+- `src/deenme-theme.css` — update `.lp-hero`, tambah `.lp-talqeeh-*`

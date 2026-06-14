@@ -1,0 +1,172 @@
+DEENME — BANK DOA: Tambah Field kisah di Setiap Doa
+Add a kisah field to every entry in the DOA array in src/pages.jsx. This field contains the historical story/context behind why the dua was prescribed.
+Find each doa by its name field and add the corresponding kisah after the faedah field:
+js// [1] Sayyidul Istighfar (Pagi)
+kisah: 'Suatu hari Syaddad bin Aus radhiyallahu anhu duduk bersama Rasulullah ﷺ. Beliau bersabda: "Maukah aku beritahu kalian tentang penghulu istighfar?" Para sahabat berkata: "Tentu ya Rasulullah." Lalu beliau mengajarkan doa ini dan bersabda: "Barangsiapa membacanya di pagi hari dengan penuh keyakinan, lalu meninggal sebelum sore, maka ia ahli surga." Kata "sayyid" berarti pemimpin — doa ini disebut pemimpin karena ia mencakup seluruh hakikat istighfar: pengakuan rububiyah, pengakuan kehambaan, pengakuan janji, pengakuan dosa, dan permohonan ampun.',
+
+// [2] Doa Ilmu, Rezeki & Amal
+kisah: 'Ummu Salamah radhiyallahu anha meriwayatkan bahwa setiap kali Rasulullah ﷺ selesai sholat Subuh dan mengucap salam, beliau tidak beranjak dari tempat duduknya sebelum membaca doa ini. Ini adalah rutinitas harian Nabi — membuka hari dengan tiga permohonan paling esensial: ilmu yang bermanfaat sebagai bekal akal, rezeki yang baik sebagai bekal fisik, dan amal yang diterima sebagai bekal akhirat.',
+
+// [3] Al-Ikhlas, Al-Falaq, An-Nas (3×)
+kisah: 'Abdullah bin Khubaib radhiyallahu anhu bercerita: suatu malam hujan lebat dan gelap gulita, kami menunggu Rasulullah ﷺ untuk mengimami sholat. Ketika beliau datang, beliau berkata: "Bacalah!" Aku bertanya: "Apa yang harus aku baca?" Beliau menjawab: "Bacalah Al-Ikhlas dan Al-Muawwidzatain (Al-Falaq dan An-Nas) tiga kali di pagi dan sore hari — itu cukup bagimu dari segala sesuatu." Tiga surat ini disebut Al-Muqasyqisyat — penyembuh dari segala penyakit hati.',
+
+// [4] Sayyidul Istighfar (Petang)
+kisah: 'Sama dengan versi pagi, namun dibaca di sore hari sebelum matahari terbenam. Nabi ﷺ mengajarkan doa ini dua kali sehari — pagi dan petang — sebagai "bingkai" hari seorang Muslim. Pagi dibuka dengan pengakuan dan permohonan ampun, sore ditutup dengan hal yang sama. Seseorang yang rutin membacanya setiap pagi dan petang memiliki dua kesempatan masuk surga setiap harinya.',
+
+// [5] Ayat Kursi
+kisah: 'Abu Hurairah radhiyallahu anhu ditugaskan Nabi ﷺ menjaga harta zakat Ramadan. Tiga malam berturut-turut, ada makhluk mencuri makanan. Abu Hurairah menangkapnya setiap kali. Pada malam ketiga, makhluk itu berkata: "Lepaskan aku, aku akan mengajarkanmu sesuatu yang berharga." Lalu ia mengajarkan Ayat Kursi dan berkata: "Bacalah sebelum tidur, Allah akan menjagamu dan setan tidak akan mendekatimu." Nabi ﷺ kemudian membenarkan bahwa makhluk itu adalah setan yang berkata jujur untuk pertama kalinya.',
+
+// [6] Doa Sebelum Tidur
+kisah: 'Hudzaifah bin Al-Yaman radhiyallahu anhu adalah sahabat yang sering menemani Nabi ﷺ di malam hari. Ia meriwayatkan bahwa Nabi, setiap kali hendak tidur, meletakkan tangan kanan di bawah pipi lalu berdoa: "Bismika Allahumma amuutu wa ahyaa." Dalam Islam, tidur disebut sebagai "saudaranya kematian" — jiwa diangkat saat tidur dan dikembalikan saat bangun. Maka doa ini adalah doa seorang hamba yang menyerahkan hidupnya kepada Allah setiap malam.',
+
+// [7] Tasbih Fatimah
+kisah: 'Fatimah radhiyallahu anha, putri Rasulullah ﷺ, datang kepada ayahnya dengan telapak tangan yang kasar dan kapalan karena setiap hari menggiling gandum dan mengangkat air. Ia meminta seorang pembantu. Nabi ﷺ tidak memberinya pembantu, tapi mengajarkan sesuatu yang lebih berharga: "Sebelum tidur, bertasbihlah 33 kali, bertahmidlah 33 kali, dan bertakbirlah 34 kali. Itu lebih baik bagimu daripada seorang pembantu." Ali bin Abi Thalib berkata: "Sejak itu aku tidak pernah meninggalkannya."',
+
+// [8] Doa Minta Tambahan Ilmu
+kisah: 'Ini adalah satu-satunya bidang yang Allah perintahkan Nabi ﷺ untuk meminta tambahan. Dalam seluruh Al-Quran, tidak ada perintah "minta tambahan" kecuali untuk ilmu. Allah tidak berkata "minta tambahan harta" atau "minta tambahan umur" — hanya ilmu. Para ulama menyebut ayat ini sebagai bukti bahwa ilmu adalah semulia-mulianya sesuatu yang bisa diminta seorang hamba.',
+
+// [9] Doa Lapang Dada
+kisah: 'Nabi Musa alaihissalam menerima wahyu yang sangat berat: pergi menghadap Firaun — penguasa paling zalim di zamannya — dan menyampaikan risalah Allah. Firaun yang pernah membesarkannya, kini harus dihadapinya sebagai musuh. Sebelum berangkat, Musa berdoa memohon kelapangan dada, kemudahan urusan, dan kelancaran lisan. Allah mengabulkan dan bahkan memberinya Harun sebagai pendamping. Doa ini mengajarkan bahwa saat menghadapi tugas berat, yang pertama diminta adalah kekuatan batin, bukan kekuatan fisik.',
+
+// [10] Doa Sebelum Belajar
+kisah: 'Ibn Abbas radhiyallahu anhu adalah anak kecil berusia 10 tahun ketika Rasulullah ﷺ wafat. Namun ia dikenal sebagai Turjumanul Quran — juru tafsir Al-Quran. Rahasianya: Nabi pernah memeluknya dan berdoa "Allahumma faqqihhu fid diin wa allimhut ta\'wiil." Sejak saat itu, ilmu mengalir deras kepadanya. Para ulama menganjurkan doa ini dibaca sebelum belajar, sebagai pengakuan bahwa pemahaman sejati hanya datang dari Allah.',
+
+// [11] Doa Meminta Pemahaman
+kisah: 'Kisah yang sama dengan Ibn Abbas di atas. Suatu hari Nabi ﷺ masuk ke kamar mandi, dan Ibn Abbas kecil sudah menyiapkan air wudhu untuknya. Nabi senang dan memeluknya sambil mendoakan doa ini. Ibn Abbas sendiri kelak menjadi rujukan tafsir Al-Quran bagi seluruh sahabat dan tabi\'in — meski ia paling muda di antara mereka. Ibnu Mas\'ud berkata: "Sebaik-baik penerjemah Al-Quran adalah Ibn Abbas."',
+
+// [12] Doa Menghafal & Tidak Lupa
+kisah: 'Para ulama hadits meriwayatkan bahwa doa ini diamalkan oleh para penghafal Al-Quran dan pelajar ilmu sejak generasi awal Islam. Imam Syafi\'i yang terkenal memiliki daya ingat luar biasa menganjurkan murid-muridnya untuk banyak istighfar sebelum menghafal — karena ia percaya dosa adalah penyebab utama lemahnya hafalan. Ia berkata kepada gurunya Waki\': "Aku mengadu tentang buruknya hafalanku, lalu ia memerintahkan aku untuk meninggalkan maksiat."',
+
+// [13] Doa Nabi Yunus
+kisah: 'Nabi Yunus alaihissalam meninggalkan kaumnya sebelum mendapat izin Allah. Di tengah laut, kapal yang ditumpanginya oleng dalam badai. Awak kapal mengundi siapa yang harus dibuang ke laut untuk meringankan beban — dan nama Yunus keluar tiga kali. Ia pun terjun ke laut dan ditelan ikan paus besar. Di dalam kegelapan — kegelapan perut ikan, kegelapan dasar laut, kegelapan malam — ia berdoa: "Laa ilaaha illaa anta subhaanaka innii kuntu minazh zhaalimiin." Allah berfirman: maka Kami kabulkan dan Kami selamatkan dia.',
+
+// [14] Doa Nabi Ayyub
+kisah: 'Nabi Ayyub alaihissalam diuji Allah dengan ujian yang tak tertandingi: ia kehilangan harta, anak-anaknya meninggal semua, lalu tubuhnya diserang penyakit selama 18 tahun (sebagian riwayat menyebut 7 tahun). Kulitnya penuh luka, orang-orang menjauhinya, istrinya menjadi pembantu untuk menghidupi mereka berdua. Tapi ia tidak pernah mengeluh kepada manusia. Ia hanya berdoa kepada Allah: "Sesungguhnya aku ditimpa bahaya dan Engkau adalah Tuhan yang Maha Penyayang." Tanpa permintaan eksplisit — hanya mengadu. Dan Allah langsung menjawab.',
+
+// [15] Doa Minta Ketenangan Hati
+kisah: 'Nabi ﷺ mengajarkan doa ini kepada seorang sahabat yang sedang dilanda kesedihan mendalam. Para ulama menyebut kumpulan doa ini sebagai "Doa Kesedihan" — yang Nabi ajarkan khusus untuk situasi ketika hati terasa sempit dan pikiran kusut. Yang menarik, Nabi tidak hanya mengajarkan satu doa, tapi sebuah rangkaian yang mencakup segala aspek: dari iman, takdir, hinggal tawakkal.',
+
+// [16] Hasbunallah
+kisah: 'Dua momen paling dramatis dalam sejarah Islam. Pertama: Nabi Ibrahim alaihissalam diikat dan dilempar ke dalam api yang menyala-nyala oleh Namrud. Malaikat Jibril datang menawarkan bantuan, Ibrahim menjawab: "Dari kamu, tidak perlu. Dari Allah, hasbiyallah." Api pun menjadi dingin. Kedua: setelah Perang Uhud, kaum kafir Quraisy mengancam akan kembali menyerang. Para sahabat yang masih terluka berkata: "Hasbunallah wa ni\'mal wakiil." Allah menurunkan ayat memuji mereka.',
+
+// [17] Doa Minta Kesabaran
+kisah: 'Thalut memimpin pasukan kecil melawan Jalut dan bala tentaranya yang besar. Saat melihat jumlah musuh yang sangat banyak, banyak prajurit ciut. Tapi mereka yang yakin berkata: "Kam min fi\'atin qaliilatin ghalabat fi\'atan katsiiran bi idzinillah" — berapa banyak kelompok kecil yang mengalahkan kelompok besar dengan izin Allah. Lalu mereka berdoa: "Rabbanaa afrigh alainaa shabran..." Doa ini mengajarkan bahwa kemenangan bukan soal jumlah, tapi soal kesabaran dan keteguhan.',
+
+// [18] Doa Saat Mendapat Nikmat
+kisah: 'Nabi ﷺ mengajarkan doa ini setiap kali mendapat kabar gembira. Dalam budaya Arab, sujud syukur dan mengucap hamdalah adalah respons spontan terhadap nikmat. Sahabat Abu Bakar radhiyallahu anhu dikenal sering sujud syukur saat mendapat berita baik. Doa ini mengingatkan bahwa setiap nikmat adalah ujian — apakah kita bersyukur atau kufur. Dan syukur yang sesungguhnya bukan di lisan saja, tapi harus diikuti amal.',
+
+// [19] Doa Syukur Setelah Makan
+kisah: 'Muadz bin Anas radhiyallahu anhu meriwayatkan bahwa Nabi ﷺ bersabda: "Barangsiapa setelah makan membaca Alhamdulillaahil ladzii ath\'amanii haadza war razaqaniihi min ghairi hawlim minnii wa laa quwwatin — maka diampuni dosanya yang telah lalu." Sebuah pengampunan dosa hanya dengan mengucap syukur setelah makan! Para ulama menyebut ini sebagai keajaiban syariat Islam: bahkan aktivitas duniawi seperti makan bisa menjadi jalan ampunan.',
+
+// [20] Doa Agar Bisa Bersyukur
+kisah: 'Nabi Sulaiman alaihissalam adalah raja terkaya yang pernah ada di muka bumi — kerajaan, harta, pasukan jin dan manusia, kemampuan berbicara dengan binatang, angin yang tunduk. Tapi saat seekor semut kecil berkata kepada kawanannya "masuk ke sarang kalian agar tidak terinjak Sulaiman", dan Sulaiman mendengarnya, ia berhenti dan tersenyum — lalu berdoa memohon agar tetap bisa bersyukur. Raja terkaya di dunia, takut tidak bisa bersyukur.',
+
+// [21] Alhamdulillah
+kisah: 'Alhamdulillah adalah kalimat pertama dalam Al-Quran setelah Bismillah. Para ulama menyebut ini bukan kebetulan: Allah membuka Kitab-Nya dengan pujian kepada diri-Nya sendiri, mengajarkan manusia bahwa segala sesuatu dimulai dari kesadaran bahwa semua nikmat berasal dari-Nya. Nabi ﷺ bersabda: "Tidak ada nikmat sekecil apapun yang diterima seorang hamba, lalu ia mengucap alhamdulillah, melainkan syukurnya itu lebih besar dari nikmat yang ia terima."',
+
+// [22] Doa Keluar Rumah
+kisah: 'Anas bin Malik radhiyallahu anhu meriwayatkan bahwa Nabi ﷺ mengajarkan doa ini untuk dibaca setiap kali keluar rumah. Yang menakjubkan adalah responsnya: ada malaikat yang menyambut dan berkata "kamu telah diberi petunjuk, dicukupi, dan dijaga" — dan setan pun menjauh sambil berkata kepada setan lain "bagaimana aku bisa menggodanya, ia sudah diberi petunjuk, dicukupi, dan dijaga?" Satu doa pendek, tapi mengaktifkan perlindungan penuh dari Allah.',
+
+// [23] Doa Naik Kendaraan
+kisah: 'Ibn Abbas radhiyallahu anhu meriwayatkan bahwa Nabi ﷺ, setiap kali menaiki unta atau kendaraan, membaca Bismillah tiga kali, lalu membaca ayat ini dari QS. Az-Zukhruf. Para ulama mencatat bahwa doa ini mengandung dua kesadaran sekaligus: pertama, pengakuan bahwa kendaraan itu tunduk bukan karena kehebatan manusia tapi karena Allah menundukkannya. Kedua, pengingat bahwa kita akan kembali kepada Allah — perjalanan apapun pada akhirnya adalah perjalanan menuju-Nya.',
+
+// [24] Doa Memasuki Kota Baru
+kisah: 'Nabi ﷺ mengajarkan doa ini khusus untuk dibaca saat tiba di suatu tempat atau kota baru. Konteks historisnya: para sahabat sering bepergian jauh ke kota-kota yang asing, dan tidak tahu siapa penduduknya, bagaimana wataknya, atau apa bahayanya. Doa ini adalah penyerahan diri kepada Allah sebagai "pemandu" di tempat yang belum dikenal. Sangat relevan bagi Masisir yang pertama kali tiba di Cairo — kota yang asing, budaya berbeda, dan tantangan baru.',
+
+// [25] Doa Pulang dari Safar
+kisah: 'Setiap kali Nabi ﷺ kembali dari perjalanan, beliau tidak langsung masuk rumah. Beliau terlebih dahulu singgah di masjid dan sholat dua rakaat. Lalu mengucap doa ini di setiap bukit atau dataran tinggi yang dilewati: "Aayibuuna taabibuuna..." — kami kembali, bertaubat, beribadah, dan memuji Rabb kami. Safar dalam Islam bukan sekadar perjalanan fisik. Setiap kepulangan adalah momen muhasabah: apa yang sudah dilakukan selama perjalanan? Adakah yang perlu ditaubati?',
+
+// [26] Doa Ruqyah Ma\'tsur
+kisah: 'Aisyah radhiyallahu anha meriwayatkan bahwa setiap malam sebelum tidur, Nabi ﷺ mengumpulkan kedua telapak tangannya, meniupnya, lalu membaca Al-Ikhlas, Al-Falaq, dan An-Nas. Kemudian mengusapkan tangan ke seluruh tubuhnya yang bisa dijangkau, dimulai dari kepala, wajah, dan bagian depan tubuh. Beliau melakukannya tiga kali. Ini adalah ruqyah preventif — dilakukan sebelum sakit. Saat sakit, beliau juga mengajarkan doa spesifik yang diusapkan ke bagian yang nyeri.',
+
+// [27] Doa Saat Merasakan Sakit
+kisah: 'Ustman bin Abi Al-Ash radhiyallahu anhu mengadu kepada Nabi ﷺ tentang rasa sakit di tubuhnya yang sudah berlangsung lama. Nabi mengajarkan: "Letakkan tanganmu di tempat yang sakit, baca bismillah 3 kali, lalu baca: A\'udzu billahi wa qudratihi min syarri maa ajidu wa uhaadziru, 7 kali." Ustman berkata: "Aku melakukannya dan Allah menghilangkan rasa sakitku. Sejak itu aku selalu mengajarkannya kepada keluarga dan orang-orang yang kukenal."',
+
+// [28] Doa Menjenguk Orang Sakit
+kisah: 'Ibnu Abbas radhiyallahu anhu meriwayatkan bahwa Nabi ﷺ, setiap kali menjenguk orang sakit, mengucap doa: "Laa ba\'sa thahurun insyaallah" — tidak mengapa, semoga menjadi penghapus dosa insyaAllah. Para ulama menjelaskan bahwa doa ini mengandung dua fungsi: pertama sebagai doa yang mengharapkan kesembuhan, kedua sebagai penghiburan bahwa sakit itu bukan sia-sia — melainkan penghapus dosa yang sangat bernilai di sisi Allah.',
+
+// [29] Doa Ruqyah Al-Fatihah
+kisah: 'Sekelompok sahabat dalam perjalanan singgah di suatu suku Arab. Mereka meminta keramahan tuan rumah tapi ditolak. Lalu pemimpin suku itu tersengat kalajengking. Orang-orangnya datang meminta pertolongan para sahabat. Seorang sahabat meruqyah dengan membaca Al-Fatihah dan meludah ke tempat yang tersengat. Pemimpin suku itu pun sembuh dan memberi hadiah 30 ekor kambing. Para sahabat bertanya kepada Nabi: bolehkah kami mengambilnya? Nabi tersenyum dan bertanya: "Dari mana kalian tahu Al-Fatihah adalah ruqyah?"',
+
+// [30] Doa Kelapangan Rezeki
+kisah: 'Ali bin Abi Thalib radhiyallahu anhu berkata: "Seorang budak mukatab datang kepadaku dan berkata: aku tidak mampu membayar cicilan pembebasanku, bantulah aku." Ali berkata: "Maukah aku ajarkan kalimat yang diajarkan Rasulullah ﷺ kepadaku? Seandainya kamu punya hutang sebesar gunung, Allah akan melunasinya." Lalu ia mengajarkan doa: "Allahumma akfinii bihalalatika an haraamik wa aghnini bi fadhlika amman siwaak." Inilah doa yang Nabi ajarkan khusus untuk melunasi hutang.',
+
+// [31] Doa Pagi untuk Barakah Rezeki
+kisah: 'Lihat kisah doa no. 2 — Doa Ilmu, Rezeki & Amal. Kedua doa ini saling berkaitan dan keduanya diajarkan Nabi untuk dibaca di waktu pagi, sebelum memulai aktivitas. Prinsipnya: mulailah hari dengan memohon kepada Allah, bukan dengan langsung terjun ke urusan dunia. Nabi tidak pernah memulai hari tanpa berdoa. Ini mengajarkan bahwa keberkahan rezeki bukan soal seberapa awal kita bekerja, tapi seberapa awal kita mengingat Allah.',
+
+// [32] Doa Saat Berhutang
+kisah: 'Doa ini sebenarnya adalah doa perlindungan pagi-petang yang komprehensif. Di dalamnya terdapat permintaan perlindungan dari "dhalad-dain" — lilitan hutang. Para ulama menjelaskan bahwa Nabi ﷺ sangat serius soal hutang: beliau pernah menolak menyolati jenazah seseorang yang meninggal dengan hutang yang belum terlunasi, hingga ada sahabat yang bersedia menanggungnya. Hutang bukan hanya beban finansial — ia juga beban di akhirat.',
+
+// [33] Doa Setelah Sholat Dhuha
+kisah: 'Doa ini diajarkan ulama untuk dibaca setelah sholat Dhuha. Konteksnya: Dhuha adalah waktu ketika pasar mulai ramai dan orang-orang sibuk mencari nafkah. Sholat Dhuha adalah pernyataan seorang Muslim bahwa sebelum terjun ke pasar, ia lebih dulu melapor kepada Allah. Dan doa setelahnya adalah permohonan agar rezeki yang akan dicari hari itu datang dari jalan yang halal, mudah, dan berkah.',
+
+// [34] Doa Keberkahan Rezeki
+kisah: 'Doa sebelum makan ini memiliki kedalaman makna yang sering terlewat. "Baarik lanaa fiimaa razaqtanaa" — berkahilah kami dalam rezeki yang Engkau berikan. Bukan meminta lebih, tapi meminta berkah dari yang sudah ada. Para ulama membedakan antara "banyak" dan "berkah": rezeki yang banyak tapi tidak berkah akan habis tanpa manfaat. Rezeki yang sedikit tapi berkah akan mencukupi semua kebutuhan dan mendatangkan kebaikan.',
+
+// [35] Doa Mohon Kecukupan dari Yang Halal
+kisah: 'Kisah yang sama dengan no. 30. Ali bin Abi Thalib mengajarkan doa ini kepada seorang budak yang ingin merdeka namun tak mampu membayar. Tapi konteks doa ini lebih luas: ia adalah permohonan untuk tidak perlu bergantung kepada manusia. "Aghnini bi fadhlika amman siwaak" — kayakan aku dengan karunia-Mu sehingga aku tidak butuh selain Engkau. Ini adalah doa kemerdekaan jiwa — bebas dari ketergantungan kepada makhluk.',
+
+// [36] Doa Pagi untuk Keberkahan Hari
+kisah: 'Doa ini diajarkan Nabi ﷺ untuk merangkum seluruh kebaikan yang diharapkan dalam satu hari. Lima permintaan dalam satu doa: fathu (pembukaan/kemudahan), nashr (pertolongan), nuur (cahaya/petunjuk), barakah (keberkahan), dan hudaa (hidayah). Para ulama mencatat bahwa urutan ini pun mengajarkan: yang pertama diminta adalah kemudahan, bukan langsung meminta hasil.',
+
+// [37] Doa Mohon Kemudahan Urusan
+kisah: 'Lihat kisah doa no. 9. Ini adalah doa yang sama dengan Nabi Musa sebelum menghadap Firaun. Yang membedakannya dari doa lapang dada biasa adalah tambahan "wahlul uqdatam min lisaani yafqahuu qawlii" — lepaskan kekakuan dari lisanku agar mereka mengerti perkataanku. Nabi Musa merasa lisannya kurang fasih. Tapi Allah tidak langsung menyembuhkan kekurangan itu — Ia memberinya Harun sebagai pendamping. Terkadang jawaban doa bukan penghapusan kelemahan, tapi pemberian pendamping yang melengkapi.',
+
+// [38] Doa Mohon Keteguhan Hati
+kisah: 'Aisyah radhiyallahu anha berkata: "Doa yang paling sering dibaca Rasulullah ﷺ adalah: Yaa muqallibal quluub, tsabbit qalbii alaa diiniik." Aisyah kemudian bertanya: "Ya Rasulullah, mengapa engkau sering sekali berdoa ini?" Nabi menjawab: "Wahai Aisyah, setiap hati berada di antara dua jari Rahman. Jika Ia mau, Ia teguhkan. Jika Ia mau, Ia belokkan." Bahkan Nabi — yang hatinya paling teguh — tetap memohon keteguhan kepada Allah. Ini mengajarkan bahwa istiqamah bukan pencapaian, tapi permohonan yang terus-menerus.',
+
+// [39] Doa Tawakkal Setelah Ikhtiar
+kisah: 'Lihat kisah doa no. 16. "Hasbunallah wa ni\'mal wakiil" adalah kalimat yang diucapkan dua nabi di dua situasi paling ekstrem: Nabi Ibrahim di depan api, dan umat Nabi Muhammad setelah Perang Uhud saat diancam serangan kedua. Allah merespons keduanya dengan keajaiban. Api menjadi dingin bagi Ibrahim. Dan musuh yang mengancam itu justru pergi ketakutan tanpa sebab. Para ulama berkata: tawakkal sejati bukan pasif — tapi menyerahkan hasil setelah berusaha maksimal.',
+
+// [40] Doa Ketenangan Hati
+kisah: 'Ayat "Alaa bidzikrillahi tathmainnul quluub" turun berkaitan dengan orang-orang yang beriman yang hatinya tenang saat mendengar nama Allah disebut. Allah tidak hanya memerintahkan zikir — Ia menjamin hasilnya: ketenangan. Para ulama mencatat bahwa ini adalah satu-satunya "resep" ketenangan hati yang Allah jamin dalam Al-Quran. Bukan harta, bukan kesehatan, bukan popularitas — hanya zikir.',
+
+// [41] Doa Saat Ditimpa Kesulitan
+kisah: 'Kisah yang sama dengan doa no. 13 — Nabi Yunus dalam perut ikan. Tapi konteks ini lebih spesifik: doa ini dibaca saat merasa terjebak total — seperti Yunus yang terjebak di tiga kegelapan sekaligus. Para ulama mengajarkan: saat tidak ada jalan keluar yang terlihat, justru itulah saatnya doa ini paling mujarab. Karena ketika manusia benar-benar sudah tidak bisa apa-apa, barulah mereka benar-benar berdoa dengan sepenuh hati.',
+
+// [42] Doa Mohon Dijauhkan dari Kesedihan
+kisah: 'Doa ini adalah bagian dari doa pagi-petang Nabi ﷺ yang komprehensif. Di dalamnya terdapat delapan hal yang dimohon perlindungannya: hamma (kesedihan yang terkait masa depan), hazan (kesedihan terkait masa lalu), ajz (kelemahan), kasal (kemalasan), bukhl (kikir), jubn (pengecut), dhalaad-dain (lilitan hutang), dan ghalabatur rijaal (tekanan/penindasan manusia). Nabi mengajarkan bahwa kegelisahan manusia bersumber dari delapan hal ini — dan semua bisa dilindungi dengan satu doa.',
+
+// [43] Doa Ruqyah Tiup ke Tangan
+kisah: 'Aisyah radhiyallahu anha meriwayatkan bahwa ketika Nabi ﷺ sakit menjelang wafatnya, beliau sendiri yang meruqyah dirinya dengan Al-Muawwidzat. Tapi saat sakitnya semakin berat dan tangannya sudah tidak mampu mengusap tubuhnya sendiri, Aisyah lah yang melakukannya — mengambil tangan Nabi dan mengusapkannya ke tubuh beliau. Momen yang sangat mengharukan: istri meruqyah suaminya dengan tangan suami itu sendiri.',
+
+// [44] Doa Kesabaran dalam Sakit
+kisah: 'Ummu Salamah radhiyallahu anha bercerita: ketika suaminya Abu Salamah wafat, ia mendengar Nabi mengajarkan doa ini dan berkata: "Tidaklah seorang hamba tertimpa musibah lalu mengucap innaa lillaahi wa innaa ilaihi raaji\'uun, Allahumma ajurnii fii mushiibatii wa akhlif lii khairan minhaa — melainkan Allah memberinya ganti yang lebih baik." Ummu Salamah berkata: "Aku pun mengucapkannya, tapi dalam hati aku pikir, siapa yang bisa lebih baik dari Abu Salamah?" Ternyata Allah menggantikannya dengan Rasulullah ﷺ sendiri.',
+
+// [45] Doa Menjenguk Orang Sakit
+kisah: 'Aisyah radhiyallahu anha meriwayatkan bahwa Nabi ﷺ ketika menjenguk orang sakit, mengusap bagian yang sakit dengan tangan kanannya sambil berdoa: "Allahumma rabban naas, adzhibilba\'sa, isyfihi wa antasy syaafii, laa syifaa\'a illaa syifaauka, syifaa\'an laa yughaadiruuu saqamaa." Doa ini mengandung tiga elemen: permohonan (hilangkan penyakit), pengakuan (Engkaulah Yang Menyembuhkan), dan spesifikasi (kesembuhan total tanpa sisa).',
+
+// [46] Doa Tiba di Tempat Tujuan
+kisah: 'Nabi ﷺ mengajarkan doa ini dalam konteks perjalanan sahabat ke berbagai penjuru. Kota-kota yang dikunjungi tidak selalu ramah — ada kota dengan cuaca berbeda, air berbeda, penyakit berbeda, dan manusia dengan watak berbeda. Doa ini adalah "protokol keamanan" seorang Muslim di tempat baru: serahkan dirimu kepada Allah sebelum berinteraksi dengan lingkungan baru. Yang menarik, doa ini tidak hanya memohon perlindungan dari keburukan tempat, tapi juga dari "syarri ahliha" — keburukan penghuninya.',
+
+// [47] Doa Naik Kendaraan
+kisah: 'Kisah yang sama dengan doa no. 23. Konteks tambahan: dalam sejarah Islam, perjalanan adalah momen penuh risiko. Unta bisa tersandung, kapal bisa tenggelam, kuda bisa tergelincir. Ayat ini mengingatkan dua hal sekaligus: bahwa Allah lah yang "menundukkan" kendaraan itu agar bisa dinaiki (karena manusia pada dasarnya tidak bisa mengendalikan alam), dan bahwa setiap perjalanan pada akhirnya adalah perjalanan pulang kepada Allah.',
+
+// [48] Doa Tobat Nasuha
+kisah: 'Ini adalah doa pertama dalam sejarah manusia. Adam dan Hawa alaihimassalam telah dilarang mendekati pohon tertentu di surga. Namun setan berhasil membujuk mereka. Setelah memakan buah terlarang itu, mereka sadar dan menyesal. Allah tidak perlu diajarkan tobat — Ia yang mengajarkan kalimat tobat ini kepada Adam. Lalu Adam bertobat dengan sungguh-sungguh menggunakan kalimat yang Allah ajarkan. Dan Allah menerima tobatnya. Pelajaran: Allah sendiri yang membuka pintu tobat dan mengajarkan cara mengetuknya.',
+
+// [49] Doa Istighfar Nabi Nuh
+kisah: 'Nabi Nuh alaihissalam memiliki anak yang menolak beriman. Saat banjir besar datang, anaknya memilih naik ke puncak gunung bukan masuk ke bahtera. Nuh berdoa memohon keselamatan anaknya — karena Allah berjanji menyelamatkan keluarganya. Tapi Allah menjawab: anaknya bukan bagian dari keluarganya dalam konteks iman. Nuh terdiam dan menyadari ia telah memohon sesuatu yang tidak ia pahami sepenuhnya. Lalu ia berdoa doa ini: memohon ampun atas permohonannya yang melampaui pengetahuannya.',
+
+// [50] Doa Mohon Istiqamah
+kisah: 'Sufyan bin Abdillah Ats-Tsaqafi radhiyallahu anhu pernah meminta Nabi ﷺ: "Beritahu aku satu hal tentang Islam yang tidak perlu aku tanyakan kepada orang lain." Nabi menjawab: "Qul aamantu billahi tsummas taqim" — katakan aku beriman kepada Allah, lalu istiqamahlah. Istiqamah adalah puncak Islam. Para ulama berkata: Abu Bakar menangis saat ayat "istaqim kamaa umirta" turun — karena ia tahu betapa beratnya istiqamah. Doa ini adalah permohonan untuk dibantu menanggung beban yang paling berat dalam perjalanan seorang Muslim.',
+
+STEP 2 — Update BankDoaPage component untuk menampilkan field kisah:
+Di dalam detail/expanded view setiap doa card, tambahkan section kisah setelah faedah:
+jsx{/* Kisah di balik doa */}
+{doa.kisah && (
+  <div style={{ marginTop: 14, padding: '14px 16px', background: 'var(--elevated)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--gold-line)' }}>
+    <div style={{ fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+      📖 Kisah & Latar Belakang
+    </div>
+    <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.85, margin: 0 }}>{doa.kisah}</p>
+  </div>
+)}
+
+IMPORTANT:
+
+Tambahkan field kisah ke setiap objek doa sesuai urutan nomor di atas
+Cocokkan berdasarkan field name doa yang sudah ada
+Jangan ubah field lain yang sudah ada (cat, waktu, name, ar, tr, src, faedah)
+Kisah ditampilkan di expanded/detail view doa, setelah faedah
+Do not change any other component
