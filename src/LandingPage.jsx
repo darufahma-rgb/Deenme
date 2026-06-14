@@ -127,14 +127,21 @@ export function LandingPage({ onEnter }) {
             opacity: mounted ? 1 : 0, transform: mounted ? 'scale(1)' : 'scale(.5)',
             transition: 'opacity .5s, transform .6s cubic-bezier(.34,1.56,.64,1)',
           }}>
-            <img
-              src="./assets/Deenme_logo.png"
-              alt="Deenme"
-              style={{
-                width: 80,
-                filter: 'brightness(0) saturate(100%) invert(85%) sepia(60%) saturate(700%) hue-rotate(50deg) drop-shadow(0 0 18px #a7c957) drop-shadow(0 0 36px #a7c957bb)',
-              }}
-            />
+            <div style={{
+              width: 52, height: 52, borderRadius: 14,
+              background: 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 28px -4px rgba(167,201,87,.35)',
+            }}>
+              <img
+                src="./assets/Deenme_logo.png"
+                alt="Deenme"
+                style={{
+                  width: 48,
+                  filter: 'brightness(0) saturate(100%) invert(78%) sepia(30%) saturate(500%) hue-rotate(55deg) brightness(95%)',
+                }}
+              />
+            </div>
           </div>
 
           {/* Eyebrow badge */}
