@@ -148,7 +148,7 @@ const HEATC = { full: '#4ade80', part: '#fbbf24', empty: '#f87171', none: 'trans
 
 const _ID_MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-function JournalContent({ go }) {
+function JournalContent({ go, codeId }) {
   const edRef = useRef(null);
   const [empty, setEmpty] = useState(true);
   const [detected, setDetected] = useState([]);
@@ -190,12 +190,18 @@ function JournalContent({ go }) {
       const response = await fetch('/api/journal/enhance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: rawText }),
+        body: JSON.stringify({ text: rawText, codeId }),
       });
 
       if (response.status === 503) {
         setNoKeyToast(true);
         setTimeout(() => setNoKeyToast(false), 3500);
+        return;
+      }
+      if (response.status === 429) {
+        const d = await response.json();
+        alert(d.message || 'Batas harian tercapai. Coba lagi besok.');
+        setAiLoading(false);
         return;
       }
 
@@ -385,12 +391,18 @@ function TafsirMimpiPage({ codeId }) {
       const response = await fetch('/api/dream/tafsir', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, codeId }),
       });
 
       if (response.status === 503) {
         setNoKeyToast(true);
         setTimeout(() => setNoKeyToast(false), 3500);
+        setLoading(false);
+        return;
+      }
+      if (response.status === 429) {
+        const d = await response.json();
+        setResult(`⏳ **${d.message}**`);
         setLoading(false);
         return;
       }
@@ -667,7 +679,7 @@ export function JournalPage({ go, codeId }) {
       {/* Content — padded top to clear tab bar */}
       <div style={{ paddingTop: 49, width: '100%', display: 'flex', flex: 1, overflow: 'hidden', height: '100%' }}>
         {activeTab === 'jurnal' ? (
-          <JournalContent go={go} />
+          <JournalContent go={go} codeId={codeId} />
         ) : (
           <TafsirMimpiPage codeId={codeId} />
         )}
@@ -1351,7 +1363,7 @@ function matchSituasi(text, doa) {
 }
 
 // ── Komponen DoaSituasional ──
-function DoaSituasional({ allDoa, onSelect }) {
+function DoaSituasional({ allDoa, onSelect, codeId }) {
   const [mode, setMode]       = useState('idle');
   const [text, setText]       = useState('');
   const [results, setResults] = useState([]);
@@ -1381,12 +1393,30 @@ function DoaSituasional({ allDoa, onSelect }) {
       const res = await fetch('/api/doa/situasional', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, cats: SITUASI.map(s => s.cat) }),
+        body: JSON.stringify({ situasi: text, codeId }),
       });
-      const data = await res.json();
-      const cats = (data.cats || []);
-      const aiResults = allDoa.filter(d => cats.some(c => d.cat?.toLowerCase().includes(c.toLowerCase())));
-      setResults(aiResults.slice(0, 4));
+
+      if (res.status === 429) {
+        const d = await res.json();
+        setResults([]);
+        setLoading(false);
+        alert(d.message);
+        return;
+      }
+
+      if (res.ok) {
+        const data = await res.json();
+        setResults((data.doas || []).map(d => ({
+          name: d.name,
+          ar: d.ar,
+          tr: d.arti,
+          src: d.sumber,
+          faedah: d.alasan,
+          cat: 'Situasional',
+        })));
+      } else {
+        setResults(allDoa.slice(0, 4));
+      }
     } catch {
       setResults(allDoa.slice(0, 4));
     }
@@ -1610,7 +1640,7 @@ function DoaListCard({ doa, bookmarked, onToggleBookmark, onSelect }) {
   );
 }
 
-export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
+export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa, codeId }) {
   const [tab, setTab]               = useState('Semua');
   const [waktuFilter, setWaktuFilter] = useState('Semua');
   const [modal, setModal]           = useState(false);
@@ -1650,7 +1680,7 @@ export function BankDoaPage({ bookmarks, toggleBookmark, userDoa, addDoa }) {
         </div>
 
         {/* Doa Situasional */}
-        <DoaSituasional allDoa={all} onSelect={(doa) => setSelected(doa)} />
+        <DoaSituasional allDoa={all} onSelect={(doa) => setSelected(doa)} codeId={codeId} />
 
         {/* Tabs utama */}
         <div className="tabs scrl" style={{ marginBottom: tab === 'Per Waktu Solat' ? 10 : 20 }}>

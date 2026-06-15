@@ -549,7 +549,7 @@ export default function App() {
                   timezone={timezone} changeTimezone={changeTimezone} timezoneOptions={TIMEZONE_OPTIONS}
                 />}
               {v === 'journal' && <JournalPage go={setView} codeId={codeId} />}
-              {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
+              {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} codeId={codeId} />}
               {v === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
               {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} times={times} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} qadhaDebt={qadhaDebt} addQadha={addQadha} lunasiQadha={lunasiQadha} totalQadha={totalQadha} />}
               {v === 'profile' && <ProfilePage userName={userName} codeId={codeId} totalPoints={totalPoints} streak={streak} freeze={freeze} prayers={prayers} misiDone={misiDone} unlockedBadges={unlockedBadges} onUpdateName={onUpdateName} onLogout={onLogout} />}
