@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from './supabase.js';
+import { serverFetch } from './api.js';
 
 const ADMIN_PIN = '1234';
 
@@ -123,12 +123,12 @@ export function AdminPage({ onLogout }) {
 
   const loadAll = useCallback(async () => {
     setLoadingData(true);
-    const [{ data: c }, { data: u }] = await Promise.all([
-      supabase.from('member_codes').select('*').order('created_at', { ascending: false }),
-      supabase.from('user_data').select('*').order('updated_at', { ascending: false }),
-    ]);
-    setCodes(c || []);
-    setUserData(u || []);
+    const res = await serverFetch('/api/admin/members');
+    if (res.ok) {
+      const { codes: c, users: u } = await res.json();
+      setCodes(c || []);
+      setUserData(u || []);
+    }
     setLoadingData(false);
   }, []);
 
@@ -147,20 +147,30 @@ export function AdminPage({ onLogout }) {
   const generateCode = async () => {
     if (!name.trim() || loading) return;
     setLoading(true);
-    const code = genCode();
-    const { error } = await supabase.from('member_codes').insert({ code, name: name.trim(), is_active: true });
-    if (!error) { setGenerated({ code, name: name.trim() }); setName(''); loadAll(); }
+    const res = await serverFetch('/api/admin/codes', {
+      method: 'POST',
+      body: JSON.stringify({ name: name.trim() }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setGenerated({ code: data.code, name: name.trim() });
+      setName('');
+      loadAll();
+    }
     setLoading(false);
   };
 
   const toggleActive = async (id, current) => {
-    await supabase.from('member_codes').update({ is_active: !current }).eq('id', id);
+    await serverFetch(`/api/admin/codes/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: !current }),
+    });
     loadAll();
   };
 
   const deleteCode = async (id) => {
     if (!confirm('Hapus kode ini? User tidak bisa login lagi.')) return;
-    await supabase.from('member_codes').delete().eq('id', id);
+    await serverFetch(`/api/admin/codes/${id}`, { method: 'DELETE' });
     loadAll();
   };
 

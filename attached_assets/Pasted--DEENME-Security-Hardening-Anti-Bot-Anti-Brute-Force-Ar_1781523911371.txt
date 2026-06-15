@@ -1,0 +1,419 @@
+# DEENME — Security Hardening: Anti-Bot + Anti-Brute Force
+
+## Arsitektur Baru
+Login dan akses data tidak lagi langsung dari browser ke Supabase.
+Semua lewat server Express yang sudah ada (`server.js`).
+Browser hanya dapat `sessionToken` — bukan UUID Supabase.
+
+---
+
+## Step 1 — Tambah endpoint login ke `server.js`
+
+Tambahkan di atas `const PORT = ...` di `server.js`:
+
+```js
+import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+
+// Supabase SERVICE ROLE key — hanya di server, tidak pernah ke browser
+const supabaseAdmin = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY  // <-- tambah env var ini di Replit Secrets
+);
+
+// Session store in-memory
+// Format: { token: { codeId, name, createdAt } }
+const sessions = {};
+
+// IP-based rate limiter untuk login
+const loginAttempts = {};
+
+function getIp(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0] || req.ip || 'unknown';
+}
+
+function checkLoginRateLimit(ip) {
+  const now = Date.now();
+  if (!loginAttempts[ip]) loginAttempts[ip] = [];
+  // Hapus attempt yang lebih dari 15 menit lalu
+  loginAttempts[ip] = loginAttempts[ip].filter(t => now - t < 15 * 60 * 1000);
+  // Max 10 attempt per 15 menit per IP
+  if (loginAttempts[ip].length >= 10) return false;
+  loginAttempts[ip].push(now);
+  return true;
+}
+
+function generateToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// ── POST /api/auth/login ───────────────────────────────────────
+app.post('/api/auth/login', async (req, res) => {
+  const ip = getIp(req);
+
+  // Rate limit per IP
+  if (!checkLoginRateLimit(ip)) {
+    return res.status(429).json({
+      error: 'rate_limit',
+      message: 'Terlalu banyak percobaan. Tunggu 15 menit.',
+    });
+  }
+
+  const { code } = req.body;
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({ error: 'Kode tidak valid' });
+  }
+
+  const clean = code.trim().toUpperCase();
+
+  // Admin login (12 karakter)
+  if (clean.length === 12) {
+    const { data } = await supabaseAdmin
+      .from('admin_codes')
+      .select('id')
+      .eq('code', clean)
+      .single();
+
+    if (!data) return res.status(401).json({ error: 'Kode admin tidak valid' });
+
+    const token = generateToken();
+    sessions[token] = { role: 'admin', codeId: null, name: 'Admin', createdAt: Date.now() };
+    return res.json({ token, name: 'Admin', role: 'admin' });
+  }
+
+  // Member login (6 digit angka)
+  if (!/^\d{6}$/.test(clean)) {
+    return res.status(400).json({ error: 'Format kode tidak valid' });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('member_codes')
+    .select('id, name, is_active')
+    .eq('code', clean)
+    .single();
+
+  if (error || !data) {
+    return res.status(401).json({ error: 'Kode tidak ditemukan' });
+  }
+
+  if (!data.is_active) {
+    return res.status(403).json({ error: 'Kode tidak aktif' });
+  }
+
+  const token = generateToken();
+  sessions[token] = {
+    role: 'member',
+    codeId: data.id,
+    name: data.name || 'Akhi',
+    createdAt: Date.now(),
+  };
+
+  // Hapus session lama (> 30 hari)
+  const maxAge = 30 * 24 * 60 * 60 * 1000;
+  for (const [t, s] of Object.entries(sessions)) {
+    if (Date.now() - s.createdAt > maxAge) delete sessions[t];
+  }
+
+  return res.json({ token, codeId: data.id, name: data.name || 'Akhi', role: 'member' });
+});
+
+// ── Middleware: verifikasi token ───────────────────────────────
+function requireAuth(req, res, next) {
+  const token = req.headers['x-session-token'];
+  if (!token || !sessions[token]) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  req.session = sessions[token];
+  next();
+}
+
+// ── POST /api/user/save ────────────────────────────────────────
+app.post('/api/user/save', requireAuth, async (req, res) => {
+  const { codeId } = req.session;
+  const { data: payload } = req.body;
+  if (!codeId || !payload) return res.status(400).json({ error: 'Invalid' });
+
+  const { error } = await supabaseAdmin
+    .from('user_data')
+    .upsert({ code_id: codeId, data: payload }, { onConflict: 'code_id' });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// ── GET /api/user/load ─────────────────────────────────────────
+app.get('/api/user/load', requireAuth, async (req, res) => {
+  const { codeId } = req.session;
+  if (!codeId) return res.status(400).json({ error: 'Invalid' });
+
+  const { data, error } = await supabaseAdmin
+    .from('user_data')
+    .select('data')
+    .eq('code_id', codeId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') return res.status(500).json({ error: error.message });
+  res.json({ data: data?.data || null });
+});
+
+// ── POST /api/admin/codes ──────────────────────────────────────
+// Generate kode member (admin only)
+app.post('/api/admin/codes', requireAuth, async (req, res) => {
+  if (req.session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+
+  const { name } = req.body;
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+
+  const { data, error } = await supabaseAdmin
+    .from('member_codes')
+    .insert({ code, name: name?.trim() || '', is_active: true })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ code: data.code, id: data.id });
+});
+
+// ── GET /api/admin/members ─────────────────────────────────────
+app.get('/api/admin/members', requireAuth, async (req, res) => {
+  if (req.session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+
+  const { data: codes } = await supabaseAdmin.from('member_codes').select('*').order('created_at', { ascending: false });
+  const { data: users } = await supabaseAdmin.from('user_data').select('*').order('updated_at', { ascending: false });
+  res.json({ codes: codes || [], users: users || [] });
+});
+
+// ── PATCH /api/admin/codes/:id ─────────────────────────────────
+app.patch('/api/admin/codes/:id', requireAuth, async (req, res) => {
+  if (req.session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const { id } = req.params;
+  const { is_active, name } = req.body;
+  const update = {};
+  if (is_active !== undefined) update.is_active = is_active;
+  if (name !== undefined) update.name = name;
+  const { error } = await supabaseAdmin.from('member_codes').update(update).eq('id', id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// ── DELETE /api/admin/codes/:id ────────────────────────────────
+app.delete('/api/admin/codes/:id', requireAuth, async (req, res) => {
+  if (req.session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const { error } = await supabaseAdmin.from('member_codes').delete().eq('id', req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+```
+
+---
+
+## Step 2 — Tambah env var `SUPABASE_SERVICE_KEY` di Replit
+
+1. Buka Replit → **Secrets** (ikon kunci di sidebar)
+2. Tambah: `SUPABASE_SERVICE_KEY` = service role key dari Supabase Dashboard → Settings → API → **service_role key**
+3. **JANGAN** masukkan service key ke frontend/env VITE_ apapun
+
+---
+
+## Step 3 — Update `src/App.jsx` — ganti Supabase login dengan server login
+
+### A. Tambah helper di atas `LoginPage`:
+
+```js
+// Session token disimpan di sessionStorage (bukan localStorage — lebih aman)
+const getToken = () => sessionStorage.getItem('dm-token');
+const setToken = (t) => sessionStorage.setItem('dm-token', t);
+const clearToken = () => sessionStorage.removeItem('dm-token');
+
+async function serverFetch(path, options = {}) {
+  const token = getToken();
+  return fetch(path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'x-session-token': token } : {}),
+      ...(options.headers || {}),
+    },
+  });
+}
+```
+
+### B. Ganti fungsi `submit` di `LoginPage` — tidak lagi langsung ke Supabase:
+
+```js
+const submit = async () => {
+  if (code.length < 6 || loading || locked) return;
+  setLoading(true);
+  setErr(false);
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+
+    if (res.status === 429) {
+      setErr(true);
+      setLocked(true);
+      setLockTimer(900); // 15 menit
+      const interval = setInterval(() => {
+        setLockTimer(t => {
+          if (t <= 1) { clearInterval(interval); setLocked(false); return 0; }
+          return t - 1;
+        });
+      }, 1000);
+      setLoading(false);
+      return;
+    }
+
+    if (!res.ok) {
+      setErr(true);
+      setCode('');
+      setLoading(false);
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      if (newAttempts >= 5) {
+        setLocked(true);
+        let t = 60;
+        setLockTimer(t);
+        const interval = setInterval(() => {
+          t--;
+          setLockTimer(t);
+          if (t <= 0) { clearInterval(interval); setLocked(false); setAttempts(0); }
+        }, 1000);
+      }
+      return;
+    }
+
+    const data = await res.json();
+    setToken(data.token);
+    onEnter(data.codeId, data.name, data.role === 'admin' ? 'admin' : 'dashboard');
+  } catch {
+    setErr(true);
+    setLoading(false);
+  }
+};
+```
+
+### C. Ganti load data dari Supabase ke server:
+
+Cari blok:
+```js
+const { data } = await supabase.from('user_data').select('data').eq('code_id', codeId).single();
+```
+
+Ganti dengan:
+```js
+const res = await serverFetch('/api/user/load');
+const { data } = await res.json();
+```
+
+### D. Ganti save data ke server:
+
+Cari blok:
+```js
+await supabase.from('user_data').upsert({ code_id: codeId, data: payload }, { onConflict: 'code_id' });
+```
+
+Ganti dengan:
+```js
+await serverFetch('/api/user/save', {
+  method: 'POST',
+  body: JSON.stringify({ data: payload }),
+});
+```
+
+### E. Ganti logout — hapus token:
+
+Cari `onLogout` function:
+```js
+const onLogout = () => {
+  // tambahkan baris ini:
+  clearToken();
+  // ... sisanya sama
+};
+```
+
+### F. Auto-login dari token yang tersimpan:
+
+Di `useEffect` awal app (cek apakah sudah login), tambahkan:
+```js
+// Cek existing token
+const existingToken = getToken();
+if (existingToken && view === 'landing') {
+  serverFetch('/api/user/load').then(async res => {
+    if (res.ok) {
+      // Token masih valid → langsung masuk
+      // Perlu tambah endpoint /api/auth/me untuk ini
+    } else {
+      clearToken();
+    }
+  });
+}
+```
+
+---
+
+## Step 4 — Hardening RLS di Supabase SQL Editor
+
+Jalankan SQL ini untuk **memperketat RLS** — hapus policy `allow_all` yang terlalu terbuka:
+
+```sql
+-- Hapus policy lama yang terlalu terbuka
+DROP POLICY IF EXISTS "allow_all_member_codes"  ON member_codes;
+DROP POLICY IF EXISTS "allow_all_admin_codes"   ON admin_codes;
+DROP POLICY IF EXISTS "allow_all_user_data"     ON user_data;
+DROP POLICY IF EXISTS "allow_all_dream_tafsir"  ON dream_tafsir;
+DROP POLICY IF EXISTS "verify code"             ON member_codes;
+DROP POLICY IF EXISTS "read own data"           ON user_data;
+DROP POLICY IF EXISTS "write own data"          ON user_data;
+DROP POLICY IF EXISTS "update own data"         ON user_data;
+DROP POLICY IF EXISTS "insert member codes"     ON member_codes;
+DROP POLICY IF EXISTS "update member codes"     ON member_codes;
+DROP POLICY IF EXISTS "delete member codes"     ON member_codes;
+
+-- Block semua akses dari anon key
+-- Hanya service_role (server) yang bisa akses
+REVOKE ALL ON member_codes  FROM anon, authenticated;
+REVOKE ALL ON admin_codes   FROM anon, authenticated;
+REVOKE ALL ON user_data     FROM anon, authenticated;
+REVOKE ALL ON dream_tafsir  FROM anon, authenticated;
+
+-- Grant hanya ke service_role (yang dipakai server)
+GRANT ALL ON member_codes  TO service_role;
+GRANT ALL ON admin_codes   TO service_role;
+GRANT ALL ON user_data     TO service_role;
+GRANT ALL ON dream_tafsir  TO service_role;
+```
+
+Setelah ini, **anon key tidak bisa akses data apapun** — bot yang coba langsung ke Supabase API akan dapat 401.
+
+---
+
+## Step 5 — Hapus Supabase dari frontend
+
+Di `src/App.jsx`, hapus semua import dan penggunaan `supabase` langsung (kecuali di `TafsirMimpiPage` dan `AdminPage` yang akan diupdate terpisah).
+
+Semua akses data sekarang via `serverFetch('/api/...')`.
+
+---
+
+## Ringkasan Lapisan Keamanan
+
+| Lapisan | Sebelum | Sesudah |
+|---------|---------|---------|
+| Login | Browser → Supabase langsung | Browser → Server → Supabase |
+| Rate limit login | 5x per session (reset kalau refresh) | 10x per IP per 15 menit (server-side) |
+| Data akses | Anon key expose, siapapun bisa query | Hanya lewat server token |
+| Brute force | Bisa bot dari ribuan IP | Blocked per IP di server |
+| Supabase RLS | `USING (true)` = semua bisa baca | REVOKE anon, hanya service_role |
+| Session | codeId di React state | Signed token di sessionStorage |
+| Bot scraping | Bisa dump semua member_codes | Tidak bisa — tidak ada akses ke Supabase |
+| Admin panel | Lewat Supabase anon key | Hanya token admin dari server |
+
+## File yang Diubah
+- `server.js` — tambah auth endpoints + admin endpoints
+- `src/App.jsx` — ganti semua Supabase call dengan serverFetch
+- **Supabase SQL** — REVOKE anon access
+- **Replit Secrets** — tambah SUPABASE_SERVICE_KEY

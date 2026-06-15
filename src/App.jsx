@@ -4,7 +4,7 @@ import { Rail, BottomNav, fireConfetti } from './ui.jsx';
 import { PRAYERS, SUNNAH, DashboardPage, MISI_PER_SHOLAT, BADGES, computeDailyPoints, getLevel, getRank } from './dashboard.jsx';
 import { JournalPage, BankDoaPage, StatistikPage, AmalanPage, PrayerAmalanPage } from './pages.jsx';
 import { LandingPage } from './LandingPage.jsx';
-import { supabase } from './supabase.js';
+import { getToken, setToken, clearToken, serverFetch } from './api.js';
 import { AdminPage } from './AdminPage.jsx';
 import { ProfilePage } from './ProfilePage.jsx';
 import { OnboardingOverlay } from './OnboardingPage.jsx';
@@ -153,52 +153,55 @@ function LoginPage({ onEnter }) {
     setLoading(true);
     setErr(false);
 
-    // Admin login (12 digit)
-    if (code.length === 12) {
-      const { data } = await supabase
-        .from('admin_codes')
-        .select('id')
-        .eq('code', code)
-        .single();
-      if (data) { onEnter(null, 'Admin', 'admin'); return; }
-      setErr(true);
-      setCode('');
-      setLoading(false);
-      return;
-    }
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
 
-    // Member login (6 digit)
-    const { data, error } = await supabase
-      .from('member_codes')
-      .select('id, name')
-      .eq('code', code)
-      .eq('is_active', true)
-      .single();
-
-    if (error || !data) {
-      setErr(true);
-      setCode('');
-      setLoading(false);
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-      if (newAttempts >= 5) {
+      if (res.status === 429) {
+        setErr(true);
         setLocked(true);
-        let t = 30;
-        setLockTimer(t);
+        setLockTimer(900);
         const interval = setInterval(() => {
-          t--;
-          setLockTimer(t);
-          if (t <= 0) {
-            clearInterval(interval);
-            setLocked(false);
-            setAttempts(0);
-          }
+          setLockTimer(t => {
+            if (t <= 1) { clearInterval(interval); setLocked(false); return 0; }
+            return t - 1;
+          });
         }, 1000);
+        setLoading(false);
+        return;
       }
-      return;
-    }
 
-    onEnter(data.id, data.name || 'Akhi', 'dashboard');
+      if (!res.ok) {
+        setErr(true);
+        setCode('');
+        setLoading(false);
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        if (newAttempts >= 5) {
+          setLocked(true);
+          let t = 60;
+          setLockTimer(t);
+          const interval = setInterval(() => {
+            t--;
+            setLockTimer(t);
+            if (t <= 0) { clearInterval(interval); setLocked(false); setAttempts(0); }
+          }, 1000);
+        }
+        return;
+      }
+
+      const data = await res.json();
+      setToken(data.token);
+      localStorage.setItem('deenme-user-name', data.name);
+      if (data.codeId) localStorage.setItem('deenme-code-id', data.codeId);
+      onEnter(data.codeId, data.name, data.role === 'admin' ? 'admin' : 'dashboard');
+    } catch {
+      setErr(true);
+      setLoading(false);
+    }
   };
 
   return (
@@ -260,12 +263,9 @@ const TIMEZONE_OPTIONS = [
 
 // ── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [codeId,   setCodeId]   = useState(() => localStorage.getItem('deenme-code-id') || null);
+  const [codeId,   setCodeId]   = useState(null);
   const [userName, setUserName] = useState(() => localStorage.getItem('deenme-user-name') || 'Akhi');
-  const [view,     setView]     = useState(() => {
-    const saved = localStorage.getItem('deenme-code-id');
-    return saved ? 'dashboard' : 'landing';
-  });
+  const [view,     setView]     = useState('landing');
 
   // App data state — loaded from Supabase after login
   const [prayers,        setPrayers]       = useState({});
@@ -298,46 +298,58 @@ export default function App() {
 
   const prevAll = useRef(false);
 
-  // ── Load data from Supabase on login ────────────────────────────────────
+  // ── Validate existing token on mount (auto-login) ────────────────────────
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    serverFetch('/api/auth/me').then(async res => {
+      if (res.ok) {
+        const me = await res.json();
+        setCodeId(me.codeId);
+        const savedName = localStorage.getItem('deenme-user-name') || me.name || 'Akhi';
+        setUserName(savedName);
+        setView(me.role === 'admin' ? 'admin' : 'dashboard');
+      } else {
+        clearToken();
+      }
+    }).catch(() => clearToken());
+  }, []);
+
+  // ── Load data from server on login ───────────────────────────────────────
   useEffect(() => {
     if (!codeId) return;
     const load = async () => {
-      const { data } = await supabase
-        .from('user_data')
-        .select('data')
-        .eq('code_id', codeId)
-        .single();
-      // Kalau tidak ada data sama sekali → user baru → tampilkan onboarding
-      if (!data?.data) {
+      const res = await serverFetch('/api/user/load');
+      if (!res.ok) return;
+      const { data } = await res.json();
+      if (!data) {
         setShowOnboarding(true);
         return;
       }
-      if (data?.data) {
-        const d = data.data;
-        const lastDate = d.lastSaved ? new Date(d.lastSaved).toDateString() : null;
-        const today = new Date().toDateString();
-        const isNewDay = lastDate !== today;
-        if (!isNewDay) {
-          if (d.prayers)   setPrayers(d.prayers);
-          if (d.times)     setTimes(d.times);
-          if (d.sunnah)    setSunnah(d.sunnah);
-          if (d.misiDone)  setMisiDone(d.misiDone);
-          if (d.dailyPoints !== undefined) setDailyPoints(d.dailyPoints);
-        }
-        if (d.amalanDone && !isNewDay) setAmalanDone(d.amalanDone);
-        if (d.qadhaDebt)      setQadhaDebt(d.qadhaDebt);
-        if (d.bookmarks)      setBookmarks(d.bookmarks);
-        if (d.userDoa)        setUserDoa(d.userDoa);
-        if (d.streak !== undefined)       setStreak(d.streak);
-        if (d.freeze !== undefined)       setFreeze(d.freeze);
-        if (d.totalPoints !== undefined)  setTotalPoints(d.totalPoints);
-        if (d.unlockedBadges)             setUnlockedBadges(d.unlockedBadges);
+      const d = data;
+      const lastDate = d.lastSaved ? new Date(d.lastSaved).toDateString() : null;
+      const today = new Date().toDateString();
+      const isNewDay = lastDate !== today;
+      if (!isNewDay) {
+        if (d.prayers)   setPrayers(d.prayers);
+        if (d.times)     setTimes(d.times);
+        if (d.sunnah)    setSunnah(d.sunnah);
+        if (d.misiDone)  setMisiDone(d.misiDone);
+        if (d.dailyPoints !== undefined) setDailyPoints(d.dailyPoints);
       }
+      if (d.amalanDone && !isNewDay) setAmalanDone(d.amalanDone);
+      if (d.qadhaDebt)      setQadhaDebt(d.qadhaDebt);
+      if (d.bookmarks)      setBookmarks(d.bookmarks);
+      if (d.userDoa)        setUserDoa(d.userDoa);
+      if (d.streak !== undefined)       setStreak(d.streak);
+      if (d.freeze !== undefined)       setFreeze(d.freeze);
+      if (d.totalPoints !== undefined)  setTotalPoints(d.totalPoints);
+      if (d.unlockedBadges)             setUnlockedBadges(d.unlockedBadges);
     };
     load();
   }, [codeId]);
 
-  // ── Save data to Supabase (debounced 2 seconds) ──────────────────────────
+  // ── Save data to server (debounced 2 seconds) ────────────────────────────
   useEffect(() => {
     if (!codeId) return;
     const timeout = setTimeout(async () => {
@@ -346,9 +358,10 @@ export default function App() {
         streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone, qadhaDebt,
         lastSaved: new Date().toISOString(),
       };
-      await supabase
-        .from('user_data')
-        .upsert({ code_id: codeId, data: payload }, { onConflict: 'code_id' });
+      await serverFetch('/api/user/save', {
+        method: 'POST',
+        body: JSON.stringify({ data: payload }),
+      });
     }, 2000);
     return () => clearTimeout(timeout);
   }, [prayers, times, sunnah, bookmarks, userDoa, streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone]);
@@ -397,6 +410,7 @@ export default function App() {
   };
 
   const onLogout = () => {
+    clearToken();
     localStorage.removeItem('deenme-code-id');
     localStorage.removeItem('deenme-user-name');
     setCodeId(null);
@@ -411,10 +425,10 @@ export default function App() {
     setTimezone(tzValue);
     localStorage.setItem('deenme-timezone', tzValue);
     setShowOnboarding(false);
-    supabase.from('user_data').upsert(
-      { code_id: codeId, data: { hasOnboarded: true, lastSaved: new Date().toISOString() } },
-      { onConflict: 'code_id' }
-    );
+    serverFetch('/api/user/save', {
+      method: 'POST',
+      body: JSON.stringify({ data: { hasOnboarded: true, lastSaved: new Date().toISOString() } }),
+    });
   };
 
   // ── Handlers ─────────────────────────────────────────────────────────────

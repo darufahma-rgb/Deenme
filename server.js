@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 const app = express();
 app.use(cors());
@@ -30,6 +32,176 @@ function markUsed(codeId, feature) {
   const key = `${codeId}_${feature}`;
   usageStore[key] = todayDate();
 }
+
+// ── Supabase Admin (service role — server only) ──────────────────────────
+const supabaseAdmin = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+// ── Session store ─────────────────────────────────────────────────────────
+// Format: { token: { codeId, name, role, createdAt } }
+const sessions = {};
+
+// ── IP-based login rate limiter ───────────────────────────────────────────
+const loginAttempts = {};
+
+function getIp(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0] || req.ip || 'unknown';
+}
+
+function checkLoginRateLimit(ip) {
+  const now = Date.now();
+  if (!loginAttempts[ip]) loginAttempts[ip] = [];
+  loginAttempts[ip] = loginAttempts[ip].filter(t => now - t < 15 * 60 * 1000);
+  if (loginAttempts[ip].length >= 10) return false;
+  loginAttempts[ip].push(now);
+  return true;
+}
+
+function generateToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// ── POST /api/auth/login ───────────────────────────────────────────────────
+app.post('/api/auth/login', async (req, res) => {
+  const ip = getIp(req);
+  if (!checkLoginRateLimit(ip)) {
+    return res.status(429).json({
+      error: 'rate_limit',
+      message: 'Terlalu banyak percobaan. Tunggu 15 menit.',
+    });
+  }
+
+  const { code } = req.body;
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({ error: 'Kode tidak valid' });
+  }
+
+  const clean = code.trim().toUpperCase();
+
+  // Admin login (12 karakter)
+  if (clean.length === 12) {
+    const { data } = await supabaseAdmin
+      .from('admin_codes')
+      .select('id')
+      .eq('code', clean)
+      .single();
+    if (!data) return res.status(401).json({ error: 'Kode admin tidak valid' });
+    const token = generateToken();
+    sessions[token] = { role: 'admin', codeId: null, name: 'Admin', createdAt: Date.now() };
+    return res.json({ token, name: 'Admin', role: 'admin' });
+  }
+
+  // Member login (6 digit angka)
+  if (!/^\d{6}$/.test(clean)) {
+    return res.status(400).json({ error: 'Format kode tidak valid' });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('member_codes')
+    .select('id, name, is_active')
+    .eq('code', clean)
+    .single();
+
+  if (error || !data) return res.status(401).json({ error: 'Kode tidak ditemukan' });
+  if (!data.is_active) return res.status(403).json({ error: 'Kode tidak aktif' });
+
+  const token = generateToken();
+  sessions[token] = { role: 'member', codeId: data.id, name: data.name || 'Akhi', createdAt: Date.now() };
+
+  // Hapus session lama (> 30 hari)
+  const maxAge = 30 * 24 * 60 * 60 * 1000;
+  for (const [t, s] of Object.entries(sessions)) {
+    if (Date.now() - s.createdAt > maxAge) delete sessions[t];
+  }
+
+  return res.json({ token, codeId: data.id, name: data.name || 'Akhi', role: 'member' });
+});
+
+// ── GET /api/auth/me ───────────────────────────────────────────────────────
+app.get('/api/auth/me', (req, res) => {
+  const token = req.headers['x-session-token'];
+  if (!token || !sessions[token]) return res.status(401).json({ error: 'Unauthorized' });
+  const s = sessions[token];
+  res.json({ codeId: s.codeId, name: s.name, role: s.role });
+});
+
+// ── Middleware: verifikasi token ───────────────────────────────────────────
+function requireAuth(req, res, next) {
+  const token = req.headers['x-session-token'];
+  if (!token || !sessions[token]) return res.status(401).json({ error: 'Unauthorized' });
+  req.session = sessions[token];
+  next();
+}
+
+// ── POST /api/user/save ────────────────────────────────────────────────────
+app.post('/api/user/save', requireAuth, async (req, res) => {
+  const { codeId } = req.session;
+  const { data: payload } = req.body;
+  if (!codeId || !payload) return res.status(400).json({ error: 'Invalid' });
+  const { error } = await supabaseAdmin
+    .from('user_data')
+    .upsert({ code_id: codeId, data: payload }, { onConflict: 'code_id' });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// ── GET /api/user/load ─────────────────────────────────────────────────────
+app.get('/api/user/load', requireAuth, async (req, res) => {
+  const { codeId } = req.session;
+  if (!codeId) return res.status(400).json({ error: 'Invalid' });
+  const { data, error } = await supabaseAdmin
+    .from('user_data')
+    .select('data')
+    .eq('code_id', codeId)
+    .single();
+  if (error && error.code !== 'PGRST116') return res.status(500).json({ error: error.message });
+  res.json({ data: data?.data || null });
+});
+
+// ── POST /api/admin/codes ──────────────────────────────────────────────────
+app.post('/api/admin/codes', requireAuth, async (req, res) => {
+  if (req.session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const { name } = req.body;
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const { data, error } = await supabaseAdmin
+    .from('member_codes')
+    .insert({ code, name: name?.trim() || '', is_active: true })
+    .select()
+    .single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ code: data.code, id: data.id });
+});
+
+// ── GET /api/admin/members ─────────────────────────────────────────────────
+app.get('/api/admin/members', requireAuth, async (req, res) => {
+  if (req.session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const { data: codes } = await supabaseAdmin.from('member_codes').select('*').order('created_at', { ascending: false });
+  const { data: users } = await supabaseAdmin.from('user_data').select('*').order('updated_at', { ascending: false });
+  res.json({ codes: codes || [], users: users || [] });
+});
+
+// ── PATCH /api/admin/codes/:id ─────────────────────────────────────────────
+app.patch('/api/admin/codes/:id', requireAuth, async (req, res) => {
+  if (req.session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const { id } = req.params;
+  const { is_active, name } = req.body;
+  const update = {};
+  if (is_active !== undefined) update.is_active = is_active;
+  if (name !== undefined) update.name = name;
+  const { error } = await supabaseAdmin.from('member_codes').update(update).eq('id', id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// ── DELETE /api/admin/codes/:id ────────────────────────────────────────────
+app.delete('/api/admin/codes/:id', requireAuth, async (req, res) => {
+  if (req.session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const { error } = await supabaseAdmin.from('member_codes').delete().eq('id', req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
 
 // ── Journal Enhance ────────────────────────────────────────────
 app.post('/api/journal/enhance', async (req, res) => {
