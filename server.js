@@ -2,17 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
-import ws from 'ws';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // ── Supabase admin client (service role — server only) ──────────
+// Node 20+ has native WebSocket — no need to pass ws manually
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY,
-  { realtime: { transport: ws } }
+  process.env.SUPABASE_SERVICE_KEY
 );
 
 // ── Model AI ────────────────────────────────────────────────────
