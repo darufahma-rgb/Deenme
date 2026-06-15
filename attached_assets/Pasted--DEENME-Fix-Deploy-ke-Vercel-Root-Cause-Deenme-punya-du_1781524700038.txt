@@ -1,0 +1,458 @@
+# DEENME — Fix Deploy ke Vercel
+
+## Root Cause
+Deenme punya dua bagian:
+1. **Frontend** (Vite/React) → bisa di Vercel
+2. **Backend** (Express server.js) → TIDAK bisa di Vercel static hosting
+
+Solusi: pisahkan keduanya.
+- Frontend → Vercel
+- Backend API → Vercel Serverless Functions (pakai folder `/api`)
+
+---
+
+## Opsi yang Dipilih: Vercel Serverless Functions
+
+Tidak perlu pindah platform. Vercel support serverless functions
+di folder `/api` — setiap file jadi endpoint otomatis.
+
+---
+
+## Step 1 — Buat folder `api/` di root project
+
+Buat file-file berikut:
+
+### `api/auth/login.js`
+```js
+import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+// Simple in-memory rate limit (reset per cold start)
+const attempts = {};
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
+  const now = Date.now();
+  attempts[ip] = (attempts[ip] || []).filter(t => now - t < 15 * 60 * 1000);
+  if (attempts[ip].length >= 10) {
+    return res.status(429).json({ error: 'rate_limit', message: 'Terlalu banyak percobaan. Tunggu 15 menit.' });
+  }
+  attempts[ip].push(now);
+
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Kode tidak valid' });
+
+  const clean = String(code).trim();
+
+  // Admin (12 karakter)
+  if (clean.length === 12) {
+    const { data } = await supabase.from('admin_codes').select('id').eq('code', clean).single();
+    if (!data) return res.status(401).json({ error: 'Kode admin tidak valid' });
+    const token = crypto.randomBytes(32).toString('hex');
+    // Simpan ke KV atau cookie — untuk serverless pakai JWT
+    const payload = Buffer.from(JSON.stringify({ role: 'admin', codeId: null, name: 'Admin', iat: Date.now() })).toString('base64');
+    return res.json({ token: payload, name: 'Admin', role: 'admin', codeId: null });
+  }
+
+  if (!/^\d{6}$/.test(clean)) return res.status(400).json({ error: 'Format tidak valid' });
+
+  const { data, error } = await supabase
+    .from('member_codes').select('id, name, is_active').eq('code', clean).single();
+
+  if (error || !data) return res.status(401).json({ error: 'Kode tidak ditemukan' });
+  if (!data.is_active) return res.status(403).json({ error: 'Kode tidak aktif' });
+
+  const payload = Buffer.from(JSON.stringify({
+    role: 'member', codeId: data.id, name: data.name || 'Akhi', iat: Date.now()
+  })).toString('base64');
+
+  return res.json({ token: payload, name: data.name || 'Akhi', role: 'member', codeId: data.id });
+}
+```
+
+### `api/user/data.js`
+```js
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+function getSession(req) {
+  const token = req.headers['x-session-token'];
+  if (!token) return null;
+  try {
+    return JSON.parse(Buffer.from(token, 'base64').toString());
+  } catch { return null; }
+}
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { codeId } = session;
+
+  if (req.method === 'GET') {
+    if (!codeId) return res.json({ data: null });
+    const { data } = await supabase.from('user_data').select('data').eq('code_id', codeId).single();
+    return res.json({ data: data?.data || null });
+  }
+
+  if (req.method === 'POST') {
+    if (!codeId) return res.status(400).json({ error: 'No codeId' });
+    const { payload } = req.body;
+    await supabase.from('user_data').upsert({ code_id: codeId, data: payload }, { onConflict: 'code_id' });
+    return res.json({ ok: true });
+  }
+
+  res.status(405).end();
+}
+```
+
+### `api/auth/me.js`
+```js
+function getSession(req) {
+  try {
+    const token = req.headers['x-session-token'];
+    return JSON.parse(Buffer.from(token, 'base64').toString());
+  } catch { return null; }
+}
+
+export default function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+  // Validasi tidak expired (7 hari)
+  if (Date.now() - session.iat > 7 * 24 * 60 * 60 * 1000) {
+    return res.status(401).json({ error: 'Session expired' });
+  }
+  res.json({ codeId: session.codeId, name: session.name, role: session.role });
+}
+```
+
+### `api/admin/members.js`
+```js
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+function getSession(req) {
+  try { return JSON.parse(Buffer.from(req.headers['x-session-token'], 'base64').toString()); }
+  catch { return null; }
+}
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session || session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+
+  if (req.method === 'GET') {
+    const [{ data: codes }, { data: users }] = await Promise.all([
+      supabase.from('member_codes').select('*').order('created_at', { ascending: false }),
+      supabase.from('user_data').select('*').order('updated_at', { ascending: false }),
+    ]);
+    return res.json({ codes: codes || [], users: users || [] });
+  }
+
+  if (req.method === 'POST') {
+    const { name } = req.body;
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const { data, error } = await supabase
+      .from('member_codes').insert({ code, name: name?.trim() || '', is_active: true }).select().single();
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ code: data.code, id: data.id, name: data.name });
+  }
+
+  res.status(405).end();
+}
+```
+
+### `api/admin/members/[id].js`
+```js
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+function getSession(req) {
+  try { return JSON.parse(Buffer.from(req.headers['x-session-token'], 'base64').toString()); }
+  catch { return null; }
+}
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session || session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+
+  const { id } = req.query;
+
+  if (req.method === 'PATCH') {
+    const update = {};
+    if (req.body.is_active !== undefined) update.is_active = req.body.is_active;
+    if (req.body.name !== undefined) update.name = req.body.name;
+    await supabase.from('member_codes').update(update).eq('id', id);
+    return res.json({ ok: true });
+  }
+
+  if (req.method === 'DELETE') {
+    await supabase.from('member_codes').delete().eq('id', id);
+    return res.json({ ok: true });
+  }
+
+  res.status(405).end();
+}
+```
+
+### `api/ai/journal.js`
+```js
+function getSession(req) {
+  try { return JSON.parse(Buffer.from(req.headers['x-session-token'], 'base64').toString()); }
+  catch { return null; }
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { text } = req.body;
+  if (!text || text.length < 10) return res.status(400).json({ error: 'Teks terlalu singkat' });
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.OPENROUTER_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://deenme.app',
+    },
+    body: JSON.stringify({
+      model: 'anthropic/claude-sonnet-4-5',
+      messages: [
+        { role: 'system', content: 'Rapikan catatan jurnal Muslim ini. Pertahankan makna asli. Output markdown langsung tanpa pengantar.' },
+        { role: 'user', content: text },
+      ],
+      max_tokens: 2000,
+    }),
+  });
+
+  const data = await response.json();
+  const result = data.choices?.[0]?.message?.content;
+  if (!result) return res.status(500).json({ error: 'No response' });
+  res.json({ result });
+}
+```
+
+### `api/ai/dream.js`
+```js
+function getSession(req) {
+  try { return JSON.parse(Buffer.from(req.headers['x-session-token'], 'base64').toString()); }
+  catch { return null; }
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { text } = req.body;
+  if (!text || text.length < 10) return res.status(400).json({ error: 'Cerita terlalu singkat' });
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.OPENROUTER_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://deenme.app',
+    },
+    body: JSON.stringify({
+      model: 'anthropic/claude-sonnet-4-5',
+      messages: [
+        { role: 'system', content: 'Tafsirkan mimpi Islam berdasarkan Ibnu Sirin dan psikologi Jung. Format Markdown: perspektif Islam, psikologi, nasihat amalan. 300-500 kata. Bukan ramalan.' },
+        { role: 'user', content: `Mimpi saya: ${text}` },
+      ],
+      max_tokens: 1500,
+    }),
+  });
+
+  const data = await response.json();
+  const result = data.choices?.[0]?.message?.content;
+  if (!result) return res.status(500).json({ error: 'No response' });
+  res.json({ result });
+}
+```
+
+### `api/dreams/index.js`
+```js
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+function getSession(req) {
+  try { return JSON.parse(Buffer.from(req.headers['x-session-token'], 'base64').toString()); }
+  catch { return null; }
+}
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+  const { codeId } = session;
+
+  if (req.method === 'GET') {
+    const { data } = await supabase.from('dream_tafsir').select('*')
+      .eq('code_id', codeId).order('created_at', { ascending: false }).limit(20);
+    return res.json({ dreams: data || [] });
+  }
+
+  if (req.method === 'POST') {
+    const { dream_text, tafsir_result } = req.body;
+    const { data } = await supabase.from('dream_tafsir')
+      .insert({ code_id: codeId, dream_text, tafsir_result }).select().single();
+    return res.json({ dream: data });
+  }
+
+  res.status(405).end();
+}
+```
+
+### `api/dreams/[id].js`
+```js
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+function getSession(req) {
+  try { return JSON.parse(Buffer.from(req.headers['x-session-token'], 'base64').toString()); }
+  catch { return null; }
+}
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (req.method === 'DELETE') {
+    await supabase.from('dream_tafsir').delete().eq('id', req.query.id);
+    return res.json({ ok: true });
+  }
+  res.status(405).end();
+}
+```
+
+---
+
+## Step 2 — Buat `vercel.json` di root project
+
+```json
+{
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+---
+
+## Step 3 — Tambah env vars di Vercel Dashboard
+
+Vercel Dashboard → Project → Settings → Environment Variables:
+
+```
+VITE_SUPABASE_URL      = https://uhpsopminpewirkmloiv.supabase.co
+SUPABASE_SERVICE_KEY   = [service role key dari Supabase]
+OPENROUTER_KEY         = [openrouter key lu]
+```
+
+**Jangan** tambah `VITE_SUPABASE_ANON_KEY` — sudah tidak diperlukan lagi.
+
+---
+
+## Step 4 — Update `vite.config.js`
+
+Hapus blok `proxy` — tidak diperlukan di production Vercel:
+
+```js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: '0.0.0.0',
+    port: 5000,
+    allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
+})
+```
+
+Biarkan seperti ini — proxy tetap ada untuk dev di Replit, tapi di Vercel production `/api` akan diarahkan ke serverless functions otomatis.
+
+---
+
+## Step 5 — Deploy
+
+```bash
+# Push ke GitHub dulu
+git add .
+git commit -m "feat: vercel serverless functions + security"
+git push
+
+# Atau deploy langsung dari Vercel CLI
+npx vercel --prod
+```
+
+---
+
+## Struktur folder akhir
+
+```
+Deenme-main/
+├── api/
+│   ├── auth/
+│   │   ├── login.js
+│   │   └── me.js
+│   ├── user/
+│   │   └── data.js
+│   ├── admin/
+│   │   ├── members.js
+│   │   └── members/[id].js
+│   ├── ai/
+│   │   ├── journal.js
+│   │   └── dream.js
+│   └── dreams/
+│       ├── index.js
+│       └── [id].js
+├── src/
+│   └── ... (React app)
+├── vercel.json
+└── vite.config.js
+```
+
+## File yang dibuat/diubah
+- `api/**` — semua endpoint baru (serverless functions)
+- `vercel.json` — config routing Vercel
+- `server.js` — tetap ada untuk dev di Replit, tidak dipakai di Vercel

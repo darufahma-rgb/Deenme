@@ -147,7 +147,7 @@ export function AdminPage({ onLogout }) {
   const generateCode = async () => {
     if (!name.trim() || loading) return;
     setLoading(true);
-    const res = await serverFetch('/api/admin/codes', {
+    const res = await serverFetch('/api/admin/members', {
       method: 'POST',
       body: JSON.stringify({ name: name.trim() }),
     });
@@ -161,7 +161,7 @@ export function AdminPage({ onLogout }) {
   };
 
   const toggleActive = async (id, current) => {
-    await serverFetch(`/api/admin/codes/${id}`, {
+    await serverFetch(`/api/admin/members/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ is_active: !current }),
     });
@@ -170,7 +170,7 @@ export function AdminPage({ onLogout }) {
 
   const deleteCode = async (id) => {
     if (!confirm('Hapus kode ini? User tidak bisa login lagi.')) return;
-    await serverFetch(`/api/admin/codes/${id}`, { method: 'DELETE' });
+    await serverFetch(`/api/admin/members/${id}`, { method: 'DELETE' });
     loadAll();
   };
 

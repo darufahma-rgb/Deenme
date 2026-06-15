@@ -319,7 +319,7 @@ export default function App() {
   useEffect(() => {
     if (!codeId) return;
     const load = async () => {
-      const res = await serverFetch('/api/user/load');
+      const res = await serverFetch('/api/user/data');
       if (!res.ok) return;
       const { data } = await res.json();
       if (!data) {
@@ -358,9 +358,9 @@ export default function App() {
         streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone, qadhaDebt,
         lastSaved: new Date().toISOString(),
       };
-      await serverFetch('/api/user/save', {
+      await serverFetch('/api/user/data', {
         method: 'POST',
-        body: JSON.stringify({ data: payload }),
+        body: JSON.stringify({ payload }),
       });
     }, 2000);
     return () => clearTimeout(timeout);
@@ -425,9 +425,9 @@ export default function App() {
     setTimezone(tzValue);
     localStorage.setItem('deenme-timezone', tzValue);
     setShowOnboarding(false);
-    serverFetch('/api/user/save', {
+    serverFetch('/api/user/data', {
       method: 'POST',
-      body: JSON.stringify({ data: { hasOnboarded: true, lastSaved: new Date().toISOString() } }),
+      body: JSON.stringify({ payload: { hasOnboarded: true, lastSaved: new Date().toISOString() } }),
     });
   };
 

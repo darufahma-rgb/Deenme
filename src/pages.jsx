@@ -3,7 +3,6 @@ import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Icon } from './ui.jsx';
 import { BADGES, getLevel, getGrade, calcDailyPoints, calcMaxPoints, IBADAH_POINTS } from './dashboard.jsx';
-import { supabase } from './supabase.js';
 
 const WAKTU_ICONS = {
   tahajud: (
@@ -187,10 +186,11 @@ function JournalContent({ go, codeId }) {
 
     setAiLoading(true);
     try {
-      const response = await fetch('/api/journal/enhance', {
+      const token = sessionStorage.getItem('dm-token');
+      const response = await fetch('/api/ai/journal', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: rawText, codeId }),
+        headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+        body: JSON.stringify({ text: rawText }),
       });
 
       if (response.status === 503) {
@@ -368,13 +368,9 @@ function TafsirMimpiPage({ codeId }) {
   useEffect(() => {
     if (!codeId) { setLoadingHistory(false); return; }
     const load = async () => {
-      const { data } = await supabase
-        .from('dream_tafsir')
-        .select('*')
-        .eq('code_id', codeId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-      setHistory(data || []);
+      const res = await fetch('/api/dreams', { headers: { 'x-session-token': sessionStorage.getItem('dm-token') } });
+      const { dreams } = await res.json();
+      setHistory(dreams);
       setLoadingHistory(false);
     };
     load();
@@ -388,10 +384,11 @@ function TafsirMimpiPage({ codeId }) {
     setSelectedHistory(null);
 
     try {
-      const response = await fetch('/api/dream/tafsir', {
+      const token = sessionStorage.getItem('dm-token');
+      const response = await fetch('/api/ai/dream', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, codeId }),
+        headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+        body: JSON.stringify({ text }),
       });
 
       if (response.status === 503) {
@@ -415,11 +412,12 @@ function TafsirMimpiPage({ codeId }) {
         // Tandai sudah digunakan hari ini
         localStorage.setItem(limitKey, todayKey);
         if (codeId) {
-          const { data: saved } = await supabase
-            .from('dream_tafsir')
-            .insert({ code_id: codeId, dream_text: text, tafsir_result: tafsir })
-            .select()
-            .single();
+          const saveRes = await fetch('/api/dreams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-session-token': sessionStorage.getItem('dm-token') },
+            body: JSON.stringify({ dream_text: text, tafsir_result: tafsir }),
+          });
+          const { dream: saved } = await saveRes.json();
           if (saved) setHistory(prev => [saved, ...prev]);
         }
       }
@@ -432,7 +430,10 @@ function TafsirMimpiPage({ codeId }) {
   };
 
   const deleteHistory = async (id) => {
-    await supabase.from('dream_tafsir').delete().eq('id', id);
+    await fetch(`/api/dreams/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-session-token': sessionStorage.getItem('dm-token') },
+    });
     setHistory(prev => prev.filter(h => h.id !== id));
     if (selectedHistory?.id === id) setSelectedHistory(null);
   };
@@ -1390,10 +1391,11 @@ function DoaSituasional({ allDoa, onSelect, codeId }) {
     }
 
     try {
-      const res = await fetch('/api/doa/situasional', {
+      const token = sessionStorage.getItem('dm-token');
+      const res = await fetch('/api/ai/doa', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ situasi: text, codeId }),
+        headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+        body: JSON.stringify({ situasi: text }),
       });
 
       if (res.status === 429) {
