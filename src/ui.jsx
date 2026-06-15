@@ -136,7 +136,7 @@ export function Rail({ page, go, onLogout, timezone, changeTimezone, timezoneOpt
             height: 28,
             objectFit: 'contain',
             display: 'block',
-            filter: 'brightness(0) saturate(100%) invert(28%) sepia(30%) saturate(800%) hue-rotate(95deg) brightness(85%)',
+            filter: 'brightness(0) saturate(100%) invert(55%) sepia(17%) saturate(800%) hue-rotate(70deg) brightness(92%)',
           }}
         />
       </div>
