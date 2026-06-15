@@ -1,0 +1,76 @@
+PROMPT UNTUK REPLIT — salin semua dari sini:
+TUGAS: Tambahkan card hadiah eksklusif member Talqeeh di dashboard dan banner preview di landing page
+Bagian 1 — Dashboard (src/pages/dashboard.jsx)
+Tambahkan komponen card hadiah baru setelah komponen RecentMaddahRow. Buat komponen bernama HadiahMemberCard:
+jsxconst HadiahMemberCard = ({ member }) => {
+  const kode = member?.code || "";
+  const handleKlaim = () => {
+    window.open(`https://deenmee.vercel.app?ref=${kode}`, "_blank");
+  };
+
+  return (
+    <section className="pb-6">
+      <div className="container-x">
+        <Reveal>
+          <div className="card-glass-strong p-5 rounded-2xl border border-gold-500/20 bg-gradient-to-br from-gold-900/20 to-night-900/40">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-[0.2em] text-gold-400 mb-2 flex items-center gap-2">
+                  <span className="w-5 h-px bg-gold-500/60"/>
+                  Hadiah Eksklusif Member
+                </div>
+                <div className="font-display text-lg font-semibold text-ink mb-1">
+                  Kamu dapat akses gratis! 🎁
+                </div>
+                <div className="text-sm text-ink-muted mb-3">
+                  Sebagai member Talqeeh, kamu dapat akses eksklusif ke platform Deenmee. Gunakan kode di bawah untuk klaim.
+                </div>
+                <div className="font-mono text-gold-300 text-lg tracking-widest bg-white/5 px-4 py-2 rounded-lg inline-block mb-4">
+                  {kode}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleKlaim}
+              className="btn btn-primary w-full"
+            >
+              Klaim Hadiah Sekarang →
+            </button>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+};
+Lalu panggil komponen ini di dalam return utama dashboard, setelah <RecentMaddahRow />:
+jsx<HadiahMemberCard member={member} />
+
+Bagian 2 — Landing Page (src/pages/home.jsx atau file landing page)
+Tambahkan banner preview hadiah member. Cari section fitur atau section sebelum CTA utama, tambahkan komponen berikut:
+jsxconst HadiahPreviewBanner = () => (
+  <section className="py-8">
+    <div className="container-x">
+      <Reveal>
+        <div className="card-glass p-5 rounded-2xl border border-gold-500/20 text-center">
+          <div className="text-xs uppercase tracking-[0.2em] text-gold-400 mb-2">
+            Eksklusif untuk Member Talqeeh
+          </div>
+          <div className="font-display text-xl font-semibold text-ink mb-2">
+            🎁 Hadiah Spesial Menanti Kamu
+          </div>
+          <div className="text-sm text-ink-muted max-w-sm mx-auto">
+            Setiap member Talqeeh mendapatkan akses eksklusif ke platform partner kami. Login untuk klaim hadiahmu.
+          </div>
+        </div>
+      </Reveal>
+    </div>
+  </section>
+);
+Panggil <HadiahPreviewBanner /> di landing page sebelum section CTA utama.
+
+Verifikasi:
+
+Login sebagai member → dashboard → card hadiah muncul dengan kode member
+Klik tombol "Klaim Hadiah Sekarang" → terbuka tab baru ke https://deenmee.vercel.app?ref=KODE_MEMBER
+Buka landing page → banner preview muncul tanpa tombol klaim
+Laporkan hasilnya.
