@@ -1,0 +1,96 @@
+DEENME — SECURITY: Pindah Admin Code ke Environment Variable
+Move admin code validation from database to server-side environment variable for better security.
+
+STEP 1 — Tambah env var di Vercel:
+Di Vercel Dashboard → Project → Settings → Environment Variables, tambahkan:
+ADMIN_CODE=kode_admin_lo_disini
+Di Replit Secrets, tambahkan juga:
+ADMIN_CODE=kode_admin_lo_disini
+
+STEP 2 — Update /api/auth/login.js di server:
+jsimport { SignJWT } from 'jose';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+const ADMIN_CODE = process.env.ADMIN_CODE;
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Kode tidak boleh kosong' });
+
+  // ── Cek admin code dari env (bukan database) ──
+  if (ADMIN_CODE && code === ADMIN_CODE) {
+    const token = await new SignJWT({ role: 'admin', codeId: 'admin' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('7d')
+      .sign(JWT_SECRET);
+
+    return res.status(200).json({
+      token,
+      name: 'Admin',
+      role: 'admin',
+      codeId: 'admin',
+    });
+  }
+
+  // ── Cek member code dari Supabase ──
+  const { data: member, error } = await supabase
+    .from('member_codes')
+    .select('id, name, is_active')
+    .eq('code', code)
+    .single();
+
+  if (error || !member) {
+    return res.status(401).json({ error: 'Kode tidak valid' });
+  }
+
+  if (!member.is_active) {
+    return res.status(403).json({ error: 'Kode tidak aktif' });
+  }
+
+  const token = await new SignJWT({ role: 'member', codeId: member.id })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('7d')
+    .sign(JWT_SECRET);
+
+  return res.status(200).json({
+    token,
+    name: member.name,
+    role: 'member',
+    codeId: member.id,
+  });
+}
+
+STEP 3 — Hapus admin code dari Supabase database:
+Jalankan di Supabase SQL Editor:
+sql-- Hapus tabel admin_codes jika tidak dipakai lagi
+DROP TABLE IF EXISTS admin_codes;
+
+-- Atau jika mau keep tabelnya, hapus isinya saja:
+-- DELETE FROM admin_codes;
+
+STEP 4 — Update AdminPage.jsx — hapus referensi admin_codes table:
+Cari di AdminPage.jsx jika ada query ke tabel admin_codes dan hapus. Admin auth sekarang murni dari env variable.
+
+STEP 5 — Verifikasi di server.js atau middleware:
+Pastikan tidak ada lagi query ke admin_codes table di file manapun:
+js// HAPUS atau comment out jika ada:
+// const { data } = await supabase.from('admin_codes').select('code')...
+// Ganti dengan:
+// if (code === process.env.ADMIN_CODE) { ... }
+
+IMPORTANT:
+
+ADMIN_CODE hanya ada di env Vercel dan Replit Secrets — tidak pernah di client-side code
+Admin code tidak bisa diakses via browser atau API response
+Jika ADMIN_CODE env tidak diset, admin login otomatis disabled
+Member code tetap di Supabase seperti biasa — tidak berubah
+Setelah deploy, test login admin dengan kode baru dari env
+Ganti kode admin lama dengan yang baru dan lebih panjang (minimal 12 karakter, kombinasi huruf + angka)

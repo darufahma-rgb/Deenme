@@ -79,13 +79,17 @@ app.post('/api/auth/login', async (req, res) => {
 
   const clean = code.trim();
 
-  // Admin (12 karakter)
-  if (clean.length === 12) {
-    const { data } = await supabaseAdmin.from('admin_codes').select('id').eq('code', clean).single();
-    if (!data) return res.status(401).json({ error: 'Kode admin tidak valid' });
+  // Admin — cek dari env variable (tidak menyentuh database)
+  const ADMIN_CODE = process.env.ADMIN_CODE;
+  if (ADMIN_CODE && clean === ADMIN_CODE) {
     const token = crypto.randomBytes(32).toString('hex');
     sessions[token] = { role: 'admin', codeId: null, name: 'Admin', createdAt: Date.now() };
     return res.json({ token, name: 'Admin', role: 'admin', codeId: null });
+  }
+
+  // Jika tidak ada ADMIN_CODE di env, admin login dinonaktifkan
+  if (!ADMIN_CODE && clean.length !== 6) {
+    return res.status(503).json({ error: 'Admin login tidak tersedia. Set ADMIN_CODE di environment.' });
   }
 
   // Member (6 digit angka)
