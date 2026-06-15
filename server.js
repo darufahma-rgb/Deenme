@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import ws from 'ws';
 
 const app = express();
 app.use(cors());
@@ -36,7 +37,8 @@ function markUsed(codeId, feature) {
 // ── Supabase Admin (service role — server only) ──────────────────────────
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  process.env.SUPABASE_SERVICE_KEY,
+  { realtime: { transport: ws } }
 );
 
 // ── Session store ─────────────────────────────────────────────────────────
