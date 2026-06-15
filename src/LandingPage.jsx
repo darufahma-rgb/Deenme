@@ -157,16 +157,7 @@ export function LandingPage({ onEnter }) {
             </div>
           </div>
 
-          {/* Arabic — di atas judul */}
-          <div style={{
-            fontFamily: 'var(--f-ar)',
-            fontSize: isMobile ? 14 : 'clamp(14px, 2vw, 18px)',
-            color: 'rgba(62,207,142,.6)', direction: 'rtl',
-            marginBottom: isMobile ? 18 : 24,
-            opacity: mounted ? .8 : 0, transition: 'opacity .6s .1s',
-          }}>
-            بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
-          </div>
+
 
           {/* Headline */}
           <h1 style={{
