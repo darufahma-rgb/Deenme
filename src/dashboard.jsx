@@ -93,13 +93,125 @@ export const MISI_PER_SHOLAT = {
 };
 
 export const BADGES = [
-  { id: 'subuh-7', name: 'Penjaga Fajar', nameAr: 'حَارِسُ الفَجْر', icon: '🌅', desc: 'Selesaikan semua misi Subuh 7 hari berturut-turut', condition: { type: 'streak-prayer', prayer: 'subuh', streak: 7 } },
-  { id: 'dzikir-pagi-30', name: 'Lidah yang Basah', nameAr: 'اللِّسَانُ الرَّطْب', icon: '💧', desc: 'Selesaikan dzikir pagi 30 hari', condition: { type: 'misi-count', misiId: 'subuh-sayyidul-istighfar', count: 30 } },
-  { id: 'rawatib-complete', name: 'Ahli Sunnah', nameAr: 'صَاحِبُ السُّنَّة', icon: '⭐', desc: 'Selesaikan semua rawatib dalam satu hari', condition: { type: 'rawatib-complete' } },
-  { id: 'witir-streak-7', name: 'Penutup Malam', nameAr: 'خَاتِمُ اللَّيْل', icon: '🌙', desc: 'Sholat Witir 7 hari berturut-turut', condition: { type: 'streak-misi', misiId: 'isya-witir', streak: 7 } },
-  { id: 'all-misi-complete', name: 'Hari Sempurna', nameAr: 'يَوْمٌ كَامِل', icon: '🏆', desc: 'Selesaikan semua misi dalam satu hari', condition: { type: 'all-complete' } },
-  { id: 'level-mutawassit', name: 'Mutawassit', nameAr: 'مُتَوَسِّط', icon: '🥈', desc: 'Capai 500 poin amal', condition: { type: 'points', points: 500 } },
-  { id: 'level-mutaqaddim', name: 'Mutaqaddim', nameAr: 'مُتَقَدِّم', icon: '🥇', desc: 'Capai 1000 poin amal', condition: { type: 'points', points: 1000 } },
+  // ── Sholat ──────────────────────────────────────────────────
+  {
+    id: 'subuh-7', icon: '🌅',
+    name: 'Penjaga Fajar', nameAr: 'حَارِسُ الفَجْر',
+    desc: 'Selesaikan semua misi Subuh 7 hari berturut-turut',
+    condition: { type: 'streak-prayer', prayer: 'subuh', streak: 7 },
+  },
+  {
+    id: 'sholat-5-week', icon: '🕌',
+    name: 'Penjaga Lima Waktu', nameAr: 'مُحَافِظُ الصَّلَوَات',
+    desc: 'Catat 5 waktu sholat lengkap selama 7 hari berturut-turut',
+    condition: { type: 'all-prayers-streak', streak: 7 },
+  },
+  {
+    id: 'tahajud-7', icon: '🌙',
+    name: 'Ahli Tahajud', nameAr: 'قَائِمُ اللَّيْل',
+    desc: 'Catat sholat Tahajud 7 kali',
+    condition: { type: 'prayer-count', prayer: 'tahajud', count: 7 },
+  },
+
+  // ── Dzikir & Amalan ─────────────────────────────────────────
+  {
+    id: 'dzikir-pagi-30', icon: '💧',
+    name: 'Lidah yang Basah', nameAr: 'اللِّسَانُ الرَّطْب',
+    desc: 'Selesaikan dzikir pagi 30 kali',
+    condition: { type: 'misi-count', misiId: 'subuh-sayyidul-istighfar', count: 30 },
+  },
+  {
+    id: 'rawatib-complete', icon: '⭐',
+    name: 'Ahli Sunnah', nameAr: 'صَاحِبُ السُّنَّة',
+    desc: 'Selesaikan semua rawatib dalam satu hari',
+    condition: { type: 'rawatib-complete' },
+  },
+  {
+    id: 'witir-streak-7', icon: '🌙',
+    name: 'Penutup Malam', nameAr: 'خَاتِمُ اللَّيْل',
+    desc: 'Sholat Witir 7 hari berturut-turut',
+    condition: { type: 'streak-misi', misiId: 'isya-witir', streak: 7 },
+  },
+  {
+    id: 'all-misi-complete', icon: '🏆',
+    name: 'Hari Sempurna', nameAr: 'يَوْمٌ كَامِل',
+    desc: 'Selesaikan semua misi dalam satu hari',
+    condition: { type: 'all-complete' },
+  },
+  {
+    id: 'dhuha-7', icon: '☀️',
+    name: 'Pencinta Dhuha', nameAr: 'مُحِبُّ الضُّحَى',
+    desc: 'Sholat Dhuha 7 kali',
+    condition: { type: 'sunnah-count', sunnahId: 'Dhuha', count: 7 },
+  },
+
+  // ── Streak ──────────────────────────────────────────────────
+  {
+    id: 'streak-3', icon: '🔥',
+    name: 'Api Kecil', nameAr: 'شَرَارَةٌ صَغِيرَة',
+    desc: 'Jaga streak 3 hari berturut-turut',
+    condition: { type: 'streak', streak: 3 },
+  },
+  {
+    id: 'streak-7', icon: '🔥',
+    name: 'Api Membara', nameAr: 'نَارٌ مُتَّقِدَة',
+    desc: 'Jaga streak 7 hari berturut-turut',
+    condition: { type: 'streak', streak: 7 },
+  },
+  {
+    id: 'streak-30', icon: '🌋',
+    name: 'Api Abadi', nameAr: 'نَارٌ خَالِدَة',
+    desc: 'Jaga streak 30 hari berturut-turut',
+    condition: { type: 'streak', streak: 30 },
+  },
+
+  // ── XP & Rank ───────────────────────────────────────────────
+  {
+    id: 'level-mutawassit', icon: '🥈',
+    name: 'Mutawassit', nameAr: 'مُتَوَسِّط',
+    desc: 'Capai Rank C — 300 poin amal',
+    condition: { type: 'points', points: 300 },
+  },
+  {
+    id: 'level-mutaqaddim', icon: '🥇',
+    name: 'Mutaqaddim', nameAr: 'مُتَقَدِّم',
+    desc: 'Capai Rank B — 600 poin amal',
+    condition: { type: 'points', points: 600 },
+  },
+  {
+    id: 'level-muttaqin', icon: '💎',
+    name: 'Muttaqin', nameAr: 'مُتَّقِن',
+    desc: 'Capai Rank A — 1000 poin amal',
+    condition: { type: 'points', points: 1000 },
+  },
+  {
+    id: 'level-wali', icon: '👑',
+    name: 'Wali', nameAr: 'وَلِيّ',
+    desc: 'Capai Rank S — 2000 poin amal',
+    condition: { type: 'points', points: 2000 },
+  },
+
+  // ── Jurnal ──────────────────────────────────────────────────
+  {
+    id: 'journal-first', icon: '📖',
+    name: 'Penulis Perdana', nameAr: 'الكَاتِبُ الأَوَّل',
+    desc: 'Tulis jurnal pertama kali',
+    condition: { type: 'journal-count', count: 1 },
+  },
+  {
+    id: 'journal-7', icon: '📝',
+    name: 'Penulis Istiqamah', nameAr: 'الكَاتِبُ المُدَاوِم',
+    desc: 'Tulis jurnal 7 kali',
+    condition: { type: 'journal-count', count: 7 },
+  },
+
+  // ── Bank Doa ────────────────────────────────────────────────
+  {
+    id: 'bookmark-5', icon: '🤲',
+    name: 'Pengamal Doa', nameAr: 'صَاحِبُ الدُّعَاء',
+    desc: 'Simpan 5 doa ke bookmark',
+    condition: { type: 'bookmark-count', count: 5 },
+  },
 ];
 
 export function getLevel(pts) {

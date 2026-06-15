@@ -101,18 +101,37 @@ function showLevelUp(rank) {
 }
 
 // ── Helper: check badge conditions ──────────────────────────────────────────
-function checkBadges(misiDone, totalPoints, current) {
+function checkBadges(misiDone, totalPoints, streak, sunnah, unlockedBadges, bookmarks) {
   const add = [];
+  const cur = unlockedBadges || [];
+
+  const has = (id) => cur.includes(id);
+  const push = (id) => { if (!has(id)) add.push(id); };
+
+  // Rawatib complete
   const rawatibIds = ['subuh-rawatib-qabl','dzuhur-rawatib-qabl','dzuhur-rawatib-bad','maghrib-rawatib-bad','isya-rawatib-bad'];
+  if (rawatibIds.every(id => misiDone[id])) push('rawatib-complete');
 
-  const allComplete = Object.values(MISI_PER_SHOLAT).every(({ misi }) => misi.every((m) => misiDone[m.id]));
-  if (allComplete && !current.includes('all-misi-complete')) add.push('all-misi-complete');
+  // All misi complete
+  const allComplete = Object.values(MISI_PER_SHOLAT).every(({ misi }) => misi.every(m => misiDone[m.id]));
+  if (allComplete) push('all-misi-complete');
 
-  if (rawatibIds.every((id) => misiDone[id]) && !current.includes('rawatib-complete')) add.push('rawatib-complete');
-
-  BADGES.filter((b) => b.condition.type === 'points').forEach((b) => {
-    if (totalPoints >= b.condition.points && !current.includes(b.id)) add.push(b.id);
+  // Points / rank badges
+  BADGES.filter(b => b.condition.type === 'points').forEach(b => {
+    if (totalPoints >= b.condition.points) push(b.id);
   });
+
+  // Streak badges
+  BADGES.filter(b => b.condition.type === 'streak').forEach(b => {
+    if (streak >= b.condition.streak) push(b.id);
+  });
+
+  // Dhuha sunnah
+  if ((sunnah?.['Dhuha'] || 0) >= 7) push('dhuha-7');
+
+  // Bookmark badges
+  const bmCount = Object.values(bookmarks || {}).filter(Boolean).length;
+  if (bmCount >= 5) push('bookmark-5');
 
   return add;
 }
@@ -429,7 +448,7 @@ export default function App() {
           setTimeout(() => showLevelUp(newRank), 400);
         }
 
-        const newBadges = checkBadges(next, newTp, unlockedBadges);
+        const newBadges = checkBadges(next, newTp, streak, sunnah, unlockedBadges, bookmarks);
         if (newBadges.length > 0) {
           setUnlockedBadges((ub) => {
             const merged = [...ub, ...newBadges];

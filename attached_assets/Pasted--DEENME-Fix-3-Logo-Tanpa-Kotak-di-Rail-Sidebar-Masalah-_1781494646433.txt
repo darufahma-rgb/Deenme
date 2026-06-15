@@ -1,0 +1,98 @@
+# DEENME — Fix 3: Logo Tanpa Kotak di Rail Sidebar
+
+## Masalah
+Logo di Rail sidebar masih pakai background kotak + border.
+Perlu: logo langsung tanpa kotak, warna hijau #386641.
+
+---
+
+## Fix di `src/deenme-theme.css`
+
+### A. Cari dan ganti semua instance `.rail .brand` (ada 3 tempat):
+
+**Instance 1 — sekitar baris 105:**
+```css
+/* SEBELUM */
+.rail .brand { background: var(--gold-soft); border: 1px solid var(--gold-line); color: #386641; }
+
+/* SESUDAH */
+.rail .brand { background: transparent !important; border: none !important; box-shadow: none !important; }
+```
+
+**Instance 2 — sekitar baris 544 (blok multi-line):**
+```css
+/* SEBELUM */
+.rail .brand {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold);
+  font-family: var(--f-ar);
+  font-size: 22px;
+  margin-bottom: 18px;
+  box-shadow: 0 0 20px -6px #2ecc8a;
+}
+
+/* SESUDAH */
+.rail .brand {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 18px;
+}
+```
+
+**Instance 3 — sekitar baris 1788 (dark mode override):**
+```css
+/* SEBELUM */
+.rail .brand { background: var(--gold-soft); border: 1px solid var(--gold-line); color: var(--gold); box-shadow: 0 0 20px -6px #2ecc8a; }
+
+/* SESUDAH */
+.rail .brand { background: transparent !important; border: none !important; box-shadow: none !important; }
+
+/* Tambahkan tepat setelahnya: */
+@media (max-width: 767px) {
+  .rail .brand { display: none !important; }
+}
+```
+
+---
+
+## Fix di `src/ui.jsx`
+
+Cari div `.brand` di komponen `Rail`:
+```jsx
+<div className="brand">د</div>
+```
+
+atau kalau sudah ada img:
+```jsx
+<div className="brand">
+  <img src="./assets/Deenme_logo.png" ...
+```
+
+**Ganti dengan:**
+```jsx
+<div className="brand">
+  <img
+    src="./assets/Deenme_logo.png"
+    alt="Deenme"
+    style={{
+      width: 34,
+      height: 34,
+      filter: 'brightness(0) saturate(100%) invert(28%) sepia(30%) saturate(800%) hue-rotate(95deg) brightness(85%)',
+      display: 'block',
+    }}
+  />
+</div>
+```
+
+---
+
+## File yang diubah
+- `src/deenme-theme.css` — hapus background/border/shadow dari .rail .brand (3 instance)
+- `src/ui.jsx` — ganti konten div .brand dengan img logo
