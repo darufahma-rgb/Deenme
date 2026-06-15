@@ -1236,7 +1236,7 @@ export function DashboardPage({
         {/* Header */}
         <div className="dashboard-header-row" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
           <div>
-            <div style={{ fontFamily: 'var(--f-ar)', direction: 'rtl', color: 'var(--gold)', fontSize: 14, marginBottom: 4 }}>
+            <div style={{ fontFamily: 'var(--f-ar)', color: 'var(--gold)', fontSize: 14, marginBottom: 4 }}>
               {_arDate()}
             </div>
             <h1 className="h1">{_idDate()}</h1>
