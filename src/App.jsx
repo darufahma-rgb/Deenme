@@ -7,7 +7,7 @@ import { LandingPage } from './LandingPage.jsx';
 import { supabase } from './supabase.js';
 import { AdminPage } from './AdminPage.jsx';
 import { ProfilePage } from './ProfilePage.jsx';
-import { OnboardingPage } from './OnboardingPage.jsx';
+import { OnboardingOverlay } from './OnboardingPage.jsx';
 
 // ── Solo Leveling: page transition ───────────────────────────────────────────
 function PageTransition({ viewKey, children }) {
@@ -527,17 +527,12 @@ export default function App() {
   }
 
   return (
-    <div className="deenme-root">
-      <SLParticles />
-      <div className="candle" />
-      <div className="app">
-        <Rail page={view} go={setView} onLogout={onLogout} timezone={timezone} changeTimezone={changeTimezone} timezoneOptions={TIMEZONE_OPTIONS} />
-
-        {showOnboarding && (
-          <OnboardingPage userName={userName} onDone={onOnboardingDone} />
-        )}
-
-        {!showOnboarding && (
+    <>
+      <div className="deenme-root">
+        <SLParticles />
+        <div className="candle" />
+        <div className="app">
+          <Rail page={view} go={setView} onLogout={onLogout} timezone={timezone} changeTimezone={changeTimezone} timezoneOptions={TIMEZONE_OPTIONS} />
           <PageTransition viewKey={view}>
             {(v) => (<>
               {v === 'dashboard' &&
@@ -560,9 +555,13 @@ export default function App() {
               {v === 'profile' && <ProfilePage userName={userName} codeId={codeId} totalPoints={totalPoints} streak={streak} freeze={freeze} prayers={prayers} misiDone={misiDone} unlockedBadges={unlockedBadges} onUpdateName={onUpdateName} onLogout={onLogout} />}
             </>)}
           </PageTransition>
-        )}
+        </div>
+        <BottomNav page={view} go={setView} />
       </div>
-      <BottomNav page={view} go={setView} />
-    </div>
+
+      {showOnboarding && (
+        <OnboardingOverlay userName={userName} onDone={onOnboardingDone} />
+      )}
+    </>
   );
 }

@@ -132,10 +132,11 @@ export function Rail({ page, go, onLogout, timezone, changeTimezone, timezoneOpt
           src="/assets/Deenme_logo.png"
           alt="Deenme"
           style={{
-            width: 34,
-            height: 34,
-            filter: 'brightness(0) saturate(100%) invert(28%) sepia(30%) saturate(800%) hue-rotate(95deg) brightness(85%)',
+            width: 28,
+            height: 28,
+            objectFit: 'contain',
             display: 'block',
+            filter: 'brightness(0) saturate(100%) invert(28%) sepia(30%) saturate(800%) hue-rotate(95deg) brightness(85%)',
           }}
         />
       </div>

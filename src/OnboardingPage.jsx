@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const STEPS = [
   {
@@ -25,24 +25,31 @@ const STEPS = [
     emoji: '🕌',
     ar: 'اخْتَرْ مِنْطَقَتَكَ',
     title: () => 'Pilih Zona Waktumu',
-    desc: 'Deenme mendukung jadwal sholat Cairo dan Tangerang. Pilih sesuai lokasi kamu sekarang — bisa diubah kapan saja di pengaturan.',
+    desc: 'Deenme mendukung jadwal sholat Cairo dan Tangerang. Pilih sesuai lokasimu — bisa diubah kapan saja.',
     cta: 'Masuk ke Deenme →',
     isTz: true,
   },
 ];
 
-export function OnboardingPage({ userName, onDone }) {
-  const [step, setStep]     = useState(0);
-  const [tz, setTz]         = useState('ID');
+export function OnboardingOverlay({ userName, onDone }) {
+  const [step, setStep]       = useState(0);
+  const [tz, setTz]           = useState('ID');
+  const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
 
   const current = STEPS[step];
   const isLast  = step === STEPS.length - 1;
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => setVisible(true));
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
   const next = () => {
     if (isLast) {
       setExiting(true);
-      setTimeout(() => onDone(tz), 400);
+      setTimeout(() => onDone(tz), 380);
     } else {
       setStep(s => s + 1);
     }
@@ -50,19 +57,22 @@ export function OnboardingPage({ userName, onDone }) {
 
   return (
     <div style={{
-      minHeight: '100dvh', display: 'flex', flexDirection: 'column',
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'var(--bg)',
+      display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg)', fontFamily: 'var(--f-head)',
-      padding: '32px 24px',
-      opacity: exiting ? 0 : 1,
-      transition: 'opacity .4s ease',
+      padding: '24px',
+      fontFamily: 'var(--f-head)',
+      opacity: visible && !exiting ? 1 : 0,
+      transition: 'opacity .38s ease',
     }}>
 
       {/* Progress dots */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 48 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 40 }}>
         {STEPS.map((_, i) => (
           <div key={i} style={{
-            width: i === step ? 24 : 8, height: 8,
+            height: 8,
+            width: i === step ? 28 : 8,
             borderRadius: 4,
             background: i <= step ? 'var(--gold)' : 'var(--border-2)',
             transition: 'all .3s cubic-bezier(.22,1,.36,1)',
@@ -72,68 +82,66 @@ export function OnboardingPage({ userName, onDone }) {
 
       {/* Card */}
       <div style={{
-        width: '100%', maxWidth: 420,
-        background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: 24, overflow: 'hidden',
-        boxShadow: '0 8px 40px rgba(0,0,0,.08)',
+        width: '100%',
+        maxWidth: 440,
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 24,
+        overflow: 'hidden',
+        boxShadow: '0 20px 60px rgba(0,0,0,.1), 0 4px 16px rgba(0,0,0,.06)',
       }}>
-        {/* Top accent */}
+        {/* Top accent bar */}
         <div style={{ height: 3, background: 'linear-gradient(90deg, var(--gold), #a7c957, var(--gold))' }} />
 
-        <div style={{ padding: '32px 28px' }}>
+        <div style={{ padding: '36px 32px' }}>
           {/* Emoji */}
-          <div style={{ fontSize: 52, marginBottom: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 56, textAlign: 'center', marginBottom: 16, lineHeight: 1 }}>
             {current.emoji}
           </div>
 
           {/* Arabic */}
           <div style={{
-            fontFamily: 'var(--f-ar)', fontSize: 18,
+            fontFamily: 'var(--f-ar)', fontSize: 20,
             color: 'var(--gold)', direction: 'rtl',
-            textAlign: 'center', marginBottom: 16,
-            opacity: .85,
+            textAlign: 'center', marginBottom: 14,
           }}>
             {current.ar}
           </div>
 
           {/* Title */}
           <h2 style={{
-            fontWeight: 800, fontSize: 22, color: 'var(--text)',
+            fontWeight: 800, fontSize: 24, color: 'var(--text)',
             letterSpacing: '-.03em', textAlign: 'center',
-            marginBottom: 14, lineHeight: 1.2,
+            margin: '0 0 12px', lineHeight: 1.2,
           }}>
             {current.title(userName)}
           </h2>
 
           {/* Desc */}
           <p style={{
-            fontSize: 14, color: 'var(--text-2)', lineHeight: 1.8,
-            textAlign: 'center', marginBottom: 24,
+            fontSize: 14, color: 'var(--text-2)', lineHeight: 1.85,
+            textAlign: 'center', margin: '0 0 24px',
           }}>
             {current.desc}
           </p>
 
-          {/* Step 2 — rank mini preview */}
+          {/* Step 2 — rank preview */}
           {current.mini && (
-            <div style={{
-              display: 'flex', justifyContent: 'center', gap: 12,
-              marginBottom: 24,
-            }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginBottom: 24 }}>
               {current.mini.map(r => (
                 <div key={r.rank} style={{ textAlign: 'center' }}>
                   <div style={{
-                    width: 44, height: 44, borderRadius: 12, margin: '0 auto 6px',
+                    width: 48, height: 48, borderRadius: 13,
+                    margin: '0 auto 6px',
                     background: `${r.color}15`,
                     border: `2px solid ${r.color}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 900, fontSize: 16, color: r.color,
-                    boxShadow: `0 0 14px -4px ${r.color}80`,
+                    fontWeight: 900, fontSize: 17, color: r.color,
+                    boxShadow: `0 0 16px -4px ${r.color}80`,
                   }}>
                     {r.rank}
                   </div>
-                  <div style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600 }}>
-                    {r.label}
-                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600 }}>{r.label}</div>
                 </div>
               ))}
             </div>
@@ -152,20 +160,17 @@ export function OnboardingPage({ userName, onDone }) {
                   border: `2px solid ${tz === t.val ? 'var(--gold)' : 'var(--border)'}`,
                   cursor: 'pointer', textAlign: 'center',
                   transition: 'all .15s',
+                  WebkitTapHighlightColor: 'transparent',
                 }}>
-                  <div style={{ fontSize: 28, marginBottom: 6 }}>{t.flag}</div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 2 }}>
-                    {t.label}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 500 }}>
-                    {t.sub}
-                  </div>
+                  <div style={{ fontSize: 32, marginBottom: 6 }}>{t.flag}</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 2 }}>{t.label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{t.sub}</div>
                 </button>
               ))}
             </div>
           )}
 
-          {/* CTA button */}
+          {/* CTA */}
           <button
             onClick={next}
             className="btn gold"
@@ -174,7 +179,7 @@ export function OnboardingPage({ userName, onDone }) {
             {current.cta}
           </button>
 
-          {/* Skip link — hanya di step bukan terakhir */}
+          {/* Skip */}
           {!isLast && step > 0 && (
             <button
               onClick={() => setStep(STEPS.length - 1)}
@@ -191,7 +196,7 @@ export function OnboardingPage({ userName, onDone }) {
         </div>
       </div>
 
-      {/* Footer note */}
+      {/* Footer */}
       <div style={{ marginTop: 24, fontSize: 12, color: 'var(--text-3)', textAlign: 'center' }}>
         Hadiah kecil dari Dar Dev · untuk keluarga Talqeeh 🌿
       </div>
