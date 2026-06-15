@@ -54,6 +54,13 @@ importers:
       vite:
         specifier: ^5.4.8
         version: 5.4.21
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu':
+        specifier: 4.24.0
+        version: 4.24.0
+      '@rollup/rollup-linux-x64-musl':
+        specifier: 4.24.0
+        version: 4.24.0
 
 packages:
 
@@ -451,11 +458,23 @@ packages:
     os: [linux]
     libc: [glibc]
 
+  '@rollup/rollup-linux-x64-gnu@4.24.0':
+    resolution: {integrity: sha512-ZXFk7M72R0YYFN5q13niV0B7G8/5dcQ9JDp8keJSfr3GoZeXEoMHP/HlvqROA3OMbMdfr19IjCeNAnPUG93b6A==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
   '@rollup/rollup-linux-x64-gnu@4.62.0':
     resolution: {integrity: sha512-7SDIalKeIpG0Ifogbbdn58HmSotYMlf23K3dCJEmiVd9Fg36Vmni82iPQec27N3wY4Bvbxftkxz6vSx9OcouTg==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
+
+  '@rollup/rollup-linux-x64-musl@4.24.0':
+    resolution: {integrity: sha512-w1i+L7kAXZNdYl+vFvzSZy8Y1arS7vMgIy8wusXJzRrPyof5LAb02KGr1PD2EkRcl73kHulIID0M501lN+vobQ==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-x64-musl@4.62.0':
     resolution: {integrity: sha512-eRZevouTH2i1HeAVLqJuLnt256krQkGY0TN6WsTmsIhuzbh457HuWDMakKwmi0Cjadux983CoSr8Lim2QhUIFw==}
@@ -1823,7 +1842,13 @@ snapshots:
   '@rollup/rollup-linux-s390x-gnu@4.62.0':
     optional: true
 
+  '@rollup/rollup-linux-x64-gnu@4.24.0':
+    optional: true
+
   '@rollup/rollup-linux-x64-gnu@4.62.0':
+    optional: true
+
+  '@rollup/rollup-linux-x64-musl@4.24.0':
     optional: true
 
   '@rollup/rollup-linux-x64-musl@4.62.0':
