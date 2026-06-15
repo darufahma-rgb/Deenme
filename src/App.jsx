@@ -7,6 +7,7 @@ import { LandingPage } from './LandingPage.jsx';
 import { supabase } from './supabase.js';
 import { AdminPage } from './AdminPage.jsx';
 import { ProfilePage } from './ProfilePage.jsx';
+import { OnboardingPage } from './OnboardingPage.jsx';
 
 // ── Solo Leveling: page transition ───────────────────────────────────────────
 function PageTransition({ viewKey, children }) {
@@ -293,6 +294,7 @@ export default function App() {
     setTimezone(tz);
     localStorage.setItem('deenme-timezone', tz);
   };
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const prevAll = useRef(false);
 
@@ -305,6 +307,11 @@ export default function App() {
         .select('data')
         .eq('code_id', codeId)
         .single();
+      // Kalau tidak ada data sama sekali → user baru → tampilkan onboarding
+      if (!data?.data) {
+        setShowOnboarding(true);
+        return;
+      }
       if (data?.data) {
         const d = data.data;
         const lastDate = d.lastSaved ? new Date(d.lastSaved).toDateString() : null;
@@ -397,6 +404,17 @@ export default function App() {
     setUserDoa([]); setStreak(0); setFreeze(2); setMisiDone({});
     setTotalPoints(0); setDailyPoints(0); setUnlockedBadges([]); setAmalanDone({});
     setView('landing');
+  };
+
+  const onOnboardingDone = (selectedTz) => {
+    const tzValue = selectedTz === 'EG' ? 'Africa/Cairo' : 'Asia/Jakarta';
+    setTimezone(tzValue);
+    localStorage.setItem('deenme-timezone', tzValue);
+    setShowOnboarding(false);
+    supabase.from('user_data').upsert(
+      { code_id: codeId, data: { hasOnboarded: true, lastSaved: new Date().toISOString() } },
+      { onConflict: 'code_id' }
+    );
   };
 
   // ── Handlers ─────────────────────────────────────────────────────────────
@@ -515,28 +533,34 @@ export default function App() {
       <div className="app">
         <Rail page={view} go={setView} onLogout={onLogout} timezone={timezone} changeTimezone={changeTimezone} timezoneOptions={TIMEZONE_OPTIONS} />
 
-        <PageTransition viewKey={view}>
-          {(v) => (<>
-            {v === 'dashboard' &&
-              <DashboardPage
-                prayers={prayers} times={times} sunnah={sunnah}
-                setStatus={setStatus} setTime={setTime} toggleSunnah={toggleSunnah}
-                score={score} ring="solid" streak={streak} freeze={freeze}
-                useFreeze={useFreeze} pulse={pulse} go={setView}
-                misiDone={misiDone} onMisiToggle={onMisiToggle} toggleMisi={onMisiToggle}
-                dailyPoints={dailyPoints} totalPoints={totalPoints}
-                badgeToast={badgeToast} clearBadgeToast={() => setBadgeToast(null)}
-                userName={userName}
-                onPrayerCardClick={setActivePrayerCard}
-                timezone={timezone} changeTimezone={changeTimezone} timezoneOptions={TIMEZONE_OPTIONS}
-              />}
-            {v === 'journal' && <JournalPage go={setView} codeId={codeId} />}
-            {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
-            {v === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
-            {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} times={times} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} qadhaDebt={qadhaDebt} addQadha={addQadha} lunasiQadha={lunasiQadha} totalQadha={totalQadha} />}
-            {v === 'profile' && <ProfilePage userName={userName} codeId={codeId} totalPoints={totalPoints} streak={streak} freeze={freeze} prayers={prayers} misiDone={misiDone} unlockedBadges={unlockedBadges} onUpdateName={onUpdateName} onLogout={onLogout} />}
-          </>)}
-        </PageTransition>
+        {showOnboarding && (
+          <OnboardingPage userName={userName} onDone={onOnboardingDone} />
+        )}
+
+        {!showOnboarding && (
+          <PageTransition viewKey={view}>
+            {(v) => (<>
+              {v === 'dashboard' &&
+                <DashboardPage
+                  prayers={prayers} times={times} sunnah={sunnah}
+                  setStatus={setStatus} setTime={setTime} toggleSunnah={toggleSunnah}
+                  score={score} ring="solid" streak={streak} freeze={freeze}
+                  useFreeze={useFreeze} pulse={pulse} go={setView}
+                  misiDone={misiDone} onMisiToggle={onMisiToggle} toggleMisi={onMisiToggle}
+                  dailyPoints={dailyPoints} totalPoints={totalPoints}
+                  badgeToast={badgeToast} clearBadgeToast={() => setBadgeToast(null)}
+                  userName={userName}
+                  onPrayerCardClick={setActivePrayerCard}
+                  timezone={timezone} changeTimezone={changeTimezone} timezoneOptions={TIMEZONE_OPTIONS}
+                />}
+              {v === 'journal' && <JournalPage go={setView} codeId={codeId} />}
+              {v === 'doa'     && <BankDoaPage bookmarks={bookmarks} toggleBookmark={toggleBookmark} userDoa={userDoa} addDoa={addDoa} />}
+              {v === 'amalan'  && <AmalanPage amalanDone={amalanDone} setAmalanDone={setAmalanDone} />}
+              {v === 'stats'   && <StatistikPage streak={streak} freeze={freeze} useFreeze={useFreeze} prayers={prayers} times={times} sunnah={sunnah} misiDone={misiDone} amalanDone={amalanDone} setAmalanDone={setAmalanDone} qadhaDebt={qadhaDebt} addQadha={addQadha} lunasiQadha={lunasiQadha} totalQadha={totalQadha} />}
+              {v === 'profile' && <ProfilePage userName={userName} codeId={codeId} totalPoints={totalPoints} streak={streak} freeze={freeze} prayers={prayers} misiDone={misiDone} unlockedBadges={unlockedBadges} onUpdateName={onUpdateName} onLogout={onLogout} />}
+            </>)}
+          </PageTransition>
+        )}
       </div>
       <BottomNav page={view} go={setView} />
     </div>
