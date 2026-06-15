@@ -1,0 +1,182 @@
+# DEENME — Buat 4 File yang Missing
+
+## File 1: `api/_lib/supabase.js`
+```js
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+```
+
+---
+
+## File 2: `api/_lib/auth.js`
+```js
+export function getSession(req) {
+  try {
+    const token = req.headers['x-session-token'];
+    if (!token) return null;
+    const session = JSON.parse(Buffer.from(token, 'base64').toString());
+    if (Date.now() - session.iat > 7 * 24 * 60 * 60 * 1000) return null;
+    return session; // { codeId, name, role, iat }
+  } catch { return null; }
+}
+
+export function requireAdmin(session, res) {
+  if (!session || session.role !== 'admin') {
+    res.status(403).json({ error: 'Forbidden' });
+    return false;
+  }
+  return true;
+}
+```
+
+---
+
+## File 3: `api/_lib/aiLimit.js`
+```js
+import { supabase } from './supabase.js';
+
+/**
+ * Cek apakah codeId sudah pakai fitur AI hari ini
+ * @returns {boolean} true = sudah pakai (blokir), false = belum (izinkan)
+ */
+export async function checkAiLimit(codeId, feature) {
+  if (!codeId) return false;
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data } = await supabase
+    .from('ai_usage')
+    .select('id')
+    .eq('code_id', codeId)
+    .eq('feature', feature)
+    .eq('used_date', today)
+    .maybeSingle();
+
+  return !!data;
+}
+
+/**
+ * Tandai codeId sudah pakai fitur AI hari ini
+ */
+export async function markAiUsed(codeId, feature) {
+  if (!codeId) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  await supabase
+    .from('ai_usage')
+    .upsert(
+      { code_id: codeId, feature, used_date: today },
+      { onConflict: 'code_id,feature,used_date' }
+    );
+}
+
+/**
+ * Ambil semua fitur yang sudah dipakai hari ini untuk satu member
+ */
+export async function getAiUsageToday(codeId) {
+  if (!codeId) return [];
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data } = await supabase
+    .from('ai_usage')
+    .select('feature, used_at')
+    .eq('code_id', codeId)
+    .eq('used_date', today);
+
+  return data || [];
+}
+```
+
+---
+
+## File 4: `api/dreams/[id].js`
+```js
+import { supabase } from '../_lib/supabase.js';
+import { getSession } from '../_lib/auth.js';
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (req.method === 'DELETE') {
+    const { id } = req.query;
+    const { error } = await supabase
+      .from('dream_tafsir')
+      .delete()
+      .eq('id', id)
+      .eq('code_id', session.codeId); // pastikan hanya hapus milik sendiri
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ ok: true });
+  }
+
+  res.status(405).end();
+}
+```
+
+---
+
+## File 5 (opsional): `api/ai/status.js`
+```js
+import { getSession } from '../_lib/auth.js';
+import { getAiUsageToday } from '../_lib/aiLimit.js';
+
+export default async function handler(req, res) {
+  if (req.method !== 'GET') return res.status(405).end();
+
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const usage = await getAiUsageToday(session.codeId);
+
+  const status = {};
+  ['dream', 'journal', 'doa'].forEach(f => {
+    const used = usage.find(u => u.feature === f);
+    status[f] = { used: !!used, usedAt: used?.used_at || null };
+  });
+
+  return res.json({ status });
+}
+```
+
+---
+
+## SQL yang perlu dijalankan di Supabase SQL Editor
+
+```sql
+CREATE TABLE IF NOT EXISTS ai_usage (
+  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  code_id    UUID REFERENCES member_codes(id) ON DELETE CASCADE,
+  feature    TEXT NOT NULL,
+  used_date  DATE NOT NULL DEFAULT CURRENT_DATE,
+  used_at    TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(code_id, feature, used_date)
+);
+
+REVOKE ALL ON ai_usage FROM anon, authenticated;
+GRANT ALL ON ai_usage TO service_role;
+```
+
+---
+
+## Setelah semua file dibuat, jalankan di terminal Replit:
+
+```bash
+git add .
+git commit -m "feat: add missing api lib files + dreams delete + ai limit"
+git push
+```
+
+Vercel akan auto-redeploy.
+
+---
+
+## Pastikan env vars di Vercel sudah ada:
+- `VITE_SUPABASE_URL`
+- `SUPABASE_SERVICE_KEY`
+- `OPENROUTER_KEY`
