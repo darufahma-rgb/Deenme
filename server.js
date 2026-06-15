@@ -163,6 +163,21 @@ app.patch('/api/admin/members/:id', requireAuth, requireAdmin, async (req, res) 
   const update = {};
   if (req.body.is_active !== undefined) update.is_active = req.body.is_active;
   if (req.body.name !== undefined) update.name = req.body.name;
+  if (req.body.code !== undefined) {
+    if (!/^\d{6}$/.test(req.body.code)) {
+      return res.status(400).json({ error: 'Kode harus 6 digit angka' });
+    }
+    const { data: existing } = await supabaseAdmin
+      .from('member_codes')
+      .select('id')
+      .eq('code', req.body.code)
+      .neq('id', req.params.id)
+      .maybeSingle();
+    if (existing) {
+      return res.status(409).json({ error: 'Kode sudah dipakai member lain' });
+    }
+    update.code = req.body.code;
+  }
   const { error } = await supabaseAdmin.from('member_codes').update(update).eq('id', req.params.id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });

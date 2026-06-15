@@ -81,6 +81,10 @@ export function AdminPage({ onLogout }) {
   const [editId, setEditId]     = useState(null);
   const [editName, setEditName] = useState('');
 
+  const [editCode, setEditCode]     = useState('');
+  const [editCodeId, setEditCodeId] = useState(null);
+  const [editCodeErr, setEditCodeErr] = useState('');
+
   const [toast, setToast]       = useState(null);
   const toastTimer              = useRef(null);
 
@@ -140,6 +144,31 @@ export function AdminPage({ onLogout }) {
       load();
     } catch {
       showToast('Gagal update nama', 'err');
+    }
+  };
+
+  const saveEditCode = async () => {
+    if (!/^\d{6}$/.test(editCode)) {
+      setEditCodeErr('Kode harus 6 digit angka');
+      return;
+    }
+    const isDuplicate = codes.some(c => c.code === editCode && c.id !== editCodeId);
+    if (isDuplicate) {
+      setEditCodeErr('Kode sudah dipakai member lain');
+      return;
+    }
+    try {
+      await api(`/api/admin/members/${editCodeId}`, {
+        method: 'PATCH',
+        body: { code: editCode },
+      });
+      showToast('Kode berhasil diupdate');
+      setEditCodeId(null);
+      setEditCode('');
+      setEditCodeErr('');
+      load();
+    } catch {
+      showToast('Gagal update kode', 'err');
     }
   };
 
@@ -303,14 +332,42 @@ export function AdminPage({ onLogout }) {
                         </div>
                       )}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 14, color: 'var(--gold)', letterSpacing: 2 }}>{c.code}</span>
-                        <button
-                          onClick={() => { navigator.clipboard.writeText(c.code); showToast('Kode disalin'); }}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-3)', padding: 0 }}
-                        >📋 salin</button>
-                        <span style={{ fontSize: 11, color: c.is_active ? 'var(--ok)' : 'var(--danger)', fontWeight: 700 }}>
-                          {c.is_active ? '● Aktif' : '● Nonaktif'}
-                        </span>
+                        {editCodeId === c.id ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <input
+                                className="tinput"
+                                value={editCode}
+                                onChange={e => { setEditCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setEditCodeErr(''); }}
+                                onKeyDown={e => { if (e.key === 'Enter') saveEditCode(); if (e.key === 'Escape') { setEditCodeId(null); setEditCodeErr(''); } }}
+                                placeholder="6 digit angka"
+                                maxLength={6}
+                                style={{ width: 120, fontFamily: 'monospace', fontSize: 16, letterSpacing: 4, fontWeight: 700 }}
+                                autoFocus
+                              />
+                              <button className="btn gold sm" onClick={saveEditCode}>✓ Simpan</button>
+                              <button className="btn sm" onClick={() => { setEditCodeId(null); setEditCode(''); setEditCodeErr(''); }}>✕</button>
+                            </div>
+                            {editCodeErr && (
+                              <div style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 600 }}>⚠ {editCodeErr}</div>
+                            )}
+                          </div>
+                        ) : (
+                          <>
+                            <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 14, color: 'var(--gold)', letterSpacing: 2 }}>{c.code}</span>
+                            <button
+                              onClick={() => { navigator.clipboard.writeText(c.code); showToast('Kode disalin'); }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-3)', padding: 0 }}
+                            >📋 salin</button>
+                            <button
+                              onClick={() => { setEditCodeId(c.id); setEditCode(c.code); setEditCodeErr(''); }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-3)', padding: 0 }}
+                            >✏️ edit kode</button>
+                            <span style={{ fontSize: 11, color: c.is_active ? 'var(--ok)' : 'var(--danger)', fontWeight: 700 }}>
+                              {c.is_active ? '● Aktif' : '● Nonaktif'}
+                            </span>
+                          </>
+                        )}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 3 }}>
                         Bergabung {fmtDate(c.created_at)}
