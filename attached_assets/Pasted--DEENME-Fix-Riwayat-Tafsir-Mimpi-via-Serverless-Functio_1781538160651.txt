@@ -1,0 +1,235 @@
+# DEENME — Fix: Riwayat Tafsir Mimpi via Serverless Function
+
+## Masalah
+`TafsirMimpiPage` masih pakai `supabase` langsung untuk:
+1. Load riwayat (`supabase.from('dream_tafsir').select(*)`)
+2. Simpan hasil tafsir (`supabase.from('dream_tafsir').insert(...)`)
+3. Hapus riwayat (`supabase.from('dream_tafsir').delete()`)
+
+Setelah anon key di-REVOKE → semua gagal.
+
+---
+
+## Fix 1 — Buat `api/dreams/index.js` di root project
+
+```js
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+function getSession(req) {
+  try {
+    const token = req.headers['x-session-token'];
+    if (!token) return null;
+    return JSON.parse(Buffer.from(token, 'base64').toString());
+  } catch { return null; }
+}
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+  const { codeId } = session;
+
+  // GET — load riwayat
+  if (req.method === 'GET') {
+    const { data, error } = await supabase
+      .from('dream_tafsir')
+      .select('*')
+      .eq('code_id', codeId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ dreams: data || [] });
+  }
+
+  // POST — simpan tafsir baru
+  if (req.method === 'POST') {
+    const { dream_text, tafsir_result } = req.body;
+    if (!dream_text || !tafsir_result) return res.status(400).json({ error: 'Missing fields' });
+    const { data, error } = await supabase
+      .from('dream_tafsir')
+      .insert({ code_id: codeId, dream_text, tafsir_result })
+      .select()
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ dream: data });
+  }
+
+  res.status(405).end();
+}
+```
+
+---
+
+## Fix 2 — Buat `api/dreams/[id].js`
+
+```js
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+function getSession(req) {
+  try {
+    const token = req.headers['x-session-token'];
+    if (!token) return null;
+    return JSON.parse(Buffer.from(token, 'base64').toString());
+  } catch { return null; }
+}
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (req.method === 'DELETE') {
+    const { id } = req.query;
+    const { error } = await supabase
+      .from('dream_tafsir')
+      .delete()
+      .eq('id', id)
+      .eq('code_id', session.codeId); // pastikan hanya hapus milik sendiri
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ ok: true });
+  }
+
+  res.status(405).end();
+}
+```
+
+---
+
+## Fix 3 — Update `src/pages.jsx` — ganti Supabase calls di TafsirMimpiPage
+
+### A. Tambah helper di atas fungsi `TafsirMimpiPage`:
+
+```js
+function getToken() { return sessionStorage.getItem('dm-token') || ''; }
+```
+
+### B. Ganti `useEffect` load riwayat:
+
+**Cari:**
+```js
+useEffect(() => {
+  if (!codeId) { setLoadingHistory(false); return; }
+  const load = async () => {
+    const { data } = await supabase
+      .from('dream_tafsir')
+      .select('*')
+      .eq('code_id', codeId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    setHistory(data || []);
+    setLoadingHistory(false);
+  };
+  load();
+}, [codeId]);
+```
+
+**Ganti dengan:**
+```js
+useEffect(() => {
+  if (!codeId) { setLoadingHistory(false); return; }
+  const load = async () => {
+    try {
+      const res = await fetch('/api/dreams', {
+        headers: { 'x-session-token': getToken() },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setHistory(data.dreams || []);
+      }
+    } catch {}
+    setLoadingHistory(false);
+  };
+  load();
+}, [codeId]);
+```
+
+### C. Ganti simpan tafsir setelah berhasil:
+
+**Cari:**
+```js
+if (tafsir) {
+  setResult(tafsir);
+  if (codeId) {
+    const { data: saved } = await supabase
+      .from('dream_tafsir')
+      .insert({ code_id: codeId, dream_text: text, tafsir_result: tafsir })
+      .select()
+      .single();
+    if (saved) setHistory(prev => [saved, ...prev]);
+  }
+}
+```
+
+**Ganti dengan:**
+```js
+if (tafsir) {
+  setResult(tafsir);
+  if (codeId) {
+    try {
+      const saveRes = await fetch('/api/dreams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-session-token': getToken(),
+        },
+        body: JSON.stringify({ dream_text: text, tafsir_result: tafsir }),
+      });
+      if (saveRes.ok) {
+        const { dream: saved } = await saveRes.json();
+        if (saved) setHistory(prev => [saved, ...prev]);
+      }
+    } catch {}
+  }
+}
+```
+
+### D. Ganti hapus riwayat:
+
+**Cari:**
+```js
+const deleteHistory = async (id) => {
+  await supabase.from('dream_tafsir').delete().eq('id', id);
+  setHistory(prev => prev.filter(h => h.id !== id));
+  if (selectedHistory?.id === id) setSelectedHistory(null);
+};
+```
+
+**Ganti dengan:**
+```js
+const deleteHistory = async (id) => {
+  try {
+    await fetch(`/api/dreams/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-session-token': getToken() },
+    });
+  } catch {}
+  setHistory(prev => prev.filter(h => h.id !== id));
+  if (selectedHistory?.id === id) setSelectedHistory(null);
+};
+```
+
+---
+
+## Fix 4 — Tambah env var `SUPABASE_SERVICE_KEY` di Vercel
+
+Vercel Dashboard → Project → Settings → Environment Variables:
+```
+SUPABASE_SERVICE_KEY = [service role key dari Supabase Dashboard → Settings → API]
+```
+
+Setelah tambah env var → **Redeploy**.
+
+---
+
+## File yang dibuat/diubah
+- `api/dreams/index.js` — **file baru**
+- `api/dreams/[id].js` — **file baru**
+- `src/pages.jsx` — ganti 3 Supabase calls di TafsirMimpiPage
