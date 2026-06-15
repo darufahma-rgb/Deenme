@@ -216,7 +216,7 @@ const STEPS = [
     emoji: '🕌',
     ar: 'اخْتَرْ مِنْطَقَتَكَ',
     title: () => 'Pilih Zona Waktumu',
-    desc: 'Deenme mendukung jadwal sholat Cairo dan Tangerang. Bisa diubah kapan saja di pengaturan.',
+    desc: 'Deenme mendukung jadwal sholat Cairo dan Jakarta. Bisa diubah kapan saja di pengaturan.',
     cta: 'Masuk ke Deenme →',
     accent: '#386641',
   },
@@ -356,7 +356,7 @@ export function OnboardingOverlay({ userName, onDone }) {
           {current.type === 'tz' && (
             <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
               {[
-                { val: 'ID', flag: '🇮🇩', label: 'Tangerang', sub: 'WIB · UTC+7',  method: 'KEMENAG'            },
+                { val: 'ID', flag: '🇮🇩', label: 'Jakarta',   sub: 'WIB · UTC+7',  method: 'KEMENAG'            },
                 { val: 'EG', flag: '🇪🇬', label: 'Cairo',     sub: 'EET · UTC+3',  method: 'Egyptian Authority' },
               ].map(t => (
                 <button key={t.val} onClick={() => setTz(t.val)} style={{
