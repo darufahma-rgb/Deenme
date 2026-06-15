@@ -141,11 +141,13 @@ app.post('/api/user/data', requireAuth, async (req, res) => {
 // ══════════════════════════════════════════════════════════════
 
 app.get('/api/admin/members', requireAuth, requireAdmin, async (req, res) => {
-  const [{ data: codes }, { data: users }] = await Promise.all([
+  const [{ data: codes }, { data: users }, { data: dreams }, { data: aiUsage }] = await Promise.all([
     supabaseAdmin.from('member_codes').select('*').order('created_at', { ascending: false }),
     supabaseAdmin.from('user_data').select('*').order('updated_at', { ascending: false }),
+    supabaseAdmin.from('dream_tafsir').select('*').order('created_at', { ascending: false }).limit(100),
+    supabaseAdmin.from('ai_usage').select('code_id, feature, used_date, used_at').order('used_at', { ascending: false }).limit(200),
   ]);
-  res.json({ codes: codes || [], users: users || [] });
+  res.json({ codes: codes || [], users: users || [], dreams: dreams || [], aiUsage: aiUsage || [] });
 });
 
 app.post('/api/admin/members', requireAuth, requireAdmin, async (req, res) => {
