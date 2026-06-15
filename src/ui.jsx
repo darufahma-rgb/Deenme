@@ -148,7 +148,7 @@ export function Rail({ page, go, onLogout, timezone, changeTimezone, timezoneOpt
           </button>
         ))}
       </div>
-      <div style={{ flexShrink: 0, borderTop: '1px solid var(--border)', paddingBottom: 8 }}>
+      <div style={{ flexShrink: 0, paddingBottom: 8 }}>
         {timezone && timezoneOptions && (
           <div style={{ padding: '8px 6px 4px' }}>
             {timezoneOptions.map(opt => (
