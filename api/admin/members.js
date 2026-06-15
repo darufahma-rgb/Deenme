@@ -1,21 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
-import { verifyToken } from '../_lib/session.js';
-
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+import { supabase } from '../_lib/supabase.js';
+import { requireAdmin } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
-  const session = verifyToken(req.headers['x-session-token']);
-  if (!session || session.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const session = requireAdmin(req, res);
+  if (!session) return;
 
   if (req.method === 'GET') {
-    const [{ data: codes }, { data: users }] = await Promise.all([
+    const [{ data: codes }, { data: users }, { data: dreams }] = await Promise.all([
       supabase.from('member_codes').select('*').order('created_at', { ascending: false }),
       supabase.from('user_data').select('*').order('updated_at', { ascending: false }),
+      supabase.from('dream_tafsir').select('id, code_id, dream_text, created_at')
+        .order('created_at', { ascending: false }).limit(100),
     ]);
-    return res.json({ codes: codes || [], users: users || [] });
+    return res.json({ codes: codes || [], users: users || [], dreams: dreams || [] });
   }
 
   if (req.method === 'POST') {

@@ -1,18 +1,30 @@
-import { verifyToken } from '../_lib/session.js';
+import { requireAuth } from '../_lib/auth.js';
+
+const dailyUsage = {};
+const today = () => new Date().toISOString().slice(0, 10);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-  const session = verifyToken(req.headers['x-session-token']);
-  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const session = requireAuth(req, res);
+  if (!session) return;
+
+  const { codeId } = session;
+  if (dailyUsage[codeId] === today()) {
+    return res.status(429).json({ error: 'rate_limit', message: 'Cari Doa AI hanya 1x per hari. Coba lagi besok.' });
+  }
 
   const { situasi } = req.body;
   if (!situasi || situasi.length < 3) return res.status(400).json({ error: 'Cerita terlalu singkat' });
+
+  const apiKey = process.env.OPENROUTER_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'AI not configured' });
 
   try {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://deenme.app',
         'X-Title': 'Deenme',
@@ -31,6 +43,7 @@ export default async function handler(req, res) {
     if (!raw) return res.status(500).json({ error: 'No response' });
     const clean = raw.replace(/```json|```/g, '').trim();
     const doas = JSON.parse(clean);
+    dailyUsage[codeId] = today();
     res.json({ doas });
   } catch {
     res.status(500).json({ error: 'AI request failed' });

@@ -1,10 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../_lib/supabase.js';
 import { createToken } from '../_lib/session.js';
-
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
 
 const attempts = {};
 
@@ -21,7 +16,6 @@ export default async function handler(req, res) {
 
   const { code } = req.body;
   if (!code) return res.status(400).json({ error: 'Kode tidak valid' });
-
   const clean = String(code).trim();
 
   if (clean.length === 12) {

@@ -1,0 +1,251 @@
+Step 2 — Buat api/_lib/aiLimit.js
+
+jsimport { supabase } from './supabase.js';
+
+/**
+ * Cek apakah codeId sudah pakai fitur AI hari ini
+ * @returns {boolean} true = sudah pakai (blokir), false = belum (izinkan)
+ */
+export async function checkAiLimit(codeId, feature) {
+  if (!codeId) return false;
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data } = await supabase
+    .from('ai_usage')
+    .select('id')
+    .eq('code_id', codeId)
+    .eq('feature', feature)
+    .eq('used_date', today)
+    .maybeSingle();
+
+  return !!data; // true = sudah ada record = sudah dipakai
+}
+
+/**
+ * Tandai codeId sudah pakai fitur AI hari ini
+ */
+export async function markAiUsed(codeId, feature) {
+  if (!codeId) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  await supabase
+    .from('ai_usage')
+    .upsert(
+      { code_id: codeId, feature, used_date: today },
+      { onConflict: 'code_id,feature,used_date' }
+    );
+}
+
+/**
+ * Ambil info penggunaan AI hari ini untuk satu member
+ * Returns array of features yang sudah dipakai hari ini
+ */
+export async function getAiUsageToday(codeId) {
+  if (!codeId) return [];
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data } = await supabase
+    .from('ai_usage')
+    .select('feature, used_at')
+    .eq('code_id', codeId)
+    .eq('used_date', today);
+
+  return data || [];
+}
+
+
+Step 3 — Update api/ai/dream.js
+
+jsimport { getSession } from '../_lib/auth.js';
+import { checkAiLimit, markAiUsed } from '../_lib/aiLimit.js';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { codeId } = session;
+
+  // Cek limit dari database — persistent across cold starts
+  const isLimited = await checkAiLimit(codeId, 'dream');
+  if (isLimited) {
+    return res.status(429).json({
+      error: 'rate_limit',
+      message: 'Tafsir Mimpi hanya 1x per hari. Coba lagi besok.',
+    });
+  }
+
+  const { text } = req.body;
+  if (!text || text.length < 10) return res.status(400).json({ error: 'Cerita terlalu singkat' });
+
+  const apiKey = process.env.OPENROUTER_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'AI not configured' });
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://deenme.vercel.app',
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-sonnet-4-5',
+        messages: [
+          { role: 'system', content: 'Tafsirkan mimpi berdasarkan Ibnu Sirin dan psikologi Jung. Format Markdown: perspektif Islam, perspektif psikologi, nasihat amalan. 300-500 kata. Bukan ramalan.' },
+          { role: 'user', content: `Mimpi saya: ${text}` },
+        ],
+        max_tokens: 1500,
+      }),
+    });
+
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content;
+    if (!result) return res.status(500).json({ error: 'No response from AI' });
+
+    // Simpan ke database — bukan memory
+    await markAiUsed(codeId, 'dream');
+
+    return res.json({ result });
+  } catch {
+    return res.status(500).json({ error: 'AI request failed' });
+  }
+}
+
+
+Step 4 — Update api/ai/journal.js
+
+jsimport { getSession } from '../_lib/auth.js';
+import { checkAiLimit, markAiUsed } from '../_lib/aiLimit.js';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { codeId } = session;
+
+  const isLimited = await checkAiLimit(codeId, 'journal');
+  if (isLimited) {
+    return res.status(429).json({
+      error: 'rate_limit',
+      message: 'Rapikan AI hanya 1x per hari. Coba lagi besok.',
+    });
+  }
+
+  const { text } = req.body;
+  if (!text || text.length < 10) return res.status(400).json({ error: 'Teks terlalu singkat' });
+
+  const apiKey = process.env.OPENROUTER_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'AI not configured' });
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://deenme.vercel.app',
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-sonnet-4-5',
+        messages: [
+          { role: 'system', content: 'Rapikan catatan jurnal harian Muslim ini. Pertahankan makna dan perasaan asli penulis. Gunakan markdown yang rapi. Output langsung tanpa pengantar.' },
+          { role: 'user', content: text },
+        ],
+        max_tokens: 2000,
+      }),
+    });
+
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content;
+    if (!result) return res.status(500).json({ error: 'No response from AI' });
+
+    await markAiUsed(codeId, 'journal');
+
+    return res.json({ result });
+  } catch {
+    return res.status(500).json({ error: 'AI request failed' });
+  }
+}
+
+
+Step 5 — Endpoint cek status limit untuk frontend
+
+Buat api/ai/status.js — frontend bisa cek apakah limit sudah tercapai sebelum tampilkan tombol:
+
+jsimport { getSession } from '../_lib/auth.js';
+import { getAiUsageToday } from '../_lib/aiLimit.js';
+
+export default async function handler(req, res) {
+  if (req.method !== 'GET') return res.status(405).end();
+
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const usage = await getAiUsageToday(session.codeId);
+
+  // Return status per fitur
+  const features = ['dream', 'journal', 'doa'];
+  const status = {};
+  features.forEach(f => {
+    const used = usage.find(u => u.feature === f);
+    status[f] = {
+      used: !!used,
+      usedAt: used?.used_at || null,
+    };
+  });
+
+  return res.json({ status });
+}
+
+Contoh response:
+
+json{
+  "status": {
+    "dream":   { "used": true,  "usedAt": "2026-06-15T14:30:00Z" },
+    "journal": { "used": false, "usedAt": null },
+    "doa":     { "used": false, "usedAt": null }
+  }
+}
+
+
+Opsional — Admin lihat penggunaan AI semua member
+
+Tambahkan ke api/admin/members.js GET response:
+
+js// Tambah query ai_usage
+const { data: aiUsage } = await supabase
+  .from('ai_usage')
+  .select('code_id, feature, used_date, used_at')
+  .order('used_at', { ascending: false })
+  .limit(500);
+
+return res.json({
+  codes: codes || [],
+  users: users || [],
+  dreams: dreams || [],
+  aiUsage: aiUsage || [], // ← tambah ini
+});
+
+Di Admin Panel, bisa tampilkan berapa kali tiap member pakai AI hari ini.
+
+
+Kenapa lebih baik dari in-memory
+
+In-memory (lama)Database (baru)Vercel cold start❌ Reset → limit hilang✅ Tetap adaMulti instance❌ Tiap instance hitung sendiri✅ Satu sumber kebenaranAudit trail❌ Tidak ada✅ Ada riwayat kapan dipakaiPer akun✅✅Admin monitoring❌✅
+
+File yang dibuat/diubah
+
+
+SQL — buat tabel ai_usage di Supabase
+api/_lib/aiLimit.js — file baru
+api/ai/dream.js — update pakai checkAiLimit + markAiUsed
+api/ai/journal.js — update pakai checkAiLimit + markAiUsed
+api/ai/status.js — file baru (opsional, untuk frontend)
+api/admin/members.js — tambah aiUsage di response (opsional)

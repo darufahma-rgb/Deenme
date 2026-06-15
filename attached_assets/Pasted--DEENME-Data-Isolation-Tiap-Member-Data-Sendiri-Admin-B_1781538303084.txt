@@ -1,0 +1,439 @@
+# DEENME — Data Isolation: Tiap Member Data Sendiri, Admin Baca Semua
+
+## Prinsip
+- Setiap API call bawa `x-session-token` di header
+- Token di-decode → dapat `codeId` dan `role`
+- Member hanya bisa akses data milik `codeId` sendiri
+- Admin (`role === 'admin'`) bisa akses semua data
+
+---
+
+## Buat folder `api/` di root project dengan file-file berikut:
+
+### `api/_lib/supabase.js` — shared client
+```js
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+```
+
+### `api/_lib/auth.js` — shared session decoder
+```js
+export function getSession(req) {
+  try {
+    const token = req.headers['x-session-token'];
+    if (!token) return null;
+    const session = JSON.parse(Buffer.from(token, 'base64').toString());
+    // Validasi tidak expired (7 hari)
+    if (Date.now() - session.iat > 7 * 24 * 60 * 60 * 1000) return null;
+    return session; // { codeId, name, role, iat }
+  } catch { return null; }
+}
+
+export function requireAuth(session, res) {
+  if (!session) { res.status(401).json({ error: 'Unauthorized' }); return false; }
+  return true;
+}
+
+export function requireAdmin(session, res) {
+  if (!session || session.role !== 'admin') {
+    res.status(403).json({ error: 'Forbidden' });
+    return false;
+  }
+  return true;
+}
+```
+
+---
+
+### `api/auth/login.js`
+```js
+import { supabase } from '../_lib/supabase.js';
+import crypto from 'crypto';
+
+const ipAttempts = {};
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  // Rate limit per IP
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0] || 'unknown';
+  const now = Date.now();
+  ipAttempts[ip] = (ipAttempts[ip] || []).filter(t => now - t < 15 * 60 * 1000);
+  if (ipAttempts[ip].length >= 10) {
+    return res.status(429).json({ error: 'rate_limit', message: 'Terlalu banyak percobaan. Tunggu 15 menit.' });
+  }
+  ipAttempts[ip].push(now);
+
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Kode tidak valid' });
+  const clean = String(code).trim();
+
+  // Admin (12 karakter)
+  if (clean.length === 12) {
+    const { data } = await supabase.from('admin_codes').select('id').eq('code', clean).single();
+    if (!data) return res.status(401).json({ error: 'Kode admin tidak valid' });
+    const token = Buffer.from(JSON.stringify({ role: 'admin', codeId: null, name: 'Admin', iat: Date.now() })).toString('base64');
+    return res.json({ token, name: 'Admin', role: 'admin', codeId: null });
+  }
+
+  // Member (6 digit)
+  if (!/^\d{6}$/.test(clean)) return res.status(400).json({ error: 'Format tidak valid' });
+
+  const { data } = await supabase
+    .from('member_codes').select('id, name, is_active').eq('code', clean).single();
+
+  if (!data) return res.status(401).json({ error: 'Kode tidak ditemukan' });
+  if (!data.is_active) return res.status(403).json({ error: 'Kode tidak aktif. Hubungi admin.' });
+
+  const token = Buffer.from(JSON.stringify({
+    role: 'member', codeId: data.id, name: data.name || 'Akhi', iat: Date.now()
+  })).toString('base64');
+
+  return res.json({ token, name: data.name || 'Akhi', role: 'member', codeId: data.id });
+}
+```
+
+### `api/auth/me.js`
+```js
+import { getSession } from '../_lib/auth.js';
+
+export default function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+  res.json({ codeId: session.codeId, name: session.name, role: session.role });
+}
+```
+
+---
+
+### `api/user/data.js` — Data ibadah per member
+```js
+import { supabase } from '../_lib/supabase.js';
+import { getSession } from '../_lib/auth.js';
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { codeId } = session;
+  if (!codeId) return res.status(400).json({ error: 'No codeId' });
+
+  // GET — load data milik member ini saja
+  if (req.method === 'GET') {
+    const { data } = await supabase
+      .from('user_data').select('data').eq('code_id', codeId).single();
+    return res.json({ data: data?.data || null });
+  }
+
+  // POST — simpan data milik member ini saja
+  if (req.method === 'POST') {
+    const { payload } = req.body;
+    if (!payload) return res.status(400).json({ error: 'No payload' });
+    const { error } = await supabase
+      .from('user_data')
+      .upsert({ code_id: codeId, data: payload }, { onConflict: 'code_id' });
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ ok: true });
+  }
+
+  res.status(405).end();
+}
+```
+
+---
+
+### `api/dreams/index.js` — Tafsir mimpi per member
+```js
+import { supabase } from '../_lib/supabase.js';
+import { getSession } from '../_lib/auth.js';
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { codeId } = session;
+  if (!codeId) return res.status(400).json({ error: 'No codeId' });
+
+  // GET — hanya riwayat milik member ini
+  if (req.method === 'GET') {
+    const { data } = await supabase
+      .from('dream_tafsir')
+      .select('*')
+      .eq('code_id', codeId)          // ← isolasi per member
+      .order('created_at', { ascending: false })
+      .limit(20);
+    return res.json({ dreams: data || [] });
+  }
+
+  // POST — simpan ke member ini saja
+  if (req.method === 'POST') {
+    const { dream_text, tafsir_result } = req.body;
+    if (!dream_text || !tafsir_result) return res.status(400).json({ error: 'Missing fields' });
+    const { data, error } = await supabase
+      .from('dream_tafsir')
+      .insert({ code_id: codeId, dream_text, tafsir_result })
+      .select().single();
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ dream: data });
+  }
+
+  res.status(405).end();
+}
+```
+
+### `api/dreams/[id].js` — Hapus riwayat (milik sendiri saja)
+```js
+import { supabase } from '../_lib/supabase.js';
+import { getSession } from '../_lib/auth.js';
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (req.method === 'DELETE') {
+    const { id } = req.query;
+    const { error } = await supabase
+      .from('dream_tafsir')
+      .delete()
+      .eq('id', id)
+      .eq('code_id', session.codeId); // ← hanya hapus milik sendiri
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ ok: true });
+  }
+
+  res.status(405).end();
+}
+```
+
+---
+
+### `api/admin/members.js` — Admin lihat SEMUA member + data
+```js
+import { supabase } from '../_lib/supabase.js';
+import { getSession, requireAdmin } from '../_lib/auth.js';
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!requireAdmin(session, res)) return;
+
+  // GET — semua member + semua user_data
+  if (req.method === 'GET') {
+    const [{ data: codes }, { data: users }, { data: dreams }] = await Promise.all([
+      supabase.from('member_codes').select('*').order('created_at', { ascending: false }),
+      supabase.from('user_data').select('*').order('updated_at', { ascending: false }),
+      supabase.from('dream_tafsir').select('id, code_id, dream_text, created_at').order('created_at', { ascending: false }).limit(100),
+    ]);
+    return res.json({ codes: codes || [], users: users || [], dreams: dreams || [] });
+  }
+
+  // POST — generate kode member baru
+  if (req.method === 'POST') {
+    const { name } = req.body;
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const { data, error } = await supabase
+      .from('member_codes')
+      .insert({ code, name: name?.trim() || '', is_active: true })
+      .select().single();
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ code: data.code, id: data.id, name: data.name });
+  }
+
+  res.status(405).end();
+}
+```
+
+### `api/admin/members/[id].js` — Admin update/hapus member
+```js
+import { supabase } from '../_lib/supabase.js';
+import { getSession, requireAdmin } from '../_lib/auth.js';
+
+export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!requireAdmin(session, res)) return;
+
+  const { id } = req.query;
+
+  if (req.method === 'PATCH') {
+    const update = {};
+    if (req.body.is_active !== undefined) update.is_active = req.body.is_active;
+    if (req.body.name !== undefined) update.name = req.body.name;
+    await supabase.from('member_codes').update(update).eq('id', id);
+    return res.json({ ok: true });
+  }
+
+  if (req.method === 'DELETE') {
+    // Hapus member → cascade hapus user_data dan dream_tafsir (karena ON DELETE CASCADE)
+    await supabase.from('member_codes').delete().eq('id', id);
+    return res.json({ ok: true });
+  }
+
+  res.status(405).end();
+}
+```
+
+### `api/ai/dream.js` — Tafsir mimpi via AI (rate limit per member)
+```js
+import { getSession } from '../_lib/auth.js';
+
+const dailyUsage = {}; // codeId → 'YYYY-MM-DD'
+const today = () => new Date().toISOString().slice(0, 10);
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { codeId } = session;
+
+  // Rate limit 1x per hari per member
+  if (dailyUsage[codeId] === today()) {
+    return res.status(429).json({
+      error: 'rate_limit',
+      message: 'Tafsir Mimpi hanya 1x per hari. Coba lagi besok.'
+    });
+  }
+
+  const { text } = req.body;
+  if (!text || text.length < 10) return res.status(400).json({ error: 'Cerita terlalu singkat' });
+
+  const apiKey = process.env.OPENROUTER_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'AI not configured' });
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://deenme.vercel.app',
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-sonnet-4-5',
+        messages: [
+          { role: 'system', content: 'Tafsirkan mimpi berdasarkan Ibnu Sirin dan psikologi Jung. Format Markdown: perspektif Islam, perspektif psikologi, nasihat amalan. 300-500 kata. Bukan ramalan.' },
+          { role: 'user', content: `Mimpi saya: ${text}` },
+        ],
+        max_tokens: 1500,
+      }),
+    });
+
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content;
+    if (!result) return res.status(500).json({ error: 'No response from AI' });
+
+    dailyUsage[codeId] = today(); // tandai sudah dipakai hari ini
+    return res.json({ result });
+  } catch {
+    return res.status(500).json({ error: 'AI request failed' });
+  }
+}
+```
+
+### `api/ai/journal.js` — Rapikan jurnal via AI
+```js
+import { getSession } from '../_lib/auth.js';
+
+const dailyUsage = {};
+const today = () => new Date().toISOString().slice(0, 10);
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  const session = getSession(req);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { codeId } = session;
+
+  if (dailyUsage[codeId] === today()) {
+    return res.status(429).json({
+      error: 'rate_limit',
+      message: 'Rapikan AI hanya 1x per hari. Coba lagi besok.'
+    });
+  }
+
+  const { text } = req.body;
+  if (!text || text.length < 10) return res.status(400).json({ error: 'Teks terlalu singkat' });
+
+  const apiKey = process.env.OPENROUTER_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'AI not configured' });
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://deenme.vercel.app',
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-sonnet-4-5',
+        messages: [
+          { role: 'system', content: 'Rapikan catatan jurnal harian Muslim ini. Pertahankan makna dan perasaan asli penulis. Gunakan markdown yang rapi. Output langsung tanpa pengantar.' },
+          { role: 'user', content: text },
+        ],
+        max_tokens: 2000,
+      }),
+    });
+
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content;
+    if (!result) return res.status(500).json({ error: 'No response from AI' });
+
+    dailyUsage[codeId] = today();
+    return res.json({ result });
+  } catch {
+    return res.status(500).json({ error: 'AI request failed' });
+  }
+}
+```
+
+---
+
+## Struktur folder `api/` yang harus dibuat:
+
+```
+api/
+├── _lib/
+│   ├── supabase.js
+│   └── auth.js
+├── auth/
+│   ├── login.js
+│   └── me.js
+├── user/
+│   └── data.js
+├── dreams/
+│   ├── index.js
+│   └── [id].js
+├── admin/
+│   ├── members.js
+│   └── members/
+│       └── [id].js
+└── ai/
+    ├── dream.js
+    └── journal.js
+```
+
+---
+
+## Ringkasan isolasi data
+
+| Aksi | Member | Admin |
+|------|--------|-------|
+| Baca data ibadah | Hanya milik sendiri (`eq('code_id', codeId)`) | Semua (`/api/admin/members` GET) |
+| Simpan data ibadah | Hanya milik sendiri | N/A |
+| Baca riwayat tafsir | Hanya milik sendiri | Semua (via `/api/admin/members`) |
+| Hapus tafsir | Hanya milik sendiri + validasi `code_id` | Bisa hapus siapa saja |
+| Hapus member | ❌ | ✅ cascade hapus semua datanya |
+| AI features | Rate limit per `codeId` | Tidak berlaku |
+
+## Env vars yang dibutuhkan di Vercel:
+```
+VITE_SUPABASE_URL     = https://xxx.supabase.co
+SUPABASE_SERVICE_KEY  = [service role key]
+OPENROUTER_KEY        = [openrouter key]
+```
