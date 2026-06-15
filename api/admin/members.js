@@ -6,13 +6,15 @@ export default async function handler(req, res) {
   if (!session) return;
 
   if (req.method === 'GET') {
-    const [{ data: codes }, { data: users }, { data: dreams }] = await Promise.all([
+    const [{ data: codes }, { data: users }, { data: dreams }, { data: aiUsage }] = await Promise.all([
       supabase.from('member_codes').select('*').order('created_at', { ascending: false }),
       supabase.from('user_data').select('*').order('updated_at', { ascending: false }),
       supabase.from('dream_tafsir').select('id, code_id, dream_text, created_at')
         .order('created_at', { ascending: false }).limit(100),
+      supabase.from('ai_usage').select('code_id, feature, used_date, used_at')
+        .order('used_at', { ascending: false }).limit(500),
     ]);
-    return res.json({ codes: codes || [], users: users || [], dreams: dreams || [] });
+    return res.json({ codes: codes || [], users: users || [], dreams: dreams || [], aiUsage: aiUsage || [] });
   }
 
   if (req.method === 'POST') {

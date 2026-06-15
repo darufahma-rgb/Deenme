@@ -1,7 +1,5 @@
 import { requireAuth } from '../_lib/auth.js';
-
-const dailyUsage = {};
-const today = () => new Date().toISOString().slice(0, 10);
+import { checkAiLimit, markAiUsed } from '../_lib/aiLimit.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -10,7 +8,9 @@ export default async function handler(req, res) {
   if (!session) return;
 
   const { codeId } = session;
-  if (dailyUsage[codeId] === today()) {
+
+  const isLimited = await checkAiLimit(codeId, 'journal');
+  if (isLimited) {
     return res.status(429).json({ error: 'rate_limit', message: 'Rapikan AI hanya 1x per hari. Coba lagi besok.' });
   }
 
@@ -41,9 +41,9 @@ export default async function handler(req, res) {
     const data = await response.json();
     const result = data.choices?.[0]?.message?.content;
     if (!result) return res.status(500).json({ error: 'No response' });
-    dailyUsage[codeId] = today();
-    res.json({ result });
+    await markAiUsed(codeId, 'journal');
+    return res.json({ result });
   } catch {
-    res.status(500).json({ error: 'AI request failed' });
+    return res.status(500).json({ error: 'AI request failed' });
   }
 }
