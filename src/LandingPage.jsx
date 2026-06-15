@@ -78,10 +78,6 @@ export function LandingPage({ onEnter }) {
         justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="./assets/Deenme_logo.png" alt="Deenme" style={{
-            width: isMobile ? 24 : 30, height: isMobile ? 24 : 30,
-            filter: 'brightness(0) saturate(100%) invert(70%) sepia(30%) saturate(400%) hue-rotate(95deg)',
-          }} />
           <span style={{ fontWeight: 800, fontSize: isMobile ? 14 : 16, color: C.text, letterSpacing: '-.02em' }}>Deenme</span>
         </div>
 
