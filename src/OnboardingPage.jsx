@@ -258,13 +258,16 @@ export function OnboardingOverlay({ userName, onDone }) {
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
       background: 'var(--bg)',
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      padding: '20px 24px',
+      overflowY: 'auto',
       fontFamily: 'var(--f-head)',
       opacity: visible && !exiting ? 1 : 0,
       transition: 'opacity .38s ease',
-      overflowY: 'auto',
+    }}>
+    <div style={{
+      minHeight: '100%',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '20px 24px',
     }}>
 
       {/* Progress bar */}
@@ -407,6 +410,7 @@ export function OnboardingOverlay({ userName, onDone }) {
       <div style={{ marginTop: 20, fontSize: 11, color: 'var(--text-3)', textAlign: 'center' }}>
         Hadiah kecil dari Dar Dev · untuk keluarga Talqeeh 🌿
       </div>
+    </div>
     </div>
   );
 }
