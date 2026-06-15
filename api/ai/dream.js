@@ -1,0 +1,36 @@
+import { verifyToken } from '../_lib/session.js';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+  const session = verifyToken(req.headers['x-session-token']);
+  if (!session) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { text } = req.body;
+  if (!text || text.length < 10) return res.status(400).json({ error: 'Cerita terlalu singkat' });
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://deenme.app',
+        'X-Title': 'Deenme',
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-sonnet-4-5',
+        messages: [
+          { role: 'system', content: 'Kamu adalah ahli tafsir mimpi Islam yang menguasai kitab Tafsir Al-Ahlam karya Ibnu Sirin, serta memahami psikologi modern tentang mimpi (Jung, Freud, neurosains mimpi).\n\nTugas kamu: tafsirkan mimpi yang diceritakan user dengan pendekatan:\n1. **Perspektif Islam** — berdasarkan kitab tafsir mimpi ulama (terutama Ibnu Sirin dan Al-Nabulsi). Sebutkan referensi kitab jika relevan.\n2. **Perspektif Psikologi Modern** — apa yang mungkin disampaikan alam bawah sadar.\n3. **Nasihat & Amalan** — anjuran amalan atau doa yang relevan setelah mimpi tersebut.\n\nFormat jawaban dalam Markdown yang rapi. Panjang jawaban: 300-500 kata. Jangan membuat klaim pasti tentang takdir — ini hanya tafsir, bukan ramalan.' },
+          { role: 'user', content: `Mimpi saya: ${text}` },
+        ],
+        max_tokens: 1500,
+      }),
+    });
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content;
+    if (!result) return res.status(500).json({ error: 'No response' });
+    res.json({ result });
+  } catch {
+    res.status(500).json({ error: 'AI request failed' });
+  }
+}
