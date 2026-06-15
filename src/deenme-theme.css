@@ -102,7 +102,7 @@ body {
 }
 
 .rail { background: #ede3c4; border-right: 1px solid var(--border); box-shadow: 2px 0 8px rgba(0,0,0,.04); }
-.rail .brand { background: transparent; border: none; color: #386641; box-shadow: none; }
+.rail .brand { background: transparent !important; border: none !important; box-shadow: none !important; }
 
 .navbtn { color: var(--text-3); }
 .navbtn:hover { background: var(--elevated); color: var(--text); }
@@ -2053,12 +2053,13 @@ label, .label, .caption {
 
 /* Rail */
 .rail { background: #0d1a11; border-right: 1px solid var(--border); }
-.rail .brand { background: transparent; border: none; box-shadow: none; }
+.rail .brand { background: transparent !important; border: none !important; box-shadow: none !important; }
 
 @media (max-width: 767px) {
   .rail  { display: none !important; }
   .col-l { display: none !important; }
   .col-r { display: none !important; }
+  .rail .brand { display: none !important; }
 }
 
 /* Cards */
