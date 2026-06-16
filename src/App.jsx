@@ -322,9 +322,9 @@ export default function App() {
       const res = await serverFetch('/api/user/data');
       if (!res.ok) return;
       const { data } = await res.json();
-      if (!data) {
+      if (!data || !data.hasOnboarded) {
         setShowOnboarding(true);
-        return;
+        if (!data) return;
       }
       const d = data;
       const lastDate = d.lastSaved ? new Date(d.lastSaved).toDateString() : null;

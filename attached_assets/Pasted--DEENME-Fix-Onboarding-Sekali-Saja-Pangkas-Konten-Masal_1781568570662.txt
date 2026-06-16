@@ -1,0 +1,343 @@
+# DEENME — Fix Onboarding: Sekali Saja + Pangkas Konten
+
+## Masalah
+1. Onboarding muncul terus karena belum ada logic cek `hasOnboarded` di App.jsx
+2. Konten 6 langkah terlalu banyak — dipangkas jadi 3 langkah saja
+
+---
+
+## Fix 1 — Update `src/App.jsx`
+
+### A. Tambah import OnboardingOverlay (setelah import AdminPage):
+```js
+import { OnboardingOverlay } from './OnboardingPage.jsx';
+```
+
+### B. Tambah state showOnboarding (setelah state timezone):
+```js
+const [showOnboarding, setShowOnboarding] = useState(false);
+```
+
+### C. Di dalam useEffect load data dari Supabase/server, cek apakah user baru
+
+Cari blok load data user (sekitar baris yang ada `user_data` atau `/api/user/data`).
+
+Kalau pakai server API, cari:
+```js
+const res = await api('/api/user/data');
+const json = await res.json();
+```
+
+Tambahkan logika cek onboarding SETELAH load data:
+```js
+const res = await api('/api/user/data');
+const json = await res.json();
+const d = json.data;
+
+// Kalau tidak ada data ATAU belum pernah onboarding → tampilkan onboarding
+if (!d || !d.hasOnboarded) {
+  setShowOnboarding(true);
+  // Kalau tidak ada data sama sekali, set defaults dulu
+  if (!d) return;
+}
+```
+
+Kalau masih pakai Supabase langsung, cari:
+```js
+const { data } = await supabase.from('user_data').select('data').eq('code_id', codeId).single();
+```
+
+Tambahkan setelahnya:
+```js
+if (!data?.data || !data.data.hasOnboarded) {
+  setShowOnboarding(true);
+  if (!data?.data) return;
+}
+```
+
+### D. Tambah handler onOnboardingDone (setelah onLogout function):
+```js
+const onOnboardingDone = async (selectedTz) => {
+  setTimezone(selectedTz);
+  setShowOnboarding(false);
+  // Simpan flag hasOnboarded bersama data yang ada
+  try {
+    await api('/api/user/data', {
+      method: 'POST',
+      body: { payload: { hasOnboarded: true, lastSaved: new Date().toISOString() } },
+    });
+  } catch {}
+};
+```
+
+Kalau masih pakai Supabase langsung:
+```js
+const onOnboardingDone = async (selectedTz) => {
+  setTimezone(selectedTz);
+  setShowOnboarding(false);
+  await supabase.from('user_data').upsert(
+    { code_id: codeId, data: { hasOnboarded: true } },
+    { onConflict: 'code_id' }
+  );
+};
+```
+
+### E. Render OnboardingOverlay di LUAR deenme-root
+
+Cari:
+```jsx
+return (
+  <div className="deenme-root">
+```
+
+Ganti menjadi:
+```jsx
+return (
+  <>
+    <div className="deenme-root">
+      {/* ... semua konten yang sudah ada ... */}
+    </div>
+
+    {showOnboarding && (
+      <OnboardingOverlay
+        userName={userName}
+        onDone={onOnboardingDone}
+      />
+    )}
+  </>
+);
+```
+
+**PENTING:** Tutup `<div className="deenme-root">` dengan `</div>` sebelum `{showOnboarding && ...}`, lalu tutup keseluruhan dengan `</>`
+
+---
+
+## Fix 2 — Pangkas OnboardingPage.jsx jadi 3 langkah saja
+
+Replace entire `src/OnboardingPage.jsx`:
+
+```jsx
+import { useState, useEffect } from 'react';
+
+const STEPS = [
+  {
+    emoji: '🤲',
+    ar: 'أَهْلاً وَسَهْلاً',
+    title: (name) => `Ahlan wa sahlan, ${name}!`,
+    desc: 'Deenme adalah hadiah kecil dari Talqeeh untuk menemanimu menjaga ibadah setiap hari — sholat, dzikir, amalan, dan lebih banyak lagi.',
+    cta: 'Lihat Fitur →',
+  },
+  {
+    emoji: '⚔️',
+    ar: 'نِظَامُ الدَّرَجَات',
+    title: () => 'Kumpulkan XP, Naik Rank',
+    desc: 'Setiap ibadah menghasilkan XP. Naik dari Mubtadi hingga Ulul Albab. Jaga streak harian dan raih badge spesial.',
+    cta: 'Lanjut →',
+    mini: [
+      { rank: 'E', label: 'Mubtadi',    color: '#94a3b8' },
+      { rank: 'C', label: 'Mutawassit', color: '#386641' },
+      { rank: 'A', label: 'Muttaqin',   color: '#a7c957' },
+      { rank: 'S', label: 'Wali',       color: '#f59e0b' },
+    ],
+  },
+  {
+    emoji: '🕌',
+    ar: 'اخْتَرْ مِنْطَقَتَكَ',
+    title: () => 'Pilih Zona Waktumu',
+    desc: 'Jadwal sholat otomatis menyesuaikan lokasimu. Bisa diubah kapan saja di pengaturan.',
+    cta: 'Masuk ke Deenme →',
+    isTz: true,
+  },
+];
+
+export function OnboardingOverlay({ userName, onDone }) {
+  const [step, setStep]       = useState(0);
+  const [tz, setTz]           = useState('ID');
+  const [visible, setVisible] = useState(false);
+  const [exiting, setExiting] = useState(false);
+
+  const current = STEPS[step];
+  const isLast  = step === STEPS.length - 1;
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => setVisible(true));
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const next = () => {
+    if (isLast) {
+      setExiting(true);
+      setTimeout(() => onDone(tz), 350);
+    } else {
+      setStep(s => s + 1);
+    }
+  };
+
+  const back = () => { if (step > 0) setStep(s => s - 1); };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'var(--bg)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '24px',
+      fontFamily: 'var(--f-head)',
+      opacity: visible && !exiting ? 1 : 0,
+      transition: 'opacity .35s ease',
+    }}>
+
+      {/* Progress bar */}
+      <div style={{ width: '100%', maxWidth: 460, marginBottom: 24 }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          {STEPS.map((_, i) => (
+            <div key={i} style={{
+              flex: 1, height: 3, borderRadius: 2,
+              background: i <= step ? 'var(--gold)' : 'var(--border-2, #ccc398)',
+              transition: 'background .3s ease',
+            }} />
+          ))}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>
+            {step + 1} / {STEPS.length}
+          </span>
+          {!isLast && (
+            <button
+              onClick={() => { setExiting(true); setTimeout(() => onDone('ID'), 350); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-3)', fontFamily: 'var(--f-head)', padding: 0 }}
+            >
+              Lewati →
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Card */}
+      <div style={{
+        width: '100%', maxWidth: 460,
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 24, overflow: 'hidden',
+        boxShadow: '0 20px 60px rgba(0,0,0,.1)',
+      }}>
+        <div style={{ height: 3, background: 'linear-gradient(90deg, var(--gold), #a7c957)' }} />
+
+        <div style={{ padding: '30px 28px' }}>
+          {/* Emoji */}
+          <div style={{ fontSize: 48, textAlign: 'center', marginBottom: 12, lineHeight: 1 }}>
+            {current.emoji}
+          </div>
+
+          {/* Arabic */}
+          <div style={{
+            fontFamily: 'var(--f-ar)', fontSize: 16,
+            color: 'var(--gold)', direction: 'rtl',
+            textAlign: 'center', marginBottom: 10,
+          }}>
+            {current.ar}
+          </div>
+
+          {/* Title */}
+          <h2 style={{
+            fontWeight: 800, fontSize: 20, color: 'var(--text)',
+            letterSpacing: '-.03em', textAlign: 'center',
+            margin: '0 0 10px', lineHeight: 1.2,
+          }}>
+            {current.title(userName)}
+          </h2>
+
+          {/* Desc */}
+          <p style={{
+            fontSize: 13, color: 'var(--text-2)', lineHeight: 1.8,
+            textAlign: 'center', margin: '0 0 20px',
+          }}>
+            {current.desc}
+          </p>
+
+          {/* Step 2 — rank mini preview */}
+          {current.mini && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 20 }}>
+              {current.mini.map(r => (
+                <div key={r.rank} style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 12,
+                    margin: '0 auto 5px',
+                    background: `${r.color}15`,
+                    border: `2px solid ${r.color}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 900, fontSize: 16, color: r.color,
+                    boxShadow: `0 0 14px -4px ${r.color}60`,
+                  }}>
+                    {r.rank}
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600 }}>{r.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Step 3 — timezone picker */}
+          {current.isTz && (
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+              {[
+                { val: 'ID', flag: '🇮🇩', label: 'Tangerang', sub: 'WIB · UTC+7' },
+                { val: 'EG', flag: '🇪🇬', label: 'Cairo',     sub: 'EET · UTC+3' },
+              ].map(t => (
+                <button key={t.val} onClick={() => setTz(t.val)} style={{
+                  flex: 1, padding: '14px 10px', borderRadius: 12,
+                  background: tz === t.val ? 'var(--gold-soft)' : 'var(--elevated, #f2e8cf)',
+                  border: `2px solid ${tz === t.val ? 'var(--gold)' : 'var(--border)'}`,
+                  cursor: 'pointer', textAlign: 'center',
+                  transition: 'all .15s',
+                  WebkitTapHighlightColor: 'transparent',
+                }}>
+                  <div style={{ fontSize: 28, marginBottom: 6 }}>{t.flag}</div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 2 }}>{t.label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{t.sub}</div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {step > 0 && (
+              <button onClick={back} style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                background: 'var(--elevated, #f2e8cf)', border: '1px solid var(--border)',
+                color: 'var(--text-2)', fontSize: 16, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>←</button>
+            )}
+            <button onClick={next} className="btn gold"
+              style={{ flex: 1, padding: '13px 0', fontSize: 14, fontWeight: 700 }}>
+              {current.cta}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: 20, fontSize: 11, color: 'var(--text-3)', textAlign: 'center' }}>
+        Hadiah kecil dari Dar Dev · untuk keluarga Talqeeh 🌿
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## Ringkasan fix
+
+| Masalah | Root Cause | Fix |
+|---------|-----------|-----|
+| Onboarding muncul terus | Logic cek `hasOnboarded` belum ada di App.jsx | Tambah cek saat load data, simpan flag setelah selesai |
+| Konten kebanyakan | 6 langkah terlalu panjang | Dipangkas jadi 3: Welcome → Rank → Timezone |
+| Overlay tertutup sidebar | Render di dalam `.deenme-root` | Pindah ke luar, pakai React Fragment `<>...</>` |
+
+## File yang diubah
+- `src/App.jsx` — import + state + cek hasOnboarded + handler + render overlay
+- `src/OnboardingPage.jsx` — replace seluruhnya, 3 langkah
