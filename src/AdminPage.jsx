@@ -387,7 +387,11 @@ export function AdminPage({ onLogout }) {
                           <div>
                             <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{c.name || 'Tanpa nama'}</div>
                             <div style={{ fontSize: 10, color: 'var(--text-3)' }}>
-                              {getUser(c.id)?.updated_at ? `Aktif ${fmtTime(getUser(c.id)?.updated_at)}` : 'Belum pernah login'}
+                              {c.last_login_at 
+                                ? `Login terakhir ${fmtTime(c.last_login_at)}`
+                                : (getUser(c.id)?.updated_at 
+                                    ? `Aktif ${fmtTime(getUser(c.id)?.updated_at)}` 
+                                    : 'Belum pernah login')}
                             </div>
                           </div>
                           <button onClick={() => { setEditId(c.id); setEditName(c.name||''); }}
