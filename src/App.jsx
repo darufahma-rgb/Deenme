@@ -295,6 +295,7 @@ export default function App() {
     localStorage.setItem('deenme-timezone', tz);
   };
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasOnboarded,   setHasOnboarded]   = useState(false);
 
   const prevAll = useRef(false);
 
@@ -325,6 +326,8 @@ export default function App() {
       if (!data || !data.hasOnboarded) {
         setShowOnboarding(true);
         if (!data) return;
+      } else {
+        setHasOnboarded(true);
       }
       const d = data;
       const lastDate = d.lastSaved ? new Date(d.lastSaved).toDateString() : null;
@@ -356,6 +359,7 @@ export default function App() {
       const payload = {
         prayers, times, sunnah, bookmarks, userDoa,
         streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone, qadhaDebt,
+        hasOnboarded,
         lastSaved: new Date().toISOString(),
       };
       await serverFetch('/api/user/data', {
@@ -364,7 +368,7 @@ export default function App() {
       });
     }, 2000);
     return () => clearTimeout(timeout);
-  }, [prayers, times, sunnah, bookmarks, userDoa, streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone]);
+  }, [prayers, times, sunnah, bookmarks, userDoa, streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone, hasOnboarded]);
 
   // Qadha helpers
   const addQadha = (prayer, amount = 1) => {
@@ -417,6 +421,8 @@ export default function App() {
     setPrayers({}); setTimes({}); setSunnah({}); setBookmarks({});
     setUserDoa([]); setStreak(0); setFreeze(2); setMisiDone({});
     setTotalPoints(0); setDailyPoints(0); setUnlockedBadges([]); setAmalanDone({});
+    setHasOnboarded(false);
+    setShowOnboarding(false);
     setView('landing');
   };
 
@@ -424,11 +430,8 @@ export default function App() {
     const tzValue = selectedTz === 'EG' ? 'Africa/Cairo' : 'Asia/Jakarta';
     setTimezone(tzValue);
     localStorage.setItem('deenme-timezone', tzValue);
+    setHasOnboarded(true);
     setShowOnboarding(false);
-    serverFetch('/api/user/data', {
-      method: 'POST',
-      body: JSON.stringify({ payload: { hasOnboarded: true, lastSaved: new Date().toISOString() } }),
-    });
   };
 
   // ── Handlers ─────────────────────────────────────────────────────────────
