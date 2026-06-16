@@ -958,6 +958,23 @@ function getNextPrayerKey(schedules, tz = 'Asia/Jakarta') {
   return PRAYERS[0].k;
 }
 
+function getCurrentPrayerKey(schedules, tz = 'Asia/Jakarta') {
+  const now    = _tzNow(tz);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  let currentKey = null;
+  for (const p of PRAYERS) {
+    const s = schedules[p.k];
+    if (!s || s === '--:--') continue;
+    const [h, m] = s.split(':').map(Number);
+    if (h * 60 + m <= nowMin) {
+      currentKey = p.k;
+    } else {
+      break;
+    }
+  }
+  return currentKey;
+}
+
 // ── Prayer Card Row ──────────────────────────────────────────────────────────
 function PrayerRowItem({ p, status, time, sched, isNext, timeRemaining, ring, onStatus, onTime, open, onToggle }) {
   const done = !!status;
@@ -1036,12 +1053,12 @@ function PrayerBottomSheet({ pKey, onClose }) {
 }
 
 // ── Prayer Card (grid tile) ──────────────────────────────────────────────────
-function PrayerCard({ p, status, time, isNext, onStatus, onSetTime, onClick, schedules, schedLoading }) {
+function PrayerCard({ p, status, time, isNext, isCurrent, onStatus, onSetTime, onClick, schedules, schedLoading }) {
   const done = !!status;
   const sched = p.k === 'tahajud' ? p.sched : (schedules?.[p.k] || (schedLoading ? '...' : p.sched));
   return (
     <div
-      className={'prayer-card' + (done ? ' done' : '') + (status === 'qadha' ? ' qadha' : '') + (isNext ? ' next' : '')}
+      className={'prayer-card' + (done ? ' done' : '') + (status === 'qadha' ? ' qadha' : '') + (isNext ? ' next' : '') + (isCurrent ? ' current-prayer' : '')}
       onClick={() => onClick(p)}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
@@ -1068,7 +1085,12 @@ function PrayerCard({ p, status, time, isNext, onStatus, onSetTime, onClick, sch
           >{lbl}</button>
         ))}
       </div>
-      {isNext && (
+      {isCurrent && !done && (
+        <div style={{ marginTop: 8, fontSize: 9, padding: '2px 7px', borderRadius: 999, background: 'var(--ok)', color: '#fff', display: 'inline-block', letterSpacing: '.05em', fontFamily: 'var(--f-head)', fontWeight: 700 }}>
+          SEKARANG
+        </div>
+      )}
+      {isNext && !isCurrent && (
         <div style={{ marginTop: 8, fontSize: 9, padding: '2px 7px', borderRadius: 999, border: '1px solid var(--gold-line)', color: 'var(--gold)', display: 'inline-block', letterSpacing: '.05em', fontFamily: 'var(--f-head)', fontWeight: 700 }}>
           BERIKUTNYA
         </div>
@@ -1326,20 +1348,26 @@ export function DashboardPage({
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{doneCount} / 5 dicatat</span>
         </div>
         <div className="prayer-grid dm-stagger">
-          {PRAYER_CARDS.map((p) => (
-            <PrayerCard
-              key={p.k}
-              p={p}
-              status={prayers[p.k]}
-              time={times[p.k]}
-              isNext={p.k === nextK}
-              onStatus={setStatus}
-              onSetTime={(k) => setTime(k, _tzNow(timezone).toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false }))}
-              onClick={() => onPrayerCardClick && onPrayerCardClick(p)}
-              schedules={schedules}
-              schedLoading={schedLoading}
-            />
-          ))}
+          {(() => {
+            const currentK = Object.keys(schedules).length > 0
+              ? getCurrentPrayerKey(schedules, timezone)
+              : null;
+            return PRAYER_CARDS.map((p) => (
+              <PrayerCard
+                key={p.k}
+                p={p}
+                status={prayers[p.k]}
+                time={times[p.k]}
+                isNext={p.k === nextK}
+                isCurrent={p.k === currentK}
+                onStatus={setStatus}
+                onSetTime={(k) => setTime(k, _tzNow(timezone).toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false }))}
+                onClick={() => onPrayerCardClick && onPrayerCardClick(p)}
+                schedules={schedules}
+                schedLoading={schedLoading}
+              />
+            ));
+          })()}
         </div>
 
         {/* Sunnah chips */}
