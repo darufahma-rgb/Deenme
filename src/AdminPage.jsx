@@ -154,12 +154,24 @@ export function AdminPage({ onLogout }) {
 
   useEffect(() => {
     if (tab !== 'activity') return;
-    setActivityLoading(true);
-    api('/api/admin/activity')
-      .then(d => setActivityData(d.members || []))
-      .catch(() => {})
-      .finally(() => setActivityLoading(false));
-  }, [tab]);
+    const computed = codes.map(c => {
+      const u = users.find(x => x.code_id === c.id);
+      const usages = aiUsage.filter(a => a.code_id === c.id);
+      const featureCounts = {};
+      usages.forEach(a => { featureCounts[a.feature] = (featureCounts[a.feature] || 0) + 1; });
+      const sorted = [...usages].sort((a, b) => new Date(b.used_at) - new Date(a.used_at));
+      return {
+        id: c.id, code: c.code, name: c.name, is_active: c.is_active,
+        joined_at: c.created_at,
+        last_ai_used: sorted[0]?.used_at || null,
+        ai_usage_count: usages.length,
+        ai_features_used: featureCounts,
+        has_progress_data: !!u,
+        last_progress_update: u?.updated_at || null,
+      };
+    });
+    setActivityData(computed);
+  }, [tab, codes, aiUsage, users]);
 
   /* actions */
   const generateCode = async () => {
@@ -584,19 +596,19 @@ export function AdminPage({ onLogout }) {
       {!loading && tab === 'activity' && (
         <div>
           <div style={{ fontWeight: 700, fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10 }}>Aktif Hari Ini</div>
-          {users.filter(u => u.updated_at?.startsWith(today)).length === 0 && (
+          {codes.filter(c => c.last_login_at?.startsWith(today)).length === 0 && (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-3)', fontSize: 13, background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 20 }}>Belum ada yang aktif hari ini</div>
           )}
-          {users.filter(u => u.updated_at?.startsWith(today)).map(u => {
-            const c = codes.find(x => x.id === u.code_id); if (!c) return null;
+          {codes.filter(c => c.last_login_at?.startsWith(today)).map(c => {
+            const u = getUser(c.id);
             return (
-              <div key={u.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 14, boxShadow: 'var(--shadow-card)' }}>
+              <div key={c.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 14, boxShadow: 'var(--shadow-card)' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: 'var(--gold-soft)', border: '1px solid var(--gold-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: 'var(--gold)' }}>
                   {(c.name||'?')[0].toUpperCase()}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{c.name}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{fmtTime(u.updated_at)} · {getXP(u.data)} XP · Streak {getStreak(u.data)} hr</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{fmtTime(c.last_login_at)} · {getXP(u?.data)} XP · Streak {getStreak(u?.data)} hr</div>
                 </div>
                 <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13, color: 'var(--gold)' }}>{c.code}</span>
               </div>
@@ -625,19 +637,19 @@ export function AdminPage({ onLogout }) {
           )}
 
           <div style={{ fontWeight: 700, fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', margin: '20px 0 10px' }}>Ranking XP</div>
-          {[...users].sort((a,b) => getXP(b.data)-getXP(a.data)).map((u, i) => {
-            const c = codes.find(x => x.id === u.code_id); if (!c) return null;
+          {[...codes].sort((a, b) => getXP(getUser(b.id)?.data) - getXP(getUser(a.id)?.data)).map((c, i) => {
+            const u = getUser(c.id);
             return (
-              <div key={u.id} style={{ background: 'var(--surface)', border: `1px solid ${i < 3 ? 'var(--gold-line)' : 'var(--border)'}`, borderRadius: 10, padding: '10px 14px', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--shadow-card)' }}>
+              <div key={c.id} style={{ background: 'var(--surface)', border: `1px solid ${i < 3 ? 'var(--gold-line)' : 'var(--border)'}`, borderRadius: 10, padding: '10px 14px', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--shadow-card)' }}>
                 <div style={{ fontWeight: 800, fontSize: 14, width: 28, textAlign: 'center', color: i < 3 ? 'var(--gold)' : 'var(--text-3)' }}>
                   {i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: 13 }}>{c.name}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>Streak {getStreak(u.data)} hari</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>Streak {getStreak(u?.data)} hari</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--gold)', fontWeight: 800, fontSize: 14 }}>
-                  {Ic.star} {getXP(u.data).toLocaleString()}
+                  {Ic.star} {getXP(u?.data).toLocaleString()}
                 </div>
               </div>
             );
