@@ -336,6 +336,8 @@ function JournalContent({ go, codeId }) {
 }
 
 // ── Tafsir Mimpi Page ─────────────────────────────────────────────────────────
+const getTok = () => sessionStorage.getItem('dm-token') || '';
+
 function TafsirMimpiPage({ codeId }) {
   const [dreamText, setDreamText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -368,9 +370,13 @@ function TafsirMimpiPage({ codeId }) {
   useEffect(() => {
     if (!codeId) { setLoadingHistory(false); return; }
     const load = async () => {
-      const res = await fetch('/api/dreams', { headers: { 'x-session-token': sessionStorage.getItem('dm-token') } });
-      const { dreams } = await res.json();
-      setHistory(dreams);
+      try {
+        const res = await fetch('/api/dreams', { headers: { 'x-session-token': getTok() } });
+        if (res.ok) {
+          const json = await res.json();
+          setHistory(json.dreams || []);
+        }
+      } catch {}
       setLoadingHistory(false);
     };
     load();
@@ -384,10 +390,9 @@ function TafsirMimpiPage({ codeId }) {
     setSelectedHistory(null);
 
     try {
-      const token = sessionStorage.getItem('dm-token');
       const response = await fetch('/api/ai/dream', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-session-token': token },
+        headers: { 'Content-Type': 'application/json', 'x-session-token': getTok() },
         body: JSON.stringify({ text }),
       });
 
@@ -399,7 +404,7 @@ function TafsirMimpiPage({ codeId }) {
       }
       if (response.status === 429) {
         const d = await response.json();
-        setResult(`⏳ **${d.message}**`);
+        setResult(`⏳ **${d.message || 'Tafsir hanya 1x per hari. Coba lagi besok.'}**`);
         setLoading(false);
         return;
       }
@@ -409,31 +414,35 @@ function TafsirMimpiPage({ codeId }) {
 
       if (tafsir) {
         setResult(tafsir);
-        // Tandai sudah digunakan hari ini
         localStorage.setItem(limitKey, todayKey);
         if (codeId) {
-          const saveRes = await fetch('/api/dreams', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-session-token': sessionStorage.getItem('dm-token') },
-            body: JSON.stringify({ dream_text: text, tafsir_result: tafsir }),
-          });
-          const { dream: saved } = await saveRes.json();
-          if (saved) setHistory(prev => [saved, ...prev]);
+          try {
+            const saveRes = await fetch('/api/dreams', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-session-token': getTok() },
+              body: JSON.stringify({ dream_text: text, tafsir_result: tafsir }),
+            });
+            if (saveRes.ok) {
+              const { dream: saved } = await saveRes.json();
+              if (saved) setHistory(prev => [saved, ...prev]);
+            }
+          } catch {}
         }
       }
     } catch (err) {
       setResult('Terjadi kesalahan. Pastikan koneksi internet aktif dan coba lagi.');
-      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   const deleteHistory = async (id) => {
-    await fetch(`/api/dreams/${id}`, {
-      method: 'DELETE',
-      headers: { 'x-session-token': sessionStorage.getItem('dm-token') },
-    });
+    try {
+      await fetch(`/api/dreams/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-session-token': getTok() },
+      });
+    } catch {}
     setHistory(prev => prev.filter(h => h.id !== id));
     if (selectedHistory?.id === id) setSelectedHistory(null);
   };
