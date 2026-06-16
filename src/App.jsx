@@ -429,7 +429,24 @@ export default function App() {
     localStorage.setItem('deenme-user-name', newName);
   };
 
-  const onLogout = () => {
+  const onLogout = async () => {
+    // Flush any pending debounced save immediately before clearing state
+    if (codeId) {
+      try {
+        await serverFetch('/api/user/data', {
+          method: 'POST',
+          body: JSON.stringify({
+            payload: {
+              prayers, times, sunnah, bookmarks, userDoa,
+              streak, freeze, totalPoints, dailyPoints,
+              unlockedBadges, misiDone, amalanDone, qadhaDebt,
+              hasOnboarded,
+              lastSaved: new Date().toISOString(),
+            },
+          }),
+        });
+      } catch { /* best-effort, proceed with logout regardless */ }
+    }
     clearToken();
     localStorage.removeItem('deenme-code-id');
     localStorage.removeItem('deenme-user-name');
