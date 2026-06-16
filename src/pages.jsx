@@ -346,7 +346,14 @@ function TafsirMimpiPage({ codeId }) {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [noKeyToast, setNoKeyToast] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
   const textRef = useRef(null);
+
+  // ── localStorage fallback helpers ──
+  const lsKey = `deenme-dreams-${codeId}`;
+  const saveToLS = (dreams) => { try { localStorage.setItem(lsKey, JSON.stringify(dreams)); } catch {} };
+  const loadFromLS = () => { try { return JSON.parse(localStorage.getItem(lsKey) || '[]'); } catch { return []; } };
 
   // ── Daily limit — 1× per hari per user ──
   const todayKey = new Date().toLocaleDateString('id-ID', {
@@ -374,9 +381,15 @@ function TafsirMimpiPage({ codeId }) {
         const res = await fetch('/api/dreams', { headers: { 'x-session-token': getTok() } });
         if (res.ok) {
           const json = await res.json();
-          setHistory(json.dreams || []);
+          const dreams = json.dreams || [];
+          setHistory(dreams);
+          saveToLS(dreams);
+          setLoadingHistory(false);
+          return;
         }
       } catch {}
+      // Fallback: load dari localStorage jika server tidak bisa diakses
+      setHistory(loadFromLS());
       setLoadingHistory(false);
     };
     load();
@@ -416,6 +429,7 @@ function TafsirMimpiPage({ codeId }) {
         setResult(tafsir);
         localStorage.setItem(limitKey, todayKey);
         if (codeId) {
+          let saved = null;
           try {
             const saveRes = await fetch('/api/dreams', {
               method: 'POST',
@@ -423,10 +437,22 @@ function TafsirMimpiPage({ codeId }) {
               body: JSON.stringify({ dream_text: text, tafsir_result: tafsir }),
             });
             if (saveRes.ok) {
-              const { dream: saved } = await saveRes.json();
-              if (saved) setHistory(prev => [saved, ...prev]);
+              const json = await saveRes.json();
+              saved = json.dream || null;
             }
           } catch {}
+          // Kalau server gagal, simpan lokal dengan id sementara
+          const entry = saved || {
+            id: `local-${Date.now()}`,
+            dream_text: text,
+            tafsir_result: tafsir,
+            created_at: new Date().toISOString(),
+          };
+          setHistory(prev => {
+            const next = [entry, ...prev];
+            saveToLS(next);
+            return next;
+          });
         }
       }
     } catch (err) {
@@ -437,14 +463,41 @@ function TafsirMimpiPage({ codeId }) {
   };
 
   const deleteHistory = async (id) => {
-    try {
-      await fetch(`/api/dreams/${id}`, {
-        method: 'DELETE',
-        headers: { 'x-session-token': getTok() },
-      });
-    } catch {}
-    setHistory(prev => prev.filter(h => h.id !== id));
+    if (!String(id).startsWith('local-')) {
+      try {
+        await fetch(`/api/dreams/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-session-token': getTok() },
+        });
+      } catch {}
+    }
+    setHistory(prev => {
+      const next = prev.filter(h => h.id !== id);
+      saveToLS(next);
+      return next;
+    });
     if (selectedHistory?.id === id) setSelectedHistory(null);
+  };
+
+  const editHistory = async (id, newText) => {
+    const trimmed = newText.trim();
+    if (!trimmed) return;
+    if (!String(id).startsWith('local-')) {
+      try {
+        await fetch(`/api/dreams/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'x-session-token': getTok() },
+          body: JSON.stringify({ dream_text: trimmed }),
+        });
+      } catch {}
+    }
+    setHistory(prev => {
+      const next = prev.map(h => h.id === id ? { ...h, dream_text: trimmed } : h);
+      saveToLS(next);
+      return next;
+    });
+    if (selectedHistory?.id === id) setSelectedHistory(prev => ({ ...prev, dream_text: trimmed }));
+    setEditingId(null);
   };
 
   const formatDate = (iso) => new Date(iso).toLocaleDateString('id-ID', {
@@ -475,24 +528,67 @@ function TafsirMimpiPage({ codeId }) {
         ) : history.map(h => (
           <div
             key={h.id}
-            onClick={() => { setSelectedHistory(h); setResult(null); setDreamText(''); }}
             style={{
               background: selectedHistory?.id === h.id ? 'var(--gold-soft)' : 'var(--surface)',
               border: `1px solid ${selectedHistory?.id === h.id ? 'var(--gold-line)' : 'var(--border)'}`,
               borderRadius: 'var(--radius-sm)', padding: '10px 12px', marginBottom: 8,
-              cursor: 'pointer', transition: '.15s',
+              cursor: editingId === h.id ? 'default' : 'pointer', transition: '.15s',
             }}
+            onClick={() => { if (editingId !== h.id) { setSelectedHistory(h); setResult(null); setDreamText(''); } }}
           >
-            <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12.5, color: 'var(--text)', marginBottom: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-              {h.dream_text}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="muted tiny">{formatDate(h.created_at)}</span>
-              <button
-                onClick={(e) => { e.stopPropagation(); deleteHistory(h.id); }}
-                style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px' }}
-              >×</button>
-            </div>
+            {editingId === h.id ? (
+              /* ── Inline edit mode ── */
+              <div onClick={e => e.stopPropagation()}>
+                <textarea
+                  value={editText}
+                  onChange={e => setEditText(e.target.value)}
+                  autoFocus
+                  rows={4}
+                  style={{
+                    width: '100%', boxSizing: 'border-box', resize: 'vertical',
+                    fontFamily: 'var(--f-head)', fontSize: 12, color: 'var(--text)',
+                    background: 'var(--elevated)', border: '1px solid var(--gold-line)',
+                    borderRadius: 6, padding: '6px 8px', marginBottom: 6, outline: 'none',
+                  }}
+                />
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    onClick={() => editHistory(h.id, editText)}
+                    style={{ flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', background: 'var(--ok)', color: '#fff', fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 11, cursor: 'pointer' }}
+                  >Simpan</button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    style={{ flex: 1, padding: '5px 0', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-3)', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, cursor: 'pointer' }}
+                  >Batal</button>
+                </div>
+              </div>
+            ) : (
+              /* ── Normal view ── */
+              <>
+                <div style={{ fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12.5, color: 'var(--text)', marginBottom: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                  {h.dream_text}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+                  <span className="muted tiny">{formatDate(h.created_at)}</span>
+                  <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
+                    <button
+                      title="Edit cerita mimpi"
+                      onClick={() => { setEditingId(h.id); setEditText(h.dream_text); }}
+                      style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 13, lineHeight: 1, padding: '2px 3px', borderRadius: 4, transition: '.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+                    >✏️</button>
+                    <button
+                      title="Hapus"
+                      onClick={() => deleteHistory(h.id)}
+                      style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 15, lineHeight: 1, padding: '2px 3px', borderRadius: 4, transition: '.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+                    >×</button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         ))}
       </div>
@@ -539,9 +635,50 @@ function TafsirMimpiPage({ codeId }) {
               Tafsir Baru
             </button>
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 18, marginBottom: 16 }}>
-              <div className="eyebrow" style={{ marginBottom: 8 }}>Cerita Mimpi</div>
-              <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>"{selectedHistory.dream_text}"</p>
-              <div className="muted tiny" style={{ marginTop: 8 }}>{formatDate(selectedHistory.created_at)}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div className="eyebrow">Cerita Mimpi</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => { setEditingId(selectedHistory.id); setEditText(selectedHistory.dream_text); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, padding: '4px 10px' }}
+                  >✏️ Edit</button>
+                  <button
+                    onClick={() => { deleteHistory(selectedHistory.id); setSelectedHistory(null); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: 6, color: 'var(--danger)', cursor: 'pointer', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 11, padding: '4px 10px' }}
+                  >🗑 Hapus</button>
+                </div>
+              </div>
+              {editingId === selectedHistory.id ? (
+                <div>
+                  <textarea
+                    value={editText}
+                    onChange={e => setEditText(e.target.value)}
+                    autoFocus
+                    rows={5}
+                    style={{
+                      width: '100%', boxSizing: 'border-box', resize: 'vertical',
+                      fontFamily: 'var(--f-head)', fontSize: 13, color: 'var(--text)',
+                      background: 'var(--elevated)', border: '1px solid var(--gold-line)',
+                      borderRadius: 8, padding: '10px 12px', marginBottom: 10, outline: 'none', lineHeight: 1.6,
+                    }}
+                  />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => editHistory(selectedHistory.id, editText)}
+                      style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: 'var(--ok)', color: '#fff', fontFamily: 'var(--f-head)', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
+                    >Simpan Perubahan</button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      style={{ padding: '7px 18px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-3)', fontFamily: 'var(--f-head)', fontWeight: 600, fontSize: 12, cursor: 'pointer' }}
+                    >Batal</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>"{selectedHistory.dream_text}"</p>
+                  <div className="muted tiny" style={{ marginTop: 8 }}>{formatDate(selectedHistory.created_at)}</div>
+                </>
+              )}
             </div>
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
               <div className="eyebrow" style={{ marginBottom: 14 }}>Hasil Tafsir</div>

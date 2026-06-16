@@ -346,6 +346,15 @@ app.post('/api/dreams', requireAuth, async (req, res) => {
   res.json({ dream: data });
 });
 
+app.patch('/api/dreams/:id', requireAuth, async (req, res) => {
+  const { dream_text } = req.body;
+  if (!dream_text || typeof dream_text !== 'string') return res.status(400).json({ error: 'dream_text required' });
+  const { error } = await supabaseAdmin
+    .from('dream_tafsir').update({ dream_text: dream_text.trim() }).eq('id', req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
 app.delete('/api/dreams/:id', requireAuth, async (req, res) => {
   await supabaseAdmin.from('dream_tafsir').delete().eq('id', req.params.id);
   res.json({ ok: true });
