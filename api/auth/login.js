@@ -13,17 +13,21 @@ export default async function handler(req, res) {
   const { code } = req.body;
   if (!code) return res.status(400).json({ error: 'Kode tidak valid' });
   const clean = String(code).trim();
-
   if (clean === process.env.ADMIN_CODE) {
     const token = createToken({ role: 'admin', codeId: null, name: 'Admin' });
     return res.json({ token, name: 'Admin', role: 'admin', codeId: null });
   }
-
   if (!/^\d{6}$/.test(clean)) return res.status(400).json({ error: 'Format kode tidak valid' });
   const { data, error } = await supabase
     .from('member_codes').select('id, name, is_active').eq('code', clean).single();
   if (error || !data) return res.status(401).json({ error: 'Kode tidak ditemukan' });
   if (!data.is_active) return res.status(403).json({ error: 'Kode tidak aktif. Hubungi admin.' });
+
+  await supabase
+    .from('member_codes')
+    .update({ last_login_at: new Date().toISOString() })
+    .eq('id', data.id);
+
   const token = createToken({ role: 'member', codeId: data.id, name: data.name || 'Akhi' });
   return res.json({ token, name: data.name || 'Akhi', role: 'member', codeId: data.id });
 }
