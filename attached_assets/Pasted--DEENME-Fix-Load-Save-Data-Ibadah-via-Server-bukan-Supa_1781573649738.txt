@@ -1,0 +1,276 @@
+# DEENME — Fix: Load & Save Data Ibadah via Server (bukan Supabase langsung)
+
+## Masalah
+`src/App.jsx` masih pakai `supabase.from('user_data')` langsung untuk:
+1. Load data saat login → XP, streak, prayers tidak terbaca
+2. Save data saat berubah → XP, streak, prayers tidak tersimpan
+
+Anon key sudah di-REVOKE → semua gagal diam-diam (tidak ada error visible).
+
+---
+
+## Fix di `src/App.jsx`
+
+### A. Tambah helper `api` setelah semua import (baris 8-9):
+
+```js
+// ── Server fetch helper ────────────────────────────────────
+const getToken  = () => sessionStorage.getItem('dm-token') || '';
+const saveToken = (t) => sessionStorage.setItem('dm-token', t);
+const dropToken = () => sessionStorage.removeItem('dm-token');
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-session-token': getToken(),
+      ...(opts.headers || {}),
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  return res;
+}
+```
+
+### B. Ganti useEffect LOAD data
+
+Cari seluruh blok ini:
+```js
+// ── Load data from Supabase on login ────────────────────────────────────
+useEffect(() => {
+  if (!codeId) return;
+  const load = async () => {
+    const { data } = await supabase
+      .from('user_data')
+      .select('data')
+      .eq('code_id', codeId)
+      .single();
+    if (data?.data) {
+      const d = data.data;
+```
+
+Ganti seluruh useEffect load dengan:
+```js
+// ── Load data from server on login ──────────────────────────────────────
+useEffect(() => {
+  if (!codeId) return;
+  const load = async () => {
+    try {
+      const res = await api('/api/user/data');
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json.data) {
+        const d = json.data;
+        const lastDate = d.lastSaved ? new Date(d.lastSaved).toDateString() : null;
+        const today = new Date().toDateString();
+        const isNewDay = lastDate !== today;
+        if (!isNewDay) {
+          if (d.prayers)   setPrayers(d.prayers);
+          if (d.times)     setTimes(d.times);
+          if (d.sunnah)    setSunnah(d.sunnah);
+          if (d.misiDone)  setMisiDone(d.misiDone);
+          if (d.dailyPoints !== undefined) setDailyPoints(d.dailyPoints);
+        }
+        if (d.amalanDone && !isNewDay) setAmalanDone(d.amalanDone);
+        if (d.bookmarks)     setBookmarks(d.bookmarks);
+        if (d.userDoa)       setUserDoa(d.userDoa);
+        if (d.streak !== undefined)      setStreak(d.streak);
+        if (d.freeze !== undefined)      setFreeze(d.freeze);
+        if (d.totalPoints !== undefined) setTotalPoints(d.totalPoints);
+        if (d.unlockedBadges)            setUnlockedBadges(d.unlockedBadges);
+        if (d.timezone)                  setTimezone(d.timezone);
+      }
+    } catch {}
+  };
+  load();
+}, [codeId]);
+```
+
+### C. Ganti useEffect SAVE data
+
+Cari seluruh blok ini:
+```js
+// ── Save data to Supabase (debounced 2 seconds) ──────────────────────────
+useEffect(() => {
+  if (!codeId) return;
+  const timeout = setTimeout(async () => {
+    const payload = {
+      prayers, times, sunnah, bookmarks, userDoa,
+      streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone,
+      lastSaved: new Date().toISOString(),
+    };
+    await supabase
+      .from('user_data')
+      .upsert({ code_id: codeId, data: payload }, { onConflict: 'code_id' });
+  }, 2000);
+  return () => clearTimeout(timeout);
+}, [prayers, times, sunnah, bookmarks, userDoa, streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone]);
+```
+
+Ganti dengan:
+```js
+// ── Save data to server (debounced 2 seconds) ────────────────────────────
+useEffect(() => {
+  if (!codeId) return;
+  const timeout = setTimeout(async () => {
+    const payload = {
+      prayers, times, sunnah, bookmarks, userDoa,
+      streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone,
+      lastSaved: new Date().toISOString(),
+    };
+    try {
+      await api('/api/user/data', {
+        method: 'POST',
+        body: { payload },
+      });
+    } catch {}
+  }, 2000);
+  return () => clearTimeout(timeout);
+}, [prayers, times, sunnah, bookmarks, userDoa, streak, freeze, totalPoints, dailyPoints, unlockedBadges, misiDone, amalanDone]);
+```
+
+### D. Update fungsi login di `LoginPage` — simpan token setelah login
+
+Cari fungsi `submit` di `LoginPage`, bagian yang handle success login:
+```js
+onEnter(data.id, data.name, 'dashboard');
+```
+
+Sebelum baris itu, tambahkan:
+```js
+saveToken(data.token || btoa(JSON.stringify({ codeId: data.id, name: data.name, role: 'member', iat: Date.now() })));
+```
+
+**TAPI** — cek dulu apakah login di `LoginPage` sudah pakai `/api/auth/login` atau masih Supabase. Kalau masih Supabase:
+
+Cari blok login di `LoginPage`:
+```js
+const { data, error } = await supabase
+  .from('member_codes')
+  .select('id, name, is_active')
+  .eq('code', code)
+  .single();
+```
+
+Ganti seluruh fungsi submit dengan:
+```js
+const submit = async () => {
+  if (code.length < 6 || loading || locked) return;
+  setLoading(true);
+  setErr(false);
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+
+    if (res.status === 429) {
+      setLocked(true);
+      setLockTimer(900);
+      const iv = setInterval(() => setLockTimer(t => {
+        if (t <= 1) { clearInterval(iv); setLocked(false); return 0; }
+        return t - 1;
+      }), 1000);
+      setLoading(false);
+      return;
+    }
+
+    if (!res.ok) {
+      setErr(true);
+      setCode('');
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      if (newAttempts >= 5) {
+        setLocked(true);
+        let t = 60;
+        setLockTimer(t);
+        const iv = setInterval(() => {
+          t--; setLockTimer(t);
+          if (t <= 0) { clearInterval(iv); setLocked(false); setAttempts(0); }
+        }, 1000);
+      }
+      setLoading(false);
+      return;
+    }
+
+    const data = await res.json();
+    saveToken(data.token);
+    onEnter(data.codeId, data.name, data.role === 'admin' ? 'admin' : 'dashboard');
+  } catch {
+    setErr(true);
+  }
+  setLoading(false);
+};
+```
+
+### E. Update onLogout — hapus token
+
+Cari fungsi `onLogout`:
+```js
+const onLogout = () => {
+```
+
+Tambahkan `dropToken();` sebagai baris pertama di dalam fungsi:
+```js
+const onLogout = () => {
+  dropToken();
+  // ... sisanya sama
+};
+```
+
+### F. Auto-resume session dari token tersimpan
+
+Tambahkan useEffect ini setelah deklarasi state (sebelum useEffect load data):
+```js
+// ── Auto-resume dari token tersimpan ────────────────────────
+useEffect(() => {
+  const token = getToken();
+  if (!token || view !== 'landing') return;
+  api('/api/auth/me').then(async res => {
+    if (!res.ok) { dropToken(); return; }
+    const d = await res.json();
+    setCodeId(d.codeId);
+    setUserName(d.name);
+    setView(d.role === 'admin' ? 'admin' : 'dashboard');
+  }).catch(() => dropToken());
+}, []);
+```
+
+---
+
+## Juga fix di `src/pages.jsx` — JournalPage rapikan AI
+
+Cari fetch di JournalPage:
+```js
+const response = await fetch('/api/journal/enhance', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ text }),
+});
+```
+
+Ganti dengan:
+```js
+const response = await fetch('/api/ai/journal', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-session-token': sessionStorage.getItem('dm-token') || '',
+  },
+  body: JSON.stringify({ text }),
+});
+```
+
+---
+
+## File yang diubah
+- `src/App.jsx` — helper api(), load via server, save via server, login via server, logout clear token, auto-resume
+- `src/pages.jsx` — journal AI endpoint fix
+
+## Setelah implementasi, test:
+1. Login ulang → data lama harusnya terbaca (XP, streak)
+2. Centang sholat → tunggu 2 detik → refresh → data masih ada
+3. Tafsir mimpi → riwayat muncul di panel kiri

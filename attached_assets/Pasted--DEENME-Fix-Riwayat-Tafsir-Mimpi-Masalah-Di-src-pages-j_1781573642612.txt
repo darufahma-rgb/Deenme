@@ -1,0 +1,176 @@
+# DEENME — Fix Riwayat Tafsir Mimpi
+
+## Masalah
+Di `src/pages.jsx`, fungsi `TafsirMimpiPage` masih pakai Supabase langsung
+untuk load, simpan, dan hapus riwayat — semua gagal karena anon key sudah di-REVOKE.
+Plus endpoint `/api/dream/tafsir` sudah dipindah ke `/api/ai/dream`.
+
+## Fix di `src/pages.jsx`
+
+### A. Tambah helper `getToken` di atas fungsi `TafsirMimpiPage`
+
+Cari baris `export function TafsirMimpiPage` dan tambahkan SEBELUMNYA:
+```js
+const getTok = () => sessionStorage.getItem('dm-token') || '';
+```
+
+### B. Ganti useEffect load riwayat
+
+Cari:
+```js
+useEffect(() => {
+  if (!codeId) { setLoadingHistory(false); return; }
+  const load = async () => {
+    const { data } = await supabase
+      .from('dream_tafsir')
+      .select('*')
+      .eq('code_id', codeId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    setHistory(data || []);
+    setLoadingHistory(false);
+  };
+  load();
+}, [codeId]);
+```
+
+Ganti dengan:
+```js
+useEffect(() => {
+  if (!codeId) { setLoadingHistory(false); return; }
+  const load = async () => {
+    try {
+      const res = await fetch('/api/dreams', {
+        headers: { 'x-session-token': getTok() },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setHistory(json.dreams || []);
+      }
+    } catch {}
+    setLoadingHistory(false);
+  };
+  load();
+}, [codeId]);
+```
+
+### C. Ganti fungsi `tafsirkan` seluruhnya
+
+Cari:
+```js
+const tafsirkan = async () => {
+  const text = dreamText.trim();
+  if (!text || loading) return;
+  setLoading(true);
+  setResult(null);
+  setSelectedHistory(null);
+
+  try {
+    const response = await fetch('/api/dream/tafsir', {
+```
+
+Ganti seluruh fungsi `tafsirkan` dengan:
+```js
+const tafsirkan = async () => {
+  const text = dreamText.trim();
+  if (!text || loading) return;
+  setLoading(true);
+  setResult(null);
+  setSelectedHistory(null);
+
+  try {
+    const response = await fetch('/api/ai/dream', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-session-token': getTok(),
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    if (response.status === 503) {
+      setNoKeyToast(true);
+      setTimeout(() => setNoKeyToast(false), 3500);
+      setLoading(false);
+      return;
+    }
+
+    if (response.status === 429) {
+      const d = await response.json();
+      setResult(`⏳ **${d.message || 'Tafsir hanya 1x per hari. Coba lagi besok.'}**`);
+      setLoading(false);
+      return;
+    }
+
+    const data = await response.json();
+    const tafsir = data.result;
+
+    if (tafsir) {
+      setResult(tafsir);
+      // Simpan ke database via server
+      if (codeId) {
+        try {
+          const saveRes = await fetch('/api/dreams', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-session-token': getTok(),
+            },
+            body: JSON.stringify({ dream_text: text, tafsir_result: tafsir }),
+          });
+          if (saveRes.ok) {
+            const saved = await saveRes.json();
+            if (saved.dream) setHistory(prev => [saved.dream, ...prev]);
+          }
+        } catch {}
+      }
+    }
+  } catch (err) {
+    setResult('Terjadi kesalahan. Pastikan koneksi internet aktif dan coba lagi.');
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+### D. Ganti fungsi `deleteHistory`
+
+Cari:
+```js
+const deleteHistory = async (id) => {
+  await supabase.from('dream_tafsir').delete().eq('id', id);
+  setHistory(prev => prev.filter(h => h.id !== id));
+  if (selectedHistory?.id === id) setSelectedHistory(null);
+};
+```
+
+Ganti dengan:
+```js
+const deleteHistory = async (id) => {
+  try {
+    await fetch(`/api/dreams/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-session-token': getTok() },
+    });
+  } catch {}
+  setHistory(prev => prev.filter(h => h.id !== id));
+  if (selectedHistory?.id === id) setSelectedHistory(null);
+};
+```
+
+---
+
+## Pastikan juga di Vercel env vars sudah ada:
+- `SUPABASE_SERVICE_KEY` — untuk `api/dreams/index.js` bisa akses database
+- `OPENROUTER_KEY` — untuk `api/ai/dream.js` bisa hit Claude
+
+## Summary perubahan
+
+| Sebelum | Sesudah |
+|---------|---------|
+| `supabase.from('dream_tafsir').select(*)` | `fetch('/api/dreams')` |
+| `fetch('/api/dream/tafsir', ...)` | `fetch('/api/ai/dream', ...)` dengan token |
+| `supabase.from('dream_tafsir').insert(...)` | `fetch('/api/dreams', { method: 'POST', ... })` |
+| `supabase.from('dream_tafsir').delete()` | `fetch('/api/dreams/${id}', { method: 'DELETE' })` |
+
+Hanya ubah `src/pages.jsx`. Tidak ada file lain yang perlu diubah.
