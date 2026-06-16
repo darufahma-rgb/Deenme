@@ -101,6 +101,12 @@ app.post('/api/auth/login', async (req, res) => {
   if (error || !data) return res.status(401).json({ error: 'Kode tidak ditemukan' });
   if (!data.is_active) return res.status(403).json({ error: 'Kode tidak aktif. Hubungi admin.' });
 
+  // Catat waktu login terakhir
+  await supabaseAdmin
+    .from('member_codes')
+    .update({ last_login_at: new Date().toISOString() })
+    .eq('id', data.id);
+
   const token = crypto.randomBytes(32).toString('hex');
   sessions[token] = { role: 'member', codeId: data.id, name: data.name || 'Akhi', createdAt: Date.now() };
   return res.json({ token, name: data.name || 'Akhi', role: 'member', codeId: data.id });
