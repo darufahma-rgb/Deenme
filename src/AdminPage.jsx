@@ -222,7 +222,11 @@ export function AdminPage({ onLogout }) {
   /* computed */
   const filtered  = codes.filter(c => (c.name||'').toLowerCase().includes(search.toLowerCase()) || c.code.includes(search));
   const today     = new Date().toISOString().slice(0,10);
-  const activeNow = users.filter(u => u.updated_at?.startsWith(today)).length;
+  const activeNow = codes.filter(c => {
+    const loggedToday = c.last_login_at?.startsWith(today);
+    const syncedToday = users.find(u => u.code_id === c.id)?.updated_at?.startsWith(today);
+    return loggedToday || syncedToday;
+  }).length;
   const totalXP   = users.reduce((s, u) => s + getXP(u.data), 0);
   const aiToday   = aiUsage.filter(a => a.used_date === today).length;
 
@@ -596,11 +600,20 @@ export function AdminPage({ onLogout }) {
       {!loading && tab === 'activity' && (
         <div>
           <div style={{ fontWeight: 700, fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10 }}>Aktif Hari Ini</div>
-          {codes.filter(c => c.last_login_at?.startsWith(today)).length === 0 && (
+          {codes.filter(c => {
+            const loggedToday  = c.last_login_at?.startsWith(today);
+            const syncedToday  = users.find(u => u.code_id === c.id)?.updated_at?.startsWith(today);
+            return loggedToday || syncedToday;
+          }).length === 0 && (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-3)', fontSize: 13, background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 20 }}>Belum ada yang aktif hari ini</div>
           )}
-          {codes.filter(c => c.last_login_at?.startsWith(today)).map(c => {
+          {codes.filter(c => {
+            const loggedToday = c.last_login_at?.startsWith(today);
+            const syncedToday = users.find(u => u.code_id === c.id)?.updated_at?.startsWith(today);
+            return loggedToday || syncedToday;
+          }).map(c => {
             const u = getUser(c.id);
+            const lastSeen = c.last_login_at || u?.updated_at;
             return (
               <div key={c.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 14, boxShadow: 'var(--shadow-card)' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: 'var(--gold-soft)', border: '1px solid var(--gold-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: 'var(--gold)' }}>
@@ -608,7 +621,7 @@ export function AdminPage({ onLogout }) {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{c.name}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{fmtTime(c.last_login_at)} · {getXP(u?.data)} XP · Streak {getStreak(u?.data)} hr</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{fmtTime(lastSeen)} · {getXP(u?.data)} XP · Streak {getStreak(u?.data)} hr</div>
                 </div>
                 <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13, color: 'var(--gold)' }}>{c.code}</span>
               </div>
