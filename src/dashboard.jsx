@@ -1242,6 +1242,19 @@ export function DashboardPage({
     return () => clearInterval(tid);
   }, [schedules, timezone]);
 
+  // Current prayer key — updates every minute so badge berpindah otomatis
+  const [currentK, setCurrentK] = useState(() =>
+    Object.keys(schedules).length > 0 ? getCurrentPrayerKey(schedules, timezone) : null
+  );
+  useEffect(() => {
+    const update = () => {
+      setCurrentK(Object.keys(schedules).length > 0 ? getCurrentPrayerKey(schedules, timezone) : null);
+    };
+    update();
+    const tid = setInterval(update, 60000);
+    return () => clearInterval(tid);
+  }, [schedules, timezone]);
+
   // Panel shows: last prayed prayer, or next if none prayed
   const lastPrayed = [...PRAYERS].reverse().find((p) => prayers[p.k] === 'ok' || prayers[p.k] === 'late');
   const panelKey = lastPrayed?.k || nextK;
@@ -1348,26 +1361,21 @@ export function DashboardPage({
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{doneCount} / 5 dicatat</span>
         </div>
         <div className="prayer-grid dm-stagger">
-          {(() => {
-            const currentK = Object.keys(schedules).length > 0
-              ? getCurrentPrayerKey(schedules, timezone)
-              : null;
-            return PRAYER_CARDS.map((p) => (
-              <PrayerCard
-                key={p.k}
-                p={p}
-                status={prayers[p.k]}
-                time={times[p.k]}
-                isNext={p.k === nextK}
-                isCurrent={p.k === currentK}
-                onStatus={setStatus}
-                onSetTime={(k) => setTime(k, _tzNow(timezone).toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false }))}
-                onClick={() => onPrayerCardClick && onPrayerCardClick(p)}
-                schedules={schedules}
-                schedLoading={schedLoading}
-              />
-            ));
-          })()}
+          {PRAYER_CARDS.map((p) => (
+            <PrayerCard
+              key={p.k}
+              p={p}
+              status={prayers[p.k]}
+              time={times[p.k]}
+              isNext={p.k === nextK}
+              isCurrent={p.k === currentK}
+              onStatus={setStatus}
+              onSetTime={(k) => setTime(k, _tzNow(timezone).toLocaleTimeString('id-ID', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false }))}
+              onClick={() => onPrayerCardClick && onPrayerCardClick(p)}
+              schedules={schedules}
+              schedLoading={schedLoading}
+            />
+          ))}
         </div>
 
         {/* Sunnah chips */}
