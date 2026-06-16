@@ -193,6 +193,50 @@ app.delete('/api/admin/members/:id', requireAuth, requireAdmin, async (req, res)
   res.json({ ok: true });
 });
 
+app.get('/api/admin/activity', requireAuth, requireAdmin, async (req, res) => {
+  const [{ data: members, error: memberError }, { data: aiUsage, error: aiError }, { data: userData, error: udError }] = await Promise.all([
+    supabaseAdmin.from('member_codes').select('id, code, name, is_active, created_at').order('created_at', { ascending: false }),
+    supabaseAdmin.from('ai_usage').select('code_id, feature, used_date, used_at').order('used_at', { ascending: false }),
+    supabaseAdmin.from('user_data').select('code_id, updated_at'),
+  ]);
+  if (memberError) return res.status(500).json({ error: memberError.message });
+  if (aiError)     return res.status(500).json({ error: aiError.message });
+  if (udError)     return res.status(500).json({ error: udError.message });
+
+  const result = (members || []).map(m => {
+    const usages   = (aiUsage || []).filter(u => u.code_id === m.id);
+    const progress = (userData || []).find(u => u.code_id === m.id);
+    const featureCounts = {};
+    usages.forEach(u => { featureCounts[u.feature] = (featureCounts[u.feature] || 0) + 1; });
+    return {
+      id: m.id,
+      code: m.code,
+      name: m.name,
+      is_active: m.is_active,
+      joined_at: m.created_at,
+      last_ai_used: usages[0]?.used_at || null,
+      ai_usage_count: usages.length,
+      ai_features_used: featureCounts,
+      has_progress_data: !!progress,
+      last_progress_update: progress?.updated_at || null,
+    };
+  });
+
+  result.sort((a, b) => {
+    const aTime = Math.max(
+      a.last_ai_used        ? new Date(a.last_ai_used).getTime()        : 0,
+      a.last_progress_update ? new Date(a.last_progress_update).getTime() : 0
+    );
+    const bTime = Math.max(
+      b.last_ai_used        ? new Date(b.last_ai_used).getTime()        : 0,
+      b.last_progress_update ? new Date(b.last_progress_update).getTime() : 0
+    );
+    return bTime - aTime;
+  });
+
+  res.json({ members: result });
+});
+
 // ══════════════════════════════════════════════════════════════
 // AI FEATURES (1x per hari per user)
 // ══════════════════════════════════════════════════════════════

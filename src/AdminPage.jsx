@@ -122,6 +122,10 @@ export function AdminPage({ onLogout }) {
   const toastRef            = useRef(null);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
 
+  const [activityData,    setActivityData]    = useState([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityFilter,  setActivityFilter]  = useState('all');
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
@@ -147,6 +151,15 @@ export function AdminPage({ onLogout }) {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (tab !== 'activity') return;
+    setActivityLoading(true);
+    api('/api/admin/activity')
+      .then(d => setActivityData(d.members || []))
+      .catch(() => {})
+      .finally(() => setActivityLoading(false));
+  }, [tab]);
 
   /* actions */
   const generateCode = async () => {
@@ -625,6 +638,99 @@ export function AdminPage({ onLogout }) {
               </div>
             );
           })}
+
+          {/* ── AI Usage per Member ── */}
+          <div style={{ fontWeight: 700, fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.1em', margin: '28px 0 10px' }}>Penggunaan AI per Member</div>
+
+          {/* summary line */}
+          <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12 }}>
+            {activityData.length} member ·{' '}
+            {activityData.filter(m => m.ai_usage_count > 0).length} pernah pakai AI ·{' '}
+            {activityData.filter(m => m.has_progress_data).length} punya progress ibadah
+          </div>
+
+          {/* filter pills */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+            {[['all', 'Semua'], ['active', 'Punya Progress'], ['ai_users', 'Pernah Pakai AI']].map(([val, label]) => (
+              <button key={val} onClick={() => setActivityFilter(val)} style={{
+                padding: '5px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                border: activityFilter === val ? '1.5px solid var(--gold)' : '1px solid var(--border)',
+                background: activityFilter === val ? 'var(--gold-soft)' : 'transparent',
+                color: activityFilter === val ? 'var(--gold)' : 'var(--text-3)',
+                transition: 'all .15s',
+              }}>{label}</button>
+            ))}
+          </div>
+
+          {activityLoading && (
+            <div style={{ textAlign: 'center', padding: 24, color: 'var(--text-3)', fontSize: 13 }}>Memuat data AI...</div>
+          )}
+
+          {!activityLoading && activityData
+            .filter(m => {
+              if (activityFilter === 'active')   return m.has_progress_data;
+              if (activityFilter === 'ai_users') return m.ai_usage_count > 0;
+              return true;
+            })
+            .map(m => {
+              const lastActive = m.last_ai_used || m.last_progress_update;
+              const featureEntries = Object.entries(m.ai_features_used || {});
+              return (
+                <div key={m.id} style={{
+                  background: 'var(--surface)', border: '1px solid var(--border)',
+                  borderRadius: 12, padding: '12px 16px', marginBottom: 8,
+                  boxShadow: 'var(--shadow-card)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                      background: m.ai_usage_count > 0 ? 'var(--gold-soft)' : 'var(--elevated)',
+                      border: `1px solid ${m.ai_usage_count > 0 ? 'var(--gold-line)' : 'var(--border)'}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 800, fontSize: 14,
+                      color: m.ai_usage_count > 0 ? 'var(--gold)' : 'var(--text-3)',
+                    }}>
+                      {(m.name || '?')[0].toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{m.name || '—'}</span>
+                        <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-3)' }}>{m.code}</span>
+                        {!m.is_active && <Badge color="var(--danger)" bg="rgba(188,71,73,.08)">Nonaktif</Badge>}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                        {featureEntries.length === 0 ? (
+                          <span style={{ fontSize: 11, color: 'var(--text-3)' }}>Belum pakai AI</span>
+                        ) : featureEntries.map(([feat, count]) => (
+                          <span key={feat} style={{
+                            fontSize: 10, fontWeight: 700, borderRadius: 6, padding: '2px 8px',
+                            background: 'var(--elevated)', color: 'var(--text-2)',
+                            border: '1px solid var(--border)',
+                          }}>
+                            {feat === 'dream' ? '🌙' : feat === 'journal' ? '📖' : '🤲'}{' '}
+                            {feat === 'dream' ? 'Tafsir' : feat === 'journal' ? 'Jurnal' : 'Doa'} {count}x
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontWeight: 800, fontSize: 15, color: m.ai_usage_count > 0 ? 'var(--gold)' : 'var(--text-3)' }}>
+                        {m.ai_usage_count}x
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>
+                        {lastActive ? fmtTime(lastActive) : 'Belum aktif'}
+                      </div>
+                    </div>
+                  </div>
+                  {!m.has_progress_data && m.ai_usage_count === 0 && (
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+                      Bergabung {fmtDate(m.joined_at)} · Belum ada aktivitas
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          }
         </div>
       )}
 

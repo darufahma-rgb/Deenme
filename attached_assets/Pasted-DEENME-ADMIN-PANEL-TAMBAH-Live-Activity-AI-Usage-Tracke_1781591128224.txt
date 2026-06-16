@@ -1,0 +1,156 @@
+DEENME ADMIN PANEL — TAMBAH: Live Activity & AI Usage Tracker
+Buat endpoint baru api/admin/activity.js:
+javascriptimport { supabase } from '../_lib/supabase.js';
+import { requireAdmin } from '../_lib/auth.js';
+
+export default async function handler(req, res) {
+  const session = requireAdmin(req, res);
+  if (!session) return;
+
+  if (req.method !== 'GET') return res.status(405).end();
+
+  // Ambil semua member dengan info terakhir
+  const { data: members, error: memberError } = await supabase
+    .from('member_codes')
+    .select('id, code, name, is_active, created_at')
+    .order('created_at', { ascending: false });
+
+  if (memberError) return res.status(500).json({ error: memberError.message });
+
+  // Ambil semua AI usage, grouped by code_id
+  const { data: aiUsage, error: aiError } = await supabase
+    .from('ai_usage')
+    .select('code_id, feature, used_date, used_at')
+    .order('used_at', { ascending: false });
+
+  if (aiError) return res.status(500).json({ error: aiError.message });
+
+  // Ambil semua user_data (progress ibadah) untuk tau siapa yang aktif
+  const { data: userData, error: udError } = await supabase
+    .from('user_data')
+    .select('code_id, updated_at');
+
+  if (udError) return res.status(500).json({ error: udError.message });
+
+  // Gabungkan data per member
+  const result = members.map(m => {
+    const usages = aiUsage.filter(u => u.code_id === m.id);
+    const progress = userData.find(u => u.code_id === m.id);
+
+    const featureCounts = {};
+    usages.forEach(u => {
+      featureCounts[u.feature] = (featureCounts[u.feature] || 0) + 1;
+    });
+
+    return {
+      id: m.id,
+      code: m.code,
+      name: m.name,
+      is_active: m.is_active,
+      joined_at: m.created_at,
+      last_ai_used: usages[0]?.used_at || null,
+      ai_usage_count: usages.length,
+      ai_features_used: featureCounts,
+      has_progress_data: !!progress,
+      last_progress_update: progress?.updated_at || null,
+    };
+  });
+
+  // Sort by last activity (AI usage atau progress update, mana yang paling baru)
+  result.sort((a, b) => {
+    const aTime = Math.max(
+      a.last_ai_used ? new Date(a.last_ai_used).getTime() : 0,
+      a.last_progress_update ? new Date(a.last_progress_update).getTime() : 0
+    );
+    const bTime = Math.max(
+      b.last_ai_used ? new Date(b.last_ai_used).getTime() : 0,
+      b.last_progress_update ? new Date(b.last_progress_update).getTime() : 0
+    );
+    return bTime - aTime;
+  });
+
+  return res.json({ members: result });
+}
+Lalu buat halaman baru src/pages/AdminActivity.jsx untuk menampilkan data ini sebagai tabel:
+jsximport { useState, useEffect } from 'react';
+
+export default function AdminActivity() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all'); // all, active, ai_users
+
+  useEffect(() => {
+    const token = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
+    fetch('/api/admin/activity', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(res => { setData(res.members || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filtered = data.filter(m => {
+    if (filter === 'active') return m.has_progress_data;
+    if (filter === 'ai_users') return m.ai_usage_count > 0;
+    return true;
+  });
+
+  const formatDate = (iso) => {
+    if (!iso) return '-';
+    return new Date(iso).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+  };
+
+  if (loading) return <div style={{ padding: 40 }}>Loading...</div>;
+
+  return (
+    <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Live Activity</h1>
+      <p style={{ color: '#888', marginBottom: 20 }}>
+        {data.length} member · {data.filter(m => m.ai_usage_count > 0).length} pernah pakai AI · {data.filter(m => m.has_progress_data).length} punya progress ibadah
+      </p>
+
+      <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+        <button onClick={() => setFilter('all')} style={{ padding: '6px 14px', borderRadius: 8, border: filter === 'all' ? '2px solid #4ade80' : '1px solid #ccc', background: 'transparent', cursor: 'pointer' }}>Semua</button>
+        <button onClick={() => setFilter('active')} style={{ padding: '6px 14px', borderRadius: 8, border: filter === 'active' ? '2px solid #4ade80' : '1px solid #ccc', background: 'transparent', cursor: 'pointer' }}>Punya Progress</button>
+        <button onClick={() => setFilter('ai_users')} style={{ padding: '6px 14px', borderRadius: 8, border: filter === 'ai_users' ? '2px solid #4ade80' : '1px solid #ccc', background: 'transparent', cursor: 'pointer' }}>Pernah Pakai AI</button>
+      </div>
+
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <thead>
+          <tr style={{ textAlign: 'left', borderBottom: '2px solid #ddd' }}>
+            <th style={{ padding: 8 }}>Nama</th>
+            <th style={{ padding: 8 }}>Kode</th>
+            <th style={{ padding: 8 }}>AI Dipakai</th>
+            <th style={{ padding: 8 }}>Fitur AI</th>
+            <th style={{ padding: 8 }}>Progress Ibadah</th>
+            <th style={{ padding: 8 }}>Terakhir Aktif</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map(m => (
+            <tr key={m.id} style={{ borderBottom: '1px solid #eee' }}>
+              <td style={{ padding: 8 }}>{m.name}</td>
+              <td style={{ padding: 8, fontFamily: 'monospace' }}>{m.code}</td>
+              <td style={{ padding: 8 }}>{m.ai_usage_count}x</td>
+              <td style={{ padding: 8 }}>
+                {Object.entries(m.ai_features_used).map(([f, c]) => (
+                  <span key={f} style={{ marginRight: 8, fontSize: 12, background: '#f0f0f0', padding: '2px 8px', borderRadius: 6 }}>
+                    {f}: {c}
+                  </span>
+                ))}
+              </td>
+              <td style={{ padding: 8 }}>{m.has_progress_data ? '✅ Ada' : '— Belum'}</td>
+              <td style={{ padding: 8 }}>{formatDate(m.last_ai_used || m.last_progress_update)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+Tambahkan route untuk halaman ini di router utama (cari file routing, biasanya App.jsx atau main.jsx), path /admin/activity, dan tambahkan link navigasi ke halaman ini di Admin Panel sidebar yang sudah ada (sejajar dengan menu "Member", "Generate", "Aktivitas", "Tafsir").
+Cek dulu file _lib/auth.js apakah fungsi requireAdmin sudah ada — kalau belum ada, gunakan pattern yang sama dengan requireAuth tapi return null/401 kalau session.role !== 'admin'.
+IMPORTANT:
+
+Jangan tampilkan isi tafsir mimpi member di halaman ini — cuma tampilkan COUNT pemakaian fitur "dream", bukan konten mimpinya
+Do not touch other admin pages
