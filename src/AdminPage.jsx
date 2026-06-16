@@ -823,13 +823,13 @@ export function AdminPage({ onLogout }) {
       )}
 
       {isMobile ? (
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
           {MobileHeader()}
           {Content()}
           {BottomNav()}
         </div>
       ) : (
-        <div style={{ display: 'flex', minHeight: '100dvh' }}>
+        <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden' }}>
           {Sidebar()}
           {Content()}
         </div>
