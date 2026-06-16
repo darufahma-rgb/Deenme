@@ -824,14 +824,14 @@ export function AdminPage({ onLogout }) {
 
       {isMobile ? (
         <div>
-          <MobileHeader />
-          <Content />
-          <BottomNav />
+          {MobileHeader()}
+          {Content()}
+          {BottomNav()}
         </div>
       ) : (
         <div style={{ display: 'flex', minHeight: '100dvh' }}>
-          <Sidebar />
-          <Content />
+          {Sidebar()}
+          {Content()}
         </div>
       )}
     </div>
