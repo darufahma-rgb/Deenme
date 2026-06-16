@@ -1,0 +1,42 @@
+DEENME — FIX: Admin login pakai ADMIN_CODE environment variable
+Edit file api/auth/login.js. Replace bagian yang cek kode 12 karakter via tabel admin_codes, ganti dengan cek process.env.ADMIN_CODE.
+Full file baru:
+javascriptimport { supabase } from '../_lib/supabase.js';
+import { createToken } from '../_lib/session.js';
+const attempts = {};
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+  const now = Date.now();
+  attempts[ip] = (attempts[ip] || []).filter(t => now - t < 15 * 60 * 1000);
+  if (attempts[ip].length >= 10) {
+    return res.status(429).json({ error: 'rate_limit', message: 'Terlalu banyak percobaan. Tunggu 15 menit.' });
+  }
+  attempts[ip].push(now);
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Kode tidak valid' });
+  const clean = String(code).trim();
+
+  if (clean === process.env.ADMIN_CODE) {
+    const token = createToken({ role: 'admin', codeId: null, name: 'Admin' });
+    return res.json({ token, name: 'Admin', role: 'admin', codeId: null });
+  }
+
+  if (!/^\d{6}$/.test(clean)) return res.status(400).json({ error: 'Format kode tidak valid' });
+  const { data, error } = await supabase
+    .from('member_codes').select('id, name, is_active').eq('code', clean).single();
+  if (error || !data) return res.status(401).json({ error: 'Kode tidak ditemukan' });
+  if (!data.is_active) return res.status(403).json({ error: 'Kode tidak aktif. Hubungi admin.' });
+  const token = createToken({ role: 'member', codeId: data.id, name: data.name || 'Akhi' });
+  return res.json({ token, name: data.name || 'Akhi', role: 'member', codeId: data.id });
+}
+IMPORTANT: Do not touch anything else.
+
+
+Setelah itu, pastikan ADMIN_CODE sudah diset di Replit Secrets (bukan cuma Vercel, karena Replit dan Vercel punya environment terpisah):
+
+Buka Replit Deenme → Secrets
+Tambah key ADMIN_CODE dengan value kode admin yang lo mau (misal 12 karakter unik)
+Pastikan juga sudah ada di Vercel → Settings → Environment Variables
+
+Setelah deploy ulang, coba login pakai kode itu bro.
