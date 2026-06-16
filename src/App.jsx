@@ -221,17 +221,33 @@ function LoginPage({ onEnter }) {
         <div className="ar" style={{ fontSize: 22, marginTop: 2 }}>مَرْحَبًا بِعَوْدَتِكَ</div>
         <div className="muted tiny" style={{ marginBottom: 8 }}>Welcome back</div>
         <div style={{ position: 'relative', margin: '6px 0' }}>
-          <div className={'pin' + (err ? ' pinerr' : '')}>
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className={'pincell' + (i < code.length ? ' fill' : '') + (i === code.length && !loading ? ' active' : '')}>
-                {i < code.length ? '•' : ''}
+          {code.length <= 6 ? (
+            <>
+              <div className={'pin' + (err ? ' pinerr' : '')}>
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className={'pincell' + (i < code.length ? ' fill' : '') + (i === code.length && !loading ? ' active' : '')}>
+                    {i < code.length ? '•' : ''}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <input ref={inputRef} value={code} inputMode="numeric" maxLength={12}
-            onChange={(e) => { setErr(false); setCode(e.target.value.replace(/\D/g, '').slice(0, 12)); }}
-            onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
-            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'text' }} aria-label="Kode member" />
+              <input ref={inputRef} value={code} inputMode="numeric" maxLength={32}
+                onChange={(e) => { setErr(false); setCode(e.target.value.slice(0, 32)); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+                style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'text' }} aria-label="Kode" />
+            </>
+          ) : (
+            <input ref={inputRef} value={code} maxLength={32}
+              onChange={(e) => { setErr(false); setCode(e.target.value.slice(0, 32)); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                background: 'var(--surface)', border: `1.5px solid ${err ? 'var(--danger)' : 'var(--border)'}`,
+                borderRadius: 10, padding: '11px 14px', fontSize: 15,
+                color: 'var(--text)', fontFamily: 'monospace', letterSpacing: '0.1em',
+                outline: 'none',
+              }}
+              aria-label="Kode" autoFocus />
+          )}
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 6 }}>Masukkan kode member · 6 digit</div>
         {err && (
